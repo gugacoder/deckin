@@ -4,4 +4,11 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\paket-files\keepingcode\framework\src\Toolset\Toolset.Sequel\Toolset.Sequel.csproj" />
+    <ProjectReference Include="..\..\paket-files\keepingcode\framework\src\Toolset\Toolset.Serialization\Toolset.Serialization.csproj" />
+    <ProjectReference Include="..\..\paket-files\keepingcode\framework\src\Toolset\Toolset.Text.Template\Toolset.Text.Template.csproj" />
+    <ProjectReference Include="..\..\paket-files\keepingcode\framework\src\Toolset\Toolset\Toolset.csproj" />
+  </ItemGroup>
+
 </Project>
