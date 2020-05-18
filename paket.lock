@@ -1,5 +1,0 @@
-STORAGE: NONE
-RESTRICTION: || (== netcoreapp3.1) (== netstandard2.0) (== netstandard2.1)
-GITHUB
-  remote: keepingcode/framework
-    FULLPROJECT (f5c55549c8a00320c6e1913c7ad2890e7bd72248)
