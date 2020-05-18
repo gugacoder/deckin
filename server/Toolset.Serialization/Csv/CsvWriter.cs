@@ -1,0 +1,159 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using Toolset.Serialization.Transformations;
+
+namespace Toolset.Serialization.Csv
+{
+  public class CsvWriter : Writer
+  {
+    private Writer writer;
+    private bool keepOpen;
+
+    #region Construtores ...
+
+    #region Construtores TextWriter ...
+
+    public CsvWriter(TextWriter textWriter)
+      : base(TextCase.KeepOriginal)
+    {
+      Initialize(textWriter, true);
+    }
+
+    public CsvWriter(TextWriter textWriter, Func<string, bool> fieldFilter)
+      : base(TextCase.KeepOriginal)
+    {
+      Initialize(textWriter, true, fieldFilter);
+    }
+
+    public CsvWriter(TextWriter textWriter, string[] fields)
+      : base(TextCase.KeepOriginal)
+    {
+      Initialize(textWriter, true, fields);
+    }
+
+    public CsvWriter(TextWriter textWriter, SerializationSettings settings)
+      : base(settings, TextCase.KeepOriginal)
+    {
+      Initialize(textWriter, true);
+    }
+
+    public CsvWriter(TextWriter textWriter, SerializationSettings settings, Func<string, bool> fieldFilter)
+      : base(settings, TextCase.KeepOriginal)
+    {
+      Initialize(textWriter, true, fieldFilter);
+    }
+
+    public CsvWriter(TextWriter textWriter, SerializationSettings settings, string[] fields)
+      : base(settings, TextCase.KeepOriginal)
+    {
+      Initialize(textWriter, true, fields);
+    }
+
+    #endregion
+
+    #region Construtores Stream ...
+
+    public CsvWriter(Stream textStream)
+      : base(TextCase.KeepOriginal)
+    {
+      var writer = new StreamWriter(textStream, Encoding.UTF8, 1024, true);
+      Initialize(writer, true);
+    }
+
+    public CsvWriter(Stream textStream, Func<string, bool> fieldFilter)
+      : base(TextCase.KeepOriginal)
+    {
+      var writer = new StreamWriter(textStream, Encoding.UTF8, 1024, true);
+      Initialize(writer, true, fieldFilter);
+    }
+
+    public CsvWriter(Stream textStream, string[] fields)
+      : base(TextCase.KeepOriginal)
+    {
+      var writer = new StreamWriter(textStream, Encoding.UTF8, 1024, true);
+      Initialize(writer, true, fields);
+    }
+
+    public CsvWriter(Stream textStream, SerializationSettings settings)
+      : base(settings, TextCase.KeepOriginal)
+    {
+      var writer = new StreamWriter(textStream, settings.Encoding, 1024, true);
+      Initialize(writer, true);
+    }
+
+    public CsvWriter(Stream textStream, SerializationSettings settings, Func<string, bool> fieldFilter)
+      : base(settings, TextCase.KeepOriginal)
+    {
+      var writer = new StreamWriter(textStream, settings.Encoding, 1024, true);
+      Initialize(writer, true, fieldFilter);
+    }
+
+    public CsvWriter(Stream textStream, SerializationSettings settings, string[] fields)
+      : base(settings, TextCase.KeepOriginal)
+    {
+      var writer = new StreamWriter(textStream, settings.Encoding, 1024, true);
+      Initialize(writer, true, fields);
+    }
+
+    #endregion
+
+    #endregion
+
+    private void Initialize(TextWriter textWriter, bool keepOpen)
+    {
+      var basicCsvWriter = new BasicCsvWriter(textWriter, base.Settings);
+      this.writer = new FlatMatrixWriter(basicCsvWriter, base.Settings);
+      this.keepOpen = keepOpen;
+    }
+
+    private void Initialize(TextWriter textWriter, bool keepOpen, Func<string, bool> fieldFilter)
+    {
+      var basicCsvWriter = new BasicCsvWriter(textWriter, base.Settings);
+      this.writer = new FlatMatrixWriter(basicCsvWriter, base.Settings, fieldFilter);
+      this.keepOpen = keepOpen;
+    }
+
+    private void Initialize(TextWriter textWriter, bool keepOpen, string[] fields)
+    {
+      var basicCsvWriter = new BasicCsvWriter(textWriter, base.Settings);
+      this.writer = new FlatMatrixWriter(basicCsvWriter, base.Settings, fields);
+      this.keepOpen = keepOpen;
+    }
+
+    protected override void DoWrite(Node node)
+    {
+      writer.Write(node);
+    }
+
+    protected override void DoWriteComplete()
+    {
+      writer.WriteComplete();
+    }
+
+    protected override void DoFlush()
+    {
+      writer.Flush();
+    }
+
+    protected override void DoClose()
+    {
+      writer.Close();
+    }
+
+    public override void Dispose()
+    {
+      base.Dispose();
+      if (writer != null)
+      {
+        writer.Flush();
+        if (!keepOpen)
+        {
+          writer.Dispose();
+        }
+      }
+    }
+  }
+}
