@@ -21,12 +21,14 @@ namespace Keep.Tools.Sequel.Runner
     {
       var isValueType = (column != null) &&
           (type.IsValueType || type == typeof(string) || Is.Nullable(type));
-      return isValueType ? CastToValue(reader, type) : CastToGraph(reader, type);
+      return isValueType
+          ? CastToValue(reader, type, column ?? 0)
+          : CastToGraph(reader, type);
     }
 
-    private static object CastToValue(IDataReader reader, Type type)
+    private static object CastToValue(IDataReader reader, Type type, int column)
     {
-      var value = reader.GetValue(0);
+      var value = reader.GetValue(column);
       var castValue = Change.To(value, type);
       return castValue;
     }

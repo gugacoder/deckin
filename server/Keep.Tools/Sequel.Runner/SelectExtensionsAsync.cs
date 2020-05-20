@@ -6,14 +6,15 @@ using System.Data.Common;
 using System.Dynamic;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Keep.Tools.Sequel.Runner
 {
-  public static class SelectExtensions
+  public static class SelectAsyncAsyncExtensions
   {
-    #region Select (Type)
+    #region SelectAsync (Type)
 
-    public static T[] Select<T>(this SqlBuilder sqlBuilder,
+    public static async Task<T[]> SelectAsync<T>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -24,17 +25,17 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<T>(
+      using var result = await TransformReaderAsync<T>.CreateAsync(
         () => cm,
         reader => Caster.CastTo<T>(reader)
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static object[] Select(this SqlBuilder sqlBuilder, Type type,
+    public static async Task<object[]> SelectAsync(this SqlBuilder sqlBuilder, Type type,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -45,17 +46,17 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<object>(
+      using var result = await TransformReaderAsync<object>.CreateAsync(
         () => cm,
         reader => Caster.CastTo(reader, type)
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static Ret<T[]> TrySelect<T>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<T[]>> TrySelectAsync<T>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -64,7 +65,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select<T>(sqlBuilder, cn, tx,
+        var result = await SelectAsync<T>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -74,7 +75,7 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<object[]> TrySelect(this SqlBuilder sqlBuilder, Type type,
+    public static async Task<Ret<object[]>> TrySelectAsync(this SqlBuilder sqlBuilder, Type type,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -83,7 +84,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select(sqlBuilder, type, cn, tx,
+        var result = await SelectAsync(sqlBuilder, type, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -95,9 +96,9 @@ namespace Keep.Tools.Sequel.Runner
 
     #endregion
 
-    #region SelectOne (Type)
+    #region SelectOneAsync (Type)
 
-    public static T SelectOne<T>(this SqlBuilder sqlBuilder,
+    public static async Task<T> SelectOneAsync<T>(this SqlBuilder sqlBuilder,
       DbConnection cn, T defaultValue = default, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -108,17 +109,17 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<T>(
+      using var result = await TransformReaderAsync<T>.CreateAsync(
         () => cm,
         reader => Caster.CastTo<T>(reader)
       );
 
-      return result.Read() ? result.Current : defaultValue;
+      return await result.ReadAsync() ? result.Current : defaultValue;
     }
 
-    public static object SelectOne(this SqlBuilder sqlBuilder, Type type,
+    public static async Task<object> SelectOneAsync(this SqlBuilder sqlBuilder, Type type,
       DbConnection cn, object defaultValue = null, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -129,17 +130,17 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<object>(
+      using var result = await TransformReaderAsync<object>.CreateAsync(
         () => cm,
         reader => Caster.CastTo(reader, type)
       );
 
-      return result.Read() ? result.Current : defaultValue;
+      return await result.ReadAsync() ? result.Current : defaultValue;
     }
 
-    public static Ret<T> TrySelectOne<T>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<T>> TrySelectOneAsync<T>(this SqlBuilder sqlBuilder,
       DbConnection cn, T defaultValue = default, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -148,7 +149,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne<T>(sqlBuilder, cn, defaultValue, tx,
+        var result = await SelectOneAsync<T>(sqlBuilder, cn, defaultValue, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -158,7 +159,7 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<object> TrySelectOne(this SqlBuilder sqlBuilder, Type type,
+    public static async Task<Ret<object>> TrySelectOneAsync(this SqlBuilder sqlBuilder, Type type,
       DbConnection cn, object defaultValue = null, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -167,7 +168,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne(sqlBuilder, type, cn, defaultValue, tx,
+        var result = await SelectOneAsync(sqlBuilder, type, cn, defaultValue, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -179,10 +180,10 @@ namespace Keep.Tools.Sequel.Runner
 
     #endregion
 
-    #region Select (Tuple)
+    #region SelectAsync (Tuple)
 
-    public static Tuple<T1, T2>[]
-      Select<T1, T2>(this SqlBuilder sqlBuilder,
+    public static async Task<Tuple<T1, T2>[]>
+      SelectAsync<T1, T2>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -193,9 +194,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<Tuple<T1, T2>>(
+      using var result = await TransformReaderAsync<Tuple<T1, T2>>.CreateAsync(
         () => cm,
         reader => Tuple.Create(
           Caster.CastTo<T1>(reader, 0),
@@ -203,11 +204,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static Tuple<T1, T2, T3>[]
-      Select<T1, T2, T3>(this SqlBuilder sqlBuilder,
+    public static async Task<Tuple<T1, T2, T3>[]>
+      SelectAsync<T1, T2, T3>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -218,9 +219,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<Tuple<T1, T2, T3>>(
+      using var result = await TransformReaderAsync<Tuple<T1, T2, T3>>.CreateAsync(
         () => cm,
         reader => Tuple.Create(
           Caster.CastTo<T1>(reader, 0),
@@ -229,11 +230,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static Tuple<T1, T2, T3, T4>[]
-      Select<T1, T2, T3, T4>(this SqlBuilder sqlBuilder,
+    public static async Task<Tuple<T1, T2, T3, T4>[]>
+      SelectAsync<T1, T2, T3, T4>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -244,9 +245,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<Tuple<T1, T2, T3, T4>>(
+      using var result = await TransformReaderAsync<Tuple<T1, T2, T3, T4>>.CreateAsync(
         () => cm,
         reader => Tuple.Create(
           Caster.CastTo<T1>(reader, 0),
@@ -256,11 +257,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static Tuple<T1, T2, T3, T4, T5>[]
-      Select<T1, T2, T3, T4, T5>(this SqlBuilder sqlBuilder,
+    public static async Task<Tuple<T1, T2, T3, T4, T5>[]>
+      SelectAsync<T1, T2, T3, T4, T5>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -271,9 +272,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<Tuple<T1, T2, T3, T4, T5>>(
+      using var result = await TransformReaderAsync<Tuple<T1, T2, T3, T4, T5>>.CreateAsync(
         () => cm,
         reader => Tuple.Create(
           Caster.CastTo<T1>(reader, 0),
@@ -284,11 +285,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static Tuple<T1, T2, T3, T4, T5, T6>[]
-      Select<T1, T2, T3, T4, T5, T6>(this SqlBuilder sqlBuilder,
+    public static async Task<Tuple<T1, T2, T3, T4, T5, T6>[]>
+      SelectAsync<T1, T2, T3, T4, T5, T6>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -299,9 +300,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<Tuple<T1, T2, T3, T4, T5, T6>>(
+      using var result = await TransformReaderAsync<Tuple<T1, T2, T3, T4, T5, T6>>.CreateAsync(
         () => cm,
         reader => Tuple.Create(
           Caster.CastTo<T1>(reader, 0),
@@ -313,11 +314,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static Tuple<T1, T2, T3, T4, T5, T6, T7>[]
-      Select<T1, T2, T3, T4, T5, T6, T7>(this SqlBuilder sqlBuilder,
+    public static async Task<Tuple<T1, T2, T3, T4, T5, T6, T7>[]>
+      SelectAsync<T1, T2, T3, T4, T5, T6, T7>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -328,9 +329,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<Tuple<T1, T2, T3, T4, T5, T6, T7>>(
+      using var result = await TransformReaderAsync<Tuple<T1, T2, T3, T4, T5, T6, T7>>.CreateAsync(
         () => cm,
         reader => Tuple.Create(
           Caster.CastTo<T1>(reader, 0),
@@ -343,11 +344,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static Ret<Tuple<T1, T2>[]>
-      TrySelect<T1, T2>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<Tuple<T1, T2>[]>>
+      TrySelectAsync<T1, T2>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -356,7 +357,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select<T1, T2>(sqlBuilder, cn, tx,
+        var result = await SelectAsync<T1, T2>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -366,8 +367,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<Tuple<T1, T2, T3>[]>
-      TrySelect<T1, T2, T3>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<Tuple<T1, T2, T3>[]>>
+      TrySelectAsync<T1, T2, T3>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -376,7 +377,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select<T1, T2, T3>(sqlBuilder, cn, tx,
+        var result = await SelectAsync<T1, T2, T3>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -386,8 +387,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<Tuple<T1, T2, T3, T4>[]>
-      TrySelect<T1, T2, T3, T4>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<Tuple<T1, T2, T3, T4>[]>>
+      TrySelectAsync<T1, T2, T3, T4>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -396,7 +397,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select<T1, T2, T3, T4>(sqlBuilder, cn, tx,
+        var result = await SelectAsync<T1, T2, T3, T4>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -406,8 +407,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<Tuple<T1, T2, T3, T4, T5>[]>
-      TrySelect<T1, T2, T3, T4, T5>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<Tuple<T1, T2, T3, T4, T5>[]>>
+      TrySelectAsync<T1, T2, T3, T4, T5>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -416,7 +417,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select<T1, T2, T3, T4, T5>(sqlBuilder, cn, tx,
+        var result = await SelectAsync<T1, T2, T3, T4, T5>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -426,8 +427,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<Tuple<T1, T2, T3, T4, T5, T6>[]>
-      TrySelect<T1, T2, T3, T4, T5, T6>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<Tuple<T1, T2, T3, T4, T5, T6>[]>>
+      TrySelectAsync<T1, T2, T3, T4, T5, T6>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -436,7 +437,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select<T1, T2, T3, T4, T5, T6>(sqlBuilder, cn, tx,
+        var result = await SelectAsync<T1, T2, T3, T4, T5, T6>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -446,8 +447,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<Tuple<T1, T2, T3, T4, T5, T6, T7>[]>
-      TrySelect<T1, T2, T3, T4, T5, T6, T7>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<Tuple<T1, T2, T3, T4, T5, T6, T7>[]>>
+      TrySelectAsync<T1, T2, T3, T4, T5, T6, T7>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -456,7 +457,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select<T1, T2, T3, T4, T5, T6, T7>(sqlBuilder, cn, tx,
+        var result = await SelectAsync<T1, T2, T3, T4, T5, T6, T7>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -468,10 +469,10 @@ namespace Keep.Tools.Sequel.Runner
 
     #endregion
 
-    #region SelectOne (Tuple)
+    #region SelectOneAsync (Tuple)
 
-    public static Tuple<T1, T2>
-      SelectOne<T1, T2>(this SqlBuilder sqlBuilder,
+    public static async Task<Tuple<T1, T2>>
+      SelectOneAsync<T1, T2>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -482,9 +483,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<Tuple<T1, T2>>(
+      using var result = await TransformReaderAsync<Tuple<T1, T2>>.CreateAsync(
         () => cm,
         reader => Tuple.Create(
           Caster.CastTo<T1>(reader, 0),
@@ -492,11 +493,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.Read() ? result.Current : null;
+      return await result.ReadAsync() ? result.Current : null;
     }
 
-    public static Tuple<T1, T2, T3>
-      SelectOne<T1, T2, T3>(this SqlBuilder sqlBuilder,
+    public static async Task<Tuple<T1, T2, T3>>
+      SelectOneAsync<T1, T2, T3>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -507,9 +508,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<Tuple<T1, T2, T3>>(
+      using var result = await TransformReaderAsync<Tuple<T1, T2, T3>>.CreateAsync(
         () => cm,
         reader => Tuple.Create(
           Caster.CastTo<T1>(reader, 0),
@@ -518,11 +519,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.Read() ? result.Current : null;
+      return await result.ReadAsync() ? result.Current : null;
     }
 
-    public static Tuple<T1, T2, T3, T4>
-      SelectOne<T1, T2, T3, T4>(this SqlBuilder sqlBuilder,
+    public static async Task<Tuple<T1, T2, T3, T4>>
+      SelectOneAsync<T1, T2, T3, T4>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -533,9 +534,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<Tuple<T1, T2, T3, T4>>(
+      using var result = await TransformReaderAsync<Tuple<T1, T2, T3, T4>>.CreateAsync(
         () => cm,
         reader => Tuple.Create(
           Caster.CastTo<T1>(reader, 0),
@@ -545,11 +546,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.Read() ? result.Current : null;
+      return await result.ReadAsync() ? result.Current : null;
     }
 
-    public static Tuple<T1, T2, T3, T4, T5>
-      SelectOne<T1, T2, T3, T4, T5>(this SqlBuilder sqlBuilder,
+    public static async Task<Tuple<T1, T2, T3, T4, T5>>
+      SelectOneAsync<T1, T2, T3, T4, T5>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -560,9 +561,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<Tuple<T1, T2, T3, T4, T5>>(
+      using var result = await TransformReaderAsync<Tuple<T1, T2, T3, T4, T5>>.CreateAsync(
         () => cm,
         reader => Tuple.Create(
           Caster.CastTo<T1>(reader, 0),
@@ -573,11 +574,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.Read() ? result.Current : null;
+      return await result.ReadAsync() ? result.Current : null;
     }
 
-    public static Tuple<T1, T2, T3, T4, T5, T6>
-      SelectOne<T1, T2, T3, T4, T5, T6>(this SqlBuilder sqlBuilder,
+    public static async Task<Tuple<T1, T2, T3, T4, T5, T6>>
+      SelectOneAsync<T1, T2, T3, T4, T5, T6>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -588,9 +589,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<Tuple<T1, T2, T3, T4, T5, T6>>(
+      using var result = await TransformReaderAsync<Tuple<T1, T2, T3, T4, T5, T6>>.CreateAsync(
         () => cm,
         reader => Tuple.Create(
           Caster.CastTo<T1>(reader, 0),
@@ -602,11 +603,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.Read() ? result.Current : null;
+      return await result.ReadAsync() ? result.Current : null;
     }
 
-    public static Tuple<T1, T2, T3, T4, T5, T6, T7>
-      SelectOne<T1, T2, T3, T4, T5, T6, T7>(this SqlBuilder sqlBuilder,
+    public static async Task<Tuple<T1, T2, T3, T4, T5, T6, T7>>
+      SelectOneAsync<T1, T2, T3, T4, T5, T6, T7>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -617,9 +618,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<Tuple<T1, T2, T3, T4, T5, T6, T7>>(
+      using var result = await TransformReaderAsync<Tuple<T1, T2, T3, T4, T5, T6, T7>>.CreateAsync(
         () => cm,
         reader => Tuple.Create(
           Caster.CastTo<T1>(reader, 0),
@@ -632,11 +633,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.Read() ? result.Current : null;
+      return await result.ReadAsync() ? result.Current : null;
     }
 
-    public static Ret<Tuple<T1, T2>>
-      TrySelectOne<T1, T2>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<Tuple<T1, T2>>>
+      TrySelectOneAsync<T1, T2>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -645,7 +646,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne<T1, T2>(sqlBuilder, cn, tx,
+        var result = await SelectOneAsync<T1, T2>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -655,8 +656,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<Tuple<T1, T2, T3>>
-      TrySelectOne<T1, T2, T3>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<Tuple<T1, T2, T3>>>
+      TrySelectOneAsync<T1, T2, T3>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -665,7 +666,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne<T1, T2, T3>(sqlBuilder, cn, tx,
+        var result = await SelectOneAsync<T1, T2, T3>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -675,8 +676,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<Tuple<T1, T2, T3, T4>>
-      TrySelectOne<T1, T2, T3, T4>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<Tuple<T1, T2, T3, T4>>>
+      TrySelectOneAsync<T1, T2, T3, T4>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -685,7 +686,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne<T1, T2, T3, T4>(sqlBuilder, cn, tx,
+        var result = await SelectOneAsync<T1, T2, T3, T4>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -695,8 +696,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<Tuple<T1, T2, T3, T4, T5>>
-      TrySelectOne<T1, T2, T3, T4, T5>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<Tuple<T1, T2, T3, T4, T5>>>
+      TrySelectOneAsync<T1, T2, T3, T4, T5>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -705,7 +706,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne<T1, T2, T3, T4, T5>(sqlBuilder, cn, tx,
+        var result = await SelectOneAsync<T1, T2, T3, T4, T5>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -715,8 +716,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<Tuple<T1, T2, T3, T4, T5, T6>>
-      TrySelectOne<T1, T2, T3, T4, T5, T6>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<Tuple<T1, T2, T3, T4, T5, T6>>>
+      TrySelectOneAsync<T1, T2, T3, T4, T5, T6>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -725,7 +726,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne<T1, T2, T3, T4, T5, T6>(sqlBuilder, cn, tx,
+        var result = await SelectOneAsync<T1, T2, T3, T4, T5, T6>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -735,8 +736,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<Tuple<T1, T2, T3, T4, T5, T6, T7>>
-      TrySelectOne<T1, T2, T3, T4, T5, T6, T7>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<Tuple<T1, T2, T3, T4, T5, T6, T7>>>
+      TrySelectOneAsync<T1, T2, T3, T4, T5, T6, T7>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -745,7 +746,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne<T1, T2, T3, T4, T5, T6, T7>(sqlBuilder, cn, tx,
+        var result = await SelectOneAsync<T1, T2, T3, T4, T5, T6, T7>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -757,10 +758,10 @@ namespace Keep.Tools.Sequel.Runner
 
     #endregion
 
-    #region Select (Caster)
+    #region SelectAsync (Caster)
 
-    public static TResult[]
-      Select<T1, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult[]>
+      SelectAsync<T1, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, TResult> caster,
       DbTransaction tx = null,
@@ -773,20 +774,20 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0)
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static TResult[]
-      Select<T1, T2, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult[]>
+      SelectAsync<T1, T2, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, TResult> caster,
       DbTransaction tx = null,
@@ -799,9 +800,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -809,11 +810,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static TResult[]
-      Select<T1, T2, T3, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult[]>
+      SelectAsync<T1, T2, T3, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, TResult> caster,
       DbTransaction tx = null,
@@ -826,9 +827,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -837,11 +838,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static TResult[]
-      Select<T1, T2, T3, T4, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult[]>
+      SelectAsync<T1, T2, T3, T4, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, TResult> caster,
       DbTransaction tx = null,
@@ -854,9 +855,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -866,11 +867,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static TResult[]
-      Select<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult[]>
+      SelectAsync<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, TResult> caster,
       DbTransaction tx = null,
@@ -883,9 +884,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -896,11 +897,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static TResult[]
-      Select<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult[]>
+      SelectAsync<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, TResult> caster,
       DbTransaction tx = null,
@@ -913,9 +914,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -927,11 +928,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static TResult[]
-      Select<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult[]>
+      SelectAsync<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, TResult> caster,
       DbTransaction tx = null,
@@ -944,9 +945,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -959,11 +960,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static TResult[]
-      Select<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult[]>
+      SelectAsync<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> caster,
       DbTransaction tx = null,
@@ -976,9 +977,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -992,11 +993,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static TResult[]
-      Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult[]>
+      SelectAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> caster,
       DbTransaction tx = null,
@@ -1009,9 +1010,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -1026,11 +1027,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.ToArray();
+      return await result.ToArrayAsync();
     }
 
-    public static Ret<TResult[]>
-      TrySelect<T1, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult[]>>
+      TrySelectAsync<T1, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, TResult> caster,
       DbTransaction tx = null,
@@ -1041,7 +1042,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select(sqlBuilder, cn, caster, tx,
+        var result = await SelectAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1051,8 +1052,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult[]>
-      TrySelect<T1, T2, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult[]>>
+      TrySelectAsync<T1, T2, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, TResult> caster,
       DbTransaction tx = null,
@@ -1063,7 +1064,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select(sqlBuilder, cn, caster, tx,
+        var result = await SelectAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1073,8 +1074,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult[]>
-      TrySelect<T1, T2, T3, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult[]>>
+      TrySelectAsync<T1, T2, T3, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, TResult> caster,
       DbTransaction tx = null,
@@ -1085,7 +1086,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select(sqlBuilder, cn, caster, tx,
+        var result = await SelectAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1095,8 +1096,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult[]>
-      TrySelect<T1, T2, T3, T4, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult[]>>
+      TrySelectAsync<T1, T2, T3, T4, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, TResult> caster,
       DbTransaction tx = null,
@@ -1107,7 +1108,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select(sqlBuilder, cn, caster, tx,
+        var result = await SelectAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1117,8 +1118,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult[]>
-      TrySelect<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult[]>>
+      TrySelectAsync<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, TResult> caster,
       DbTransaction tx = null,
@@ -1129,7 +1130,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select(sqlBuilder, cn, caster, tx,
+        var result = await SelectAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1139,8 +1140,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult[]>
-      TrySelect<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult[]>>
+      TrySelectAsync<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, TResult> caster,
       DbTransaction tx = null,
@@ -1151,7 +1152,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select(sqlBuilder, cn, caster, tx,
+        var result = await SelectAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1161,8 +1162,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult[]>
-      TrySelect<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult[]>>
+      TrySelectAsync<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, TResult> caster,
       DbTransaction tx = null,
@@ -1173,7 +1174,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select(sqlBuilder, cn, caster, tx,
+        var result = await SelectAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1183,8 +1184,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult[]>
-      TrySelect<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult[]>>
+      TrySelectAsync<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> caster,
       DbTransaction tx = null,
@@ -1195,7 +1196,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select(sqlBuilder, cn, caster, tx,
+        var result = await SelectAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1205,8 +1206,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult[]>
-      TrySelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult[]>>
+      TrySelectAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> caster,
       DbTransaction tx = null,
@@ -1217,7 +1218,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Select(sqlBuilder, cn, caster, tx,
+        var result = await SelectAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1229,10 +1230,10 @@ namespace Keep.Tools.Sequel.Runner
 
     #endregion
 
-    #region SelectOne (Caster)
+    #region SelectOneAsync (Caster)
 
-    public static TResult
-      SelectOne<T1, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult>
+      SelectOneAsync<T1, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, TResult> caster,
       DbTransaction tx = null,
@@ -1245,20 +1246,20 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0)
         )
       );
 
-      return result.Read() ? result.Current : default; ;
+      return await result.ReadAsync() ? result.Current : default; ;
     }
 
-    public static TResult
-      SelectOne<T1, T2, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult>
+      SelectOneAsync<T1, T2, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, TResult> caster,
       DbTransaction tx = null,
@@ -1271,9 +1272,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -1281,11 +1282,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.Read() ? result.Current : default; ;
+      return await result.ReadAsync() ? result.Current : default; ;
     }
 
-    public static TResult
-      SelectOne<T1, T2, T3, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult>
+      SelectOneAsync<T1, T2, T3, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, TResult> caster,
       DbTransaction tx = null,
@@ -1298,9 +1299,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -1309,11 +1310,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.Read() ? result.Current : default; ;
+      return await result.ReadAsync() ? result.Current : default; ;
     }
 
-    public static TResult
-      SelectOne<T1, T2, T3, T4, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult>
+      SelectOneAsync<T1, T2, T3, T4, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, TResult> caster,
       DbTransaction tx = null,
@@ -1326,9 +1327,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -1338,11 +1339,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.Read() ? result.Current : default; ;
+      return await result.ReadAsync() ? result.Current : default; ;
     }
 
-    public static TResult
-      SelectOne<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult>
+      SelectOneAsync<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, TResult> caster,
       DbTransaction tx = null,
@@ -1355,9 +1356,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -1368,11 +1369,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.Read() ? result.Current : default; ;
+      return await result.ReadAsync() ? result.Current : default; ;
     }
 
-    public static TResult
-      SelectOne<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult>
+      SelectOneAsync<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, TResult> caster,
       DbTransaction tx = null,
@@ -1385,9 +1386,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -1399,11 +1400,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.Read() ? result.Current : default; ;
+      return await result.ReadAsync() ? result.Current : default; ;
     }
 
-    public static TResult
-      SelectOne<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult>
+      SelectOneAsync<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, TResult> caster,
       DbTransaction tx = null,
@@ -1416,9 +1417,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -1431,11 +1432,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.Read() ? result.Current : default; ;
+      return await result.ReadAsync() ? result.Current : default; ;
     }
 
-    public static TResult
-      SelectOne<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult>
+      SelectOneAsync<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> caster,
       DbTransaction tx = null,
@@ -1448,9 +1449,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -1464,11 +1465,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.Read() ? result.Current : default; ;
+      return await result.ReadAsync() ? result.Current : default; ;
     }
 
-    public static TResult
-      SelectOne<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<TResult>
+      SelectOneAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> caster,
       DbTransaction tx = null,
@@ -1481,9 +1482,9 @@ namespace Keep.Tools.Sequel.Runner
       var sql = sqlBuilder.Format(dialect,
         comment, callerName, callerFile, callerLine);
 
-      using var ctx = ConnectionContext.Create(cn);
+      using var ctx = await ConnectionContext.CreateAsync(cn);
       using var cm = ctx.CreateCommand(sql, tx);
-      using var result = new TransformReader<TResult>(
+      using var result = await TransformReaderAsync<TResult>.CreateAsync(
         () => cm,
         reader => caster.Invoke(
           Caster.CastTo<T1>(reader, 0),
@@ -1498,11 +1499,11 @@ namespace Keep.Tools.Sequel.Runner
         )
       );
 
-      return result.Read() ? result.Current : default; ;
+      return await result.ReadAsync() ? result.Current : default; ;
     }
 
-    public static Ret<TResult>
-      TrySelectOne<T1, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult>>
+      TrySelectOneAsync<T1, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, TResult> caster,
       DbTransaction tx = null,
@@ -1513,7 +1514,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne(sqlBuilder, cn, caster, tx,
+        var result = await SelectOneAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1523,8 +1524,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult>
-      TrySelectOne<T1, T2, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult>>
+      TrySelectOneAsync<T1, T2, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, TResult> caster,
       DbTransaction tx = null,
@@ -1535,7 +1536,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne(sqlBuilder, cn, caster, tx,
+        var result = await SelectOneAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1545,8 +1546,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult>
-      TrySelectOne<T1, T2, T3, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult>>
+      TrySelectOneAsync<T1, T2, T3, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, TResult> caster,
       DbTransaction tx = null,
@@ -1557,7 +1558,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne(sqlBuilder, cn, caster, tx,
+        var result = await SelectOneAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1567,8 +1568,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult>
-      TrySelectOne<T1, T2, T3, T4, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult>>
+      TrySelectOneAsync<T1, T2, T3, T4, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, TResult> caster,
       DbTransaction tx = null,
@@ -1579,7 +1580,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne(sqlBuilder, cn, caster, tx,
+        var result = await SelectOneAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1589,8 +1590,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult>
-      TrySelectOne<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult>>
+      TrySelectOneAsync<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, TResult> caster,
       DbTransaction tx = null,
@@ -1601,7 +1602,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne(sqlBuilder, cn, caster, tx,
+        var result = await SelectOneAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1611,8 +1612,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult>
-      TrySelectOne<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult>>
+      TrySelectOneAsync<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, TResult> caster,
       DbTransaction tx = null,
@@ -1623,7 +1624,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne(sqlBuilder, cn, caster, tx,
+        var result = await SelectOneAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1633,8 +1634,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult>
-      TrySelectOne<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult>>
+      TrySelectOneAsync<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, TResult> caster,
       DbTransaction tx = null,
@@ -1645,7 +1646,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne(sqlBuilder, cn, caster, tx,
+        var result = await SelectOneAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1655,8 +1656,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult>
-      TrySelectOne<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult>>
+      TrySelectOneAsync<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> caster,
       DbTransaction tx = null,
@@ -1667,7 +1668,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne(sqlBuilder, cn, caster, tx,
+        var result = await SelectOneAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
@@ -1677,8 +1678,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<TResult>
-      TrySelectOne<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<TResult>>
+      TrySelectOneAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> caster,
       DbTransaction tx = null,
@@ -1689,7 +1690,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = SelectOne(sqlBuilder, cn, caster, tx,
+        var result = await SelectOneAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }

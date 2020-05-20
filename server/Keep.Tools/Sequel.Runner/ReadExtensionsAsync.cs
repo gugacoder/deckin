@@ -6,14 +6,15 @@ using System.Data.Common;
 using System.Dynamic;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Keep.Tools.Sequel.Runner
 {
-  public static class ReadExtensions
+  public static class ReadExtensionsAsync
   {
     #region Read (Type)
 
-    public static IReader<T> Read<T>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<T>>ReadAsync<T>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -27,9 +28,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<T>(
+        var result = await TransformReaderAsync<T>.CreateAsync(
           () => cm,
           reader => Caster.CastTo<T>(reader)
         );
@@ -46,7 +47,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static IReader<object> Read(this SqlBuilder sqlBuilder, Type type,
+    public static async Task<IReaderAsync<object>> ReadAsync(this SqlBuilder sqlBuilder,
+      Type type,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -60,9 +62,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<object>(
+        var result = await TransformReaderAsync<object>.CreateAsync(
           () => cm,
           reader => Caster.CastTo(reader, type)
         );
@@ -79,7 +81,7 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<IReader<T>> TryRead<T>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<IReaderAsync<T>>>TryReadAsync<T>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -88,17 +90,17 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read<T>(sqlBuilder, cn, tx,
+        var result = await ReadAsync<T>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<T>)TransformReader<T>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<T>)TransformReader<T>.Empty);
       }
     }
 
-    public static Ret<IReader<object>> TryRead(this SqlBuilder sqlBuilder, Type type,
+    public static async Task<Ret<IReaderAsync<object>>>TryReadAsync(this SqlBuilder sqlBuilder, Type type,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -107,13 +109,13 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read(sqlBuilder, type, cn, tx,
+        var result = await ReadAsync(sqlBuilder, type, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<object>)TransformReader<object>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<object>)TransformReader<object>.Empty);
       }
     }
 
@@ -121,8 +123,8 @@ namespace Keep.Tools.Sequel.Runner
 
     #region Read (Tuple)
 
-    public static IReader<Tuple<T1, T2>>
-      Read<T1, T2>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<Tuple<T1,T2>>>
+      ReadAsync<T1, T2>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -136,9 +138,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<Tuple<T1, T2>>(
+        var result = await TransformReaderAsync<Tuple<T1, T2>>.CreateAsync(
           () => cm,
           reader => Tuple.Create(
             Caster.CastTo<T1>(reader, 0),
@@ -158,8 +160,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static IReader<Tuple<T1, T2, T3>>
-      Read<T1, T2, T3>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<Tuple<T1,T2, T3>>>
+      ReadAsync<T1, T2, T3>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -173,9 +175,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<Tuple<T1, T2, T3>>(
+        var result = await TransformReaderAsync<Tuple<T1, T2, T3>>.CreateAsync(
           () => cm,
           reader => Tuple.Create(
             Caster.CastTo<T1>(reader, 0),
@@ -196,8 +198,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static IReader<Tuple<T1, T2, T3, T4>>
-      Read<T1, T2, T3, T4>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<Tuple<T1,T2, T3, T4>>>
+      ReadAsync<T1, T2, T3, T4>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -211,9 +213,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<Tuple<T1, T2, T3, T4>>(
+        var result = await TransformReaderAsync<Tuple<T1, T2, T3, T4>>.CreateAsync(
           () => cm,
           reader => Tuple.Create(
             Caster.CastTo<T1>(reader, 0),
@@ -235,8 +237,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static IReader<Tuple<T1, T2, T3, T4, T5>>
-      Read<T1, T2, T3, T4, T5>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<Tuple<T1,T2, T3, T4, T5>>>
+      ReadAsync<T1, T2, T3, T4, T5>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -250,9 +252,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<Tuple<T1, T2, T3, T4, T5>>(
+        var result = await TransformReaderAsync<Tuple<T1, T2, T3, T4, T5>>.CreateAsync(
           () => cm,
           reader => Tuple.Create(
             Caster.CastTo<T1>(reader, 0),
@@ -275,8 +277,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static IReader<Tuple<T1, T2, T3, T4, T5, T6>>
-      Read<T1, T2, T3, T4, T5, T6>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<Tuple<T1,T2, T3, T4, T5, T6>>>
+      ReadAsync<T1, T2, T3, T4, T5, T6>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -290,9 +292,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<Tuple<T1, T2, T3, T4, T5, T6>>(
+        var result = await TransformReaderAsync<Tuple<T1, T2, T3, T4, T5, T6>>.CreateAsync(
           () => cm,
           reader => Tuple.Create(
             Caster.CastTo<T1>(reader, 0),
@@ -316,8 +318,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static IReader<Tuple<T1, T2, T3, T4, T5, T6, T7>>
-      Read<T1, T2, T3, T4, T5, T6, T7>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<Tuple<T1,T2, T3, T4, T5, T6, T7>>>
+      ReadAsync<T1, T2, T3, T4, T5, T6, T7>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -331,9 +333,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<Tuple<T1, T2, T3, T4, T5, T6, T7>>(
+        var result = await TransformReaderAsync<Tuple<T1, T2, T3, T4, T5, T6, T7>>.CreateAsync(
           () => cm,
           reader => Tuple.Create(
             Caster.CastTo<T1>(reader, 0),
@@ -358,7 +360,7 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<IReader<Tuple<T1, T2>>>
+    public static async Task<Ret<IReaderAsync<Tuple<T1, T2>>>>
       TryRead<T1, T2>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
@@ -368,17 +370,17 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read<T1, T2>(sqlBuilder, cn, tx,
+        var result = await ReadAsync<T1, T2>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<Tuple<T1, T2>>)TransformReader<Tuple<T1, T2>>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<Tuple<T1, T2>>)TransformReader<Tuple<T1, T2>>.Empty);
       }
     }
 
-    public static Ret<IReader<Tuple<T1, T2, T3>>>
+    public static async Task<Ret<IReaderAsync<Tuple<T1, T2, T3>>>>
       TryRead<T1, T2, T3>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
@@ -388,17 +390,17 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read<T1, T2, T3>(sqlBuilder, cn, tx,
+        var result = await ReadAsync<T1, T2, T3>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<Tuple<T1, T2, T3>>)TransformReader<Tuple<T1, T2, T3>>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<Tuple<T1, T2, T3>>)TransformReader<Tuple<T1, T2, T3>>.Empty);
       }
     }
 
-    public static Ret<IReader<Tuple<T1, T2, T3, T4>>>
+    public static async Task<Ret<IReaderAsync<Tuple<T1, T2, T3, T4>>>>
       TryRead<T1, T2, T3, T4>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
@@ -408,17 +410,17 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read<T1, T2, T3, T4>(sqlBuilder, cn, tx,
+        var result = await ReadAsync<T1, T2, T3, T4>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<Tuple<T1, T2, T3, T4>>)TransformReader<Tuple<T1, T2, T3, T4>>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<Tuple<T1, T2, T3, T4>>)TransformReader<Tuple<T1, T2, T3, T4>>.Empty);
       }
     }
 
-    public static Ret<IReader<Tuple<T1, T2, T3, T4, T5>>>
+    public static async Task<Ret<IReaderAsync<Tuple<T1, T2, T3, T4, T5>>>>
       TryRead<T1, T2, T3, T4, T5>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
@@ -428,17 +430,17 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read<T1, T2, T3, T4, T5>(sqlBuilder, cn, tx,
+        var result = await ReadAsync<T1, T2, T3, T4, T5>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<Tuple<T1, T2, T3, T4, T5>>)TransformReader<Tuple<T1, T2, T3, T4, T5>>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<Tuple<T1, T2, T3, T4, T5>>)TransformReader<Tuple<T1, T2, T3, T4, T5>>.Empty);
       }
     }
 
-    public static Ret<IReader<Tuple<T1, T2, T3, T4, T5, T6>>>
+    public static async Task<Ret<IReaderAsync<Tuple<T1, T2, T3, T4, T5, T6>>>>
       TryRead<T1, T2, T3, T4, T5, T6>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
@@ -448,17 +450,17 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read<T1, T2, T3, T4, T5, T6>(sqlBuilder, cn, tx,
+        var result = await ReadAsync<T1, T2, T3, T4, T5, T6>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<Tuple<T1, T2, T3, T4, T5, T6>>)TransformReader<Tuple<T1, T2, T3, T4, T5, T6>>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<Tuple<T1, T2, T3, T4, T5, T6>>)TransformReader<Tuple<T1, T2, T3, T4, T5, T6>>.Empty);
       }
     }
 
-    public static Ret<IReader<Tuple<T1, T2, T3, T4, T5, T6, T7>>>
+    public static async Task<Ret<IReaderAsync<Tuple<T1, T2, T3, T4, T5, T6, T7>>>>
       TryRead<T1, T2, T3, T4, T5, T6, T7>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
@@ -468,13 +470,13 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read<T1, T2, T3, T4, T5, T6, T7>(sqlBuilder, cn, tx,
+        var result = await ReadAsync<T1, T2, T3, T4, T5, T6, T7>(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<Tuple<T1, T2, T3, T4, T5, T6, T7>>)TransformReader<Tuple<T1, T2, T3, T4, T5, T6, T7>>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<Tuple<T1, T2, T3, T4, T5, T6, T7>>)TransformReader<Tuple<T1, T2, T3, T4, T5, T6, T7>>.Empty);
       }
     }
 
@@ -482,8 +484,8 @@ namespace Keep.Tools.Sequel.Runner
 
     #region Read (Caster)
 
-    public static IReader<TResult>
-      Read<T1, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<TResult>>
+      ReadAsync<T1, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, TResult> caster,
       DbTransaction tx = null,
@@ -499,9 +501,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<TResult>(
+        var result = await TransformReaderAsync<TResult>.CreateAsync(
           () => cm,
           reader => caster.Invoke(
             Caster.CastTo<T1>(reader, 0)
@@ -520,8 +522,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static IReader<TResult>
-      Read<T1, T2, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<TResult>>
+      ReadAsync<T1, T2, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, TResult> caster,
       DbTransaction tx = null,
@@ -537,9 +539,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<TResult>(
+        var result = await TransformReaderAsync<TResult>.CreateAsync(
           () => cm,
           reader => caster.Invoke(
             Caster.CastTo<T1>(reader, 0),
@@ -559,8 +561,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static IReader<TResult>
-      Read<T1, T2, T3, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<TResult>>
+      ReadAsync<T1, T2, T3, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, TResult> caster,
       DbTransaction tx = null,
@@ -576,9 +578,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<TResult>(
+        var result = await TransformReaderAsync<TResult>.CreateAsync(
           () => cm,
           reader => caster.Invoke(
             Caster.CastTo<T1>(reader, 0),
@@ -599,8 +601,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static IReader<TResult>
-      Read<T1, T2, T3, T4, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<TResult>>
+      ReadAsync<T1, T2, T3, T4, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, TResult> caster,
       DbTransaction tx = null,
@@ -616,9 +618,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<TResult>(
+        var result = await TransformReaderAsync<TResult>.CreateAsync(
           () => cm,
           reader => caster.Invoke(
             Caster.CastTo<T1>(reader, 0),
@@ -640,8 +642,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static IReader<TResult>
-      Read<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<TResult>>
+      ReadAsync<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, TResult> caster,
       DbTransaction tx = null,
@@ -657,9 +659,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<TResult>(
+        var result = await TransformReaderAsync<TResult>.CreateAsync(
           () => cm,
           reader => caster.Invoke(
             Caster.CastTo<T1>(reader, 0),
@@ -682,8 +684,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static IReader<TResult>
-      Read<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<TResult>>
+      ReadAsync<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, TResult> caster,
       DbTransaction tx = null,
@@ -699,9 +701,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<TResult>(
+        var result = await TransformReaderAsync<TResult>.CreateAsync(
           () => cm,
           reader => caster.Invoke(
             Caster.CastTo<T1>(reader, 0),
@@ -725,8 +727,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static IReader<TResult>
-      Read<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<TResult>>
+      ReadAsync<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, TResult> caster,
       DbTransaction tx = null,
@@ -742,9 +744,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<TResult>(
+        var result = await TransformReaderAsync<TResult>.CreateAsync(
           () => cm,
           reader => caster.Invoke(
             Caster.CastTo<T1>(reader, 0),
@@ -769,8 +771,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static IReader<TResult>
-      Read<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<TResult>>
+      ReadAsync<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> caster,
       DbTransaction tx = null,
@@ -786,9 +788,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<TResult>(
+        var result = await TransformReaderAsync<TResult>.CreateAsync(
           () => cm,
           reader => caster.Invoke(
             Caster.CastTo<T1>(reader, 0),
@@ -814,8 +816,8 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static IReader<TResult>
-      Read<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<TResult>>
+      ReadAsync<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> caster,
       DbTransaction tx = null,
@@ -831,9 +833,9 @@ namespace Keep.Tools.Sequel.Runner
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
 
-        ctx = ConnectionContext.Create(cn);
+        ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = new TransformReader<TResult>(
+        var result = await TransformReaderAsync<TResult>.CreateAsync(
           () => cm,
           reader => caster.Invoke(
             Caster.CastTo<T1>(reader, 0),
@@ -860,7 +862,7 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static Ret<IReader<TResult>>
+    public static async Task<Ret<IReaderAsync<TResult>>>
       TryRead<T1, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, TResult> caster,
@@ -872,17 +874,17 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read(sqlBuilder, cn, caster, tx,
+        var result = await ReadAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<TResult>)TransformReader<TResult>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<TResult>)TransformReader<TResult>.Empty);
       }
     }
 
-    public static Ret<IReader<TResult>>
+    public static async Task<Ret<IReaderAsync<TResult>>>
       TryRead<T1, T2, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, TResult> caster,
@@ -894,17 +896,17 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read(sqlBuilder, cn, caster, tx,
+        var result = await ReadAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<TResult>)TransformReader<TResult>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<TResult>)TransformReader<TResult>.Empty);
       }
     }
 
-    public static Ret<IReader<TResult>>
+    public static async Task<Ret<IReaderAsync<TResult>>>
       TryRead<T1, T2, T3, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, TResult> caster,
@@ -916,17 +918,17 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read(sqlBuilder, cn, caster, tx,
+        var result = await ReadAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<TResult>)TransformReader<TResult>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<TResult>)TransformReader<TResult>.Empty);
       }
     }
 
-    public static Ret<IReader<TResult>>
+    public static async Task<Ret<IReaderAsync<TResult>>>
       TryRead<T1, T2, T3, T4, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, TResult> caster,
@@ -938,17 +940,17 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read(sqlBuilder, cn, caster, tx,
+        var result = await ReadAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<TResult>)TransformReader<TResult>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<TResult>)TransformReader<TResult>.Empty);
       }
     }
 
-    public static Ret<IReader<TResult>>
+    public static async Task<Ret<IReaderAsync<TResult>>>
       TryRead<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, TResult> caster,
@@ -960,17 +962,17 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read(sqlBuilder, cn, caster, tx,
+        var result = await ReadAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<TResult>)TransformReader<TResult>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<TResult>)TransformReader<TResult>.Empty);
       }
     }
 
-    public static Ret<IReader<TResult>>
+    public static async Task<Ret<IReaderAsync<TResult>>>
       TryRead<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, TResult> caster,
@@ -982,17 +984,17 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read(sqlBuilder, cn, caster, tx,
+        var result = await ReadAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<TResult>)TransformReader<TResult>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<TResult>)TransformReader<TResult>.Empty);
       }
     }
 
-    public static Ret<IReader<TResult>>
+    public static async Task<Ret<IReaderAsync<TResult>>>
       TryRead<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, TResult> caster,
@@ -1004,17 +1006,17 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read(sqlBuilder, cn, caster, tx,
+        var result = await ReadAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<TResult>)TransformReader<TResult>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<TResult>)TransformReader<TResult>.Empty);
       }
     }
 
-    public static Ret<IReader<TResult>>
+    public static async Task<Ret<IReaderAsync<TResult>>>
       TryRead<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> caster,
@@ -1026,17 +1028,17 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read(sqlBuilder, cn, caster, tx,
+        var result = await ReadAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<TResult>)TransformReader<TResult>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<TResult>)TransformReader<TResult>.Empty);
       }
     }
 
-    public static Ret<IReader<TResult>>
+    public static async Task<Ret<IReaderAsync<TResult>>>
       TryRead<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sqlBuilder,
       DbConnection cn,
       Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> caster,
@@ -1048,13 +1050,13 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        var result = Read(sqlBuilder, cn, caster, tx,
+        var result = await ReadAsync(sqlBuilder, cn, caster, tx,
           comment, callerName, callerFile, callerLine);
         return Ret.OK(result);
       }
       catch (Exception ex)
       {
-        return Ret.FailWithValue(ex, (IReader<TResult>)TransformReader<TResult>.Empty);
+        return Ret.FailWithValue(ex, (IReaderAsync<TResult>)TransformReader<TResult>.Empty);
       }
     }
 

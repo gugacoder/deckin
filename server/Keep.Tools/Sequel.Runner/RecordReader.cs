@@ -12,7 +12,7 @@ namespace Keep.Tools.Sequel.Runner
   {
     public new static readonly RecordReader Empty = new RecordReader(null);
 
-    public RecordReader(Func<IDbCommand> factory)
+    public RecordReader(Func<DbCommand> factory)
       : base(factory, reader => new Record(reader))
     {
     }

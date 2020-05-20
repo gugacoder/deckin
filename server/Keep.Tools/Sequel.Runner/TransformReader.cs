@@ -11,15 +11,15 @@ namespace Keep.Tools.Sequel.Runner
   public class TransformReader<T> : IReader<T>
   {
     public static readonly TransformReader<T> Empty =
-      new TransformReader<T>(() => null, reader => default(T));
+      new TransformReader<T>(() => null, reader => default);
 
     public event EventHandler Disposed;
 
-    private readonly Func<IDbCommand> factory;
-    private readonly Func<IDataReader, T> transform;
+    private readonly Func<DbCommand> factory;
+    private readonly Func<DbDataReader, T> transform;
 
     public TransformReader(
-      Func<IDbCommand> factory, Func<IDataReader, T> transform)
+      Func<DbCommand> factory, Func<DbDataReader, T> transform)
     {
       this.factory = factory;
       this.transform = transform;
@@ -37,8 +37,8 @@ namespace Keep.Tools.Sequel.Runner
       get { return this.Current; }
     }
 
-    protected IDbCommand Command { get; private set; }
-    protected IDataReader Reader { get; private set; }
+    protected DbCommand Command { get; private set; }
+    protected DbDataReader Reader { get; private set; }
 
     public void Cancel() => this.Command?.Cancel();
     public IReader<T> Clone() => new TransformReader<T>(factory, transform);
@@ -50,7 +50,7 @@ namespace Keep.Tools.Sequel.Runner
         return false;
 
       var ready = Reader.Read();
-      this.Current = ready ? transform.Invoke(Reader) : default(T);
+      this.Current = ready ? transform.Invoke(Reader) : default;
       return ready;
     }
 

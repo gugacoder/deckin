@@ -9,7 +9,7 @@ namespace Keep.Paper.Helpers
   public class JwtTokenBuilder
   {
     private string username;
-    private int expiration;
+    private int expiration = 30; // segundos
     private string issuer;
     private string audience;
     private SigningCredentials signingCredentials;

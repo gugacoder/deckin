@@ -20,12 +20,29 @@ namespace Director.Controllers
     [Route("/Sandbox")]
     public IActionResult Sandbox()
     {
-      var jwtToken = new LoginModel(dbDirector).Autenticar(new Domain.Login
+      var ret = new LoginModel(dbDirector).Autenticar(new Domain.Login
       {
         Username = "processa",
         Password = "prodir669"
       });
-      return Ok(jwtToken);
+
+      if (!ret.Ok)
+        return Ok(ret);
+
+      var jwtToken = ret.Value;
+
+      return Ok(new
+      {
+        Type = "JwtToken",
+        Data = ret.Value,
+        Links = new
+        {
+          Self = new
+          {
+            Href = this.Request.GetDisplayUrl()
+          }
+        }
+      });
     }
 
     [Route("/{*path}", Order = 999)]

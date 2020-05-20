@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Keep.Tools.Sequel.Runner
 {
@@ -18,7 +20,7 @@ namespace Keep.Tools.Sequel.Runner
     /// </summary>
     /// <param name="sqlBuilder">A SQL a ser executada.</param>
     public static void TryExecute(this SqlBuilder sqlBuilder,
-      IDbConnection cn, IDbTransaction tx = null,
+      DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
       [CallerFilePath] string callerFile = null,
@@ -37,13 +39,13 @@ namespace Keep.Tools.Sequel.Runner
     /// <param name="sqlBuilder">A SQL a ser executada.</param>
     /// <returns>Número de registros afetados pelo comando.</returns>
     public static int Execute(this SqlBuilder sqlBuilder,
-      IDbConnection cn, IDbTransaction tx = null,
+      DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
       [CallerFilePath] string callerFile = null,
       [CallerLineNumber] int callerLine = 0)
     {
-      using (var ctx = new ConnectionContext(cn))
+      using (var ctx = ConnectionContext.Create(cn))
       {
         var dialect = Dialects.GetDialect(cn);
         var sql = sqlBuilder.Format(dialect,
@@ -52,6 +54,58 @@ namespace Keep.Tools.Sequel.Runner
         using (var cm = ctx.CreateCommand(sql, tx))
         {
           var affectedRows = cm.ExecuteNonQuery();
+          return affectedRows;
+        }
+      }
+    }
+
+    #endregion
+
+    #region ExecuteAsync
+
+    /// <summary>
+    /// Executa uma SQL sem produzir resultados.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// </summary>
+    /// <param name="sqlBuilder">A SQL a ser executada.</param>
+    public static async Task TryExecuteAsync(this SqlBuilder sqlBuilder,
+      DbConnection cn, DbTransaction tx = null,
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      try
+      {
+        await ExecuteAsync(sqlBuilder, cn, tx,
+          comment, callerName, callerFile, callerLine);
+      }
+      catch { /* nada a fazer */ }
+    }
+
+    /// <summary>
+    /// Executa uma SQL sem produzir resultados.
+    /// </summary>
+    /// <param name="sqlBuilder">A SQL a ser executada.</param>
+    /// <returns>Número de registros afetados pelo comando.</returns>
+    public static async Task<int> ExecuteAsync(this SqlBuilder sqlBuilder,
+      DbConnection cn, DbTransaction tx = null,
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      using (var ctx = await ConnectionContext.CreateAsync(cn))
+      {
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        using (var cm = ctx.CreateCommand(sql, tx))
+        {
+          var affectedRows = await cm.ExecuteNonQueryAsync();
           return affectedRows;
         }
       }
@@ -68,7 +122,7 @@ namespace Keep.Tools.Sequel.Runner
     /// <param name="sql">A SQL a ser peparada.</param>
     /// <returns>O comando preparado para execuções repetidas.</returns>
     public static Ret<IDbCommand> TryCreateCommand(this SqlBuilder sqlBuilder,
-      IDbConnection cn, IDbTransaction tx = null,
+      DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
       [CallerFilePath] string callerFile = null,
@@ -94,7 +148,7 @@ namespace Keep.Tools.Sequel.Runner
     /// <param name="sql">A SQL a ser peparada.</param>
     /// <returns>O comando preparado para execuções repetidas.</returns>
     public static IDbCommand CreateCommand(this SqlBuilder sqlBuilder,
-      IDbConnection cn, IDbTransaction tx = null,
+      DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
       [CallerFilePath] string callerFile = null,
