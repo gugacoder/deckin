@@ -1,0 +1,3237 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Dynamic;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+namespace Keep.Tools.Sequel.Runner
+{
+  public static class SelectExtensionsBackup
+  {
+    #region Algoritmos de apoio
+
+    /// <summary>
+    /// Aplica uma transformação de resultado com base nos campos lidos do
+    /// data reader. Para cada parâmetro do método um campo de mesmo índice é
+    /// obtido do data reader e convertido para o tipo do parâmetro e então o
+    /// método é executado para produzir o resultado.
+    /// </summary>
+    private static TResult Transform<TResult>(IDataReader reader,
+      Delegate transform)
+    {
+      var parameters = transform.Method.GetParameters();
+      var values = new List<object>(parameters.Length);
+
+      var filedIndex = 0;
+      foreach (var parameter in parameters)
+      {
+        var value = GetField(reader, filedIndex++, parameter.ParameterType);
+        values.Add(value);
+      }
+
+      var result = transform.DynamicInvoke(values.ToArray());
+      return (TResult)result;
+    }
+
+    /// <summary>
+    /// Obtém o valor de uma coluna de um DataReader convertido para o tipo
+    /// indicado.
+    /// </summary>
+    private static object GetField(IDataReader reader, int field, Type type)
+    {
+      if (field >= reader.FieldCount)
+        throw new Exception(
+          $"Não foi possível converter um valor para o tipo {type.FullName}. " +
+          $"A coluna {field} não existe.");
+
+      try
+      {
+        var value = reader.GetValue(field);
+        var castValue = Change.To(value, type);
+        return castValue;
+      }
+      catch (Exception ex)
+      {
+        throw new Exception(
+          $"Não foi possível converter um valor da coluna {field} para " +
+          $"o tipo {type.FullName}", ex);
+      }
+    }
+
+    #endregion
+
+    #region Read
+
+    #region Read()
+
+    /// <summary>
+    /// Lê os registros com base em um DataReader.
+    /// O objeto IResult contém o algoritmo de varredura do DataReader e deve
+    /// ser descartado pelo métodom "Dispose()" ao fim de seu uso.
+    /// </summary>
+    public static IReader<Record> Read(
+      this SqlBuilder sqlBuilder, IDbConnection cn, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+    {
+      ConnectionContext ctx = null;
+      try
+      {
+        ctx = new ConnectionContext(cn);
+
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        var cm = ctx.CreateCommand(sql, tx);
+        var result = new RecordReader(() => cm);
+
+        result.Disposed += (o, e) => cm.TryDispose();
+        result.Disposed += (o, e) => ctx.TryDispose();
+
+        return result;
+      }
+      catch
+      {
+        ctx?.TryDispose();
+        throw;
+      }
+    }
+
+    /// <summary>
+    /// Lê os registros com base em um DataReader.
+    /// O objeto IResult contém o algoritmo de varredura do DataReader e deve
+    /// ser descartado pelo métodom "Dispose()" ao fim de seu uso.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma instância de <see cref="Ret"/> é retornada
+    /// contendo informações sobre a falha e um resultado vazio.
+    /// </summary>
+    public static Ret<IReader<Record>> TryRead(
+      this SqlBuilder sqlBuilder, IDbConnection cn, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+    {
+      try
+      {
+        var result = Read(sqlBuilder, cn, tx,
+          comment, callerName, callerFile, callerLine);
+        return Ret.OK(result);
+      }
+      catch (Exception ex)
+      {
+        return Ret.FailWithValue<IReader<Record>>(ex, RecordReader.Empty);
+      }
+    }
+
+    #endregion
+
+    #region Read(Type)
+
+    /// <summary>
+    /// Lê objetos convertidos de registros obtidos de um DataReader.
+    /// 
+    /// O objeto IResult contém o algoritmo de varredura do DataReader e deve
+    /// ser descartado pelo métodom "Dispose()" ao fim de seu uso.
+    /// </summary>
+    public static IReader<object> Read(this SqlBuilder sqlBuilder,
+      IDbConnection cn, Type type, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+    {
+      ConnectionContext ctx = null;
+      try
+      {
+        ctx = new ConnectionContext(cn);
+
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        var cm = ctx.CreateCommand(sql, tx);
+        var result = new TransformReader<object>(
+          () => cm,
+          reader => Caster.CastTo(reader, type)
+        );
+
+        result.Disposed += (o, e) => cm.TryDispose();
+        result.Disposed += (o, e) => ctx.TryDispose();
+
+        return result;
+      }
+      catch
+      {
+        ctx?.TryDispose();
+        throw;
+      }
+    }
+
+    /// <summary>
+    /// Lê objetos convertidos de registros obtidos de um DataReader.
+    /// 
+    /// O objeto IResult contém o algoritmo de varredura do DataReader e deve
+    /// ser descartado pelo métodom "Dispose()" ao fim de seu uso.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma instância de <see cref="Ret"/> é retornada
+    /// contendo informações sobre a falha e um resultado vazio.
+    /// </summary>
+    public static Ret<IReader<object>> TryRead(this SqlBuilder sqlBuilder,
+      IDbConnection cn, Type type, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+    {
+      try
+      {
+        var result = Read(sqlBuilder, cn, type, tx,
+          comment, callerName, callerFile, callerLine);
+        return Ret.OK(result);
+      }
+      catch (Exception ex)
+      {
+        return Ret.FailWithValue<IReader<object>>(ex,
+          TransformReader<object>.Empty);
+      }
+    }
+
+    #endregion
+
+    #region Read<T>()
+
+    /// <summary>
+    /// Lê objetos convertidos de registros obtidos de um DataReader.
+    /// 
+    /// O objeto IResult contém o algoritmo de varredura do DataReader e deve
+    /// ser descartado pelo métodom "Dispose()" ao fim de seu uso.
+    /// </summary>
+    public static IReader<T> Read<T>(this SqlBuilder sqlBuilder,
+      IDbConnection cn, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+    {
+      ConnectionContext ctx = null;
+      try
+      {
+        ctx = new ConnectionContext(cn);
+
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        var cm = ctx.CreateCommand(sql, tx);
+        var result = new TransformReader<T>(
+          () => cm,
+          reader => Caster.CastTo<T>(reader)
+        );
+
+        result.Disposed += (o, e) => cm.TryDispose();
+        result.Disposed += (o, e) => ctx.TryDispose();
+
+        return result;
+      }
+      catch
+      {
+        ctx?.TryDispose();
+        throw;
+      }
+    }
+
+    /// <summary>
+    /// Lê objetos convertidos de registros obtidos de um DataReader.
+    /// 
+    /// O objeto IResult contém o algoritmo de varredura do DataReader e deve
+    /// ser descartado pelo métodom "Dispose()" ao fim de seu uso.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma instância de <see cref="Ret"/> é retornada
+    /// contendo informações sobre a falha e um resultado vazio.
+    /// </summary>
+    public static Ret<IReader<T>> TryRead<T>(this SqlBuilder sqlBuilder,
+      IDbConnection cn, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+    {
+      try
+      {
+        var result = Read<T>(sqlBuilder, cn, tx,
+          comment, callerName, callerFile, callerLine);
+        return Ret.OK(result);
+      }
+      catch (Exception ex)
+      {
+        return Ret.FailWithValue<IReader<T>>(ex, TransformReader<T>.Empty);
+      }
+    }
+
+    #endregion
+
+    #region Read(Delegate)
+
+    /// <summary>
+    /// Lê os registros com base em um DataReader.
+    /// O objeto IResult contém o algoritmo de varredura do DataReader e deve
+    /// ser descartado pelo métodom "Dispose()" ao fim de seu uso.
+    /// </summary>
+    private static IReader<TResult> Read<TResult>(
+      SqlBuilder sqlBuilder, IDbConnection cn,
+      Delegate transform, IDbTransaction tx,
+      string comment, string callerName, string callerFile, int callerLine)
+    {
+      ConnectionContext ctx = null;
+      try
+      {
+        ctx = new ConnectionContext(cn);
+
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        var cm = ctx.CreateCommand(sql, tx);
+        var result = new TransformReader<TResult>(
+          () => cm,
+          reader => Transform<TResult>(reader, transform)
+        );
+
+        result.Disposed += (o, e) => cm.TryDispose();
+        result.Disposed += (o, e) => ctx.TryDispose();
+
+        return result;
+      }
+      catch
+      {
+        ctx?.TryDispose();
+        throw;
+      }
+    }
+
+    /// <summary>
+    /// Lê os registros com base em um DataReader.
+    /// O objeto IResult contém o algoritmo de varredura do DataReader e deve
+    /// ser descartado pelo métodom "Dispose()" ao fim de seu uso.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma instância de <see cref="Ret"/> é retornada
+    /// contendo informações sobre a falha e um resultado vazio.
+    /// </summary>
+    private static Ret<IReader<TResult>> TryRead<TResult>(
+      SqlBuilder sqlBuilder, IDbConnection cn,
+      Delegate transform, IDbTransaction tx,
+      string comment, string callerName, string callerFile, int callerLine)
+    {
+      try
+      {
+        var result = Read<TResult>(sqlBuilder, cn, transform, tx,
+          comment, callerName, callerFile, callerLine);
+        return Ret.OK(result);
+      }
+      catch (Exception ex)
+      {
+        return Ret.FailWithValue<IReader<TResult>>(ex, TransformReader<TResult>.Empty);
+      }
+    }
+
+    #endregion
+
+    #region Read(Transform)
+
+    #region Read
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var reader =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id) => new
+    ///     {
+    ///       id
+    ///     });
+    /// using (reader) while (reader.Read())
+    ///   {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///   }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static IReader<TResult>
+      Read<T1, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Read<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var reader =
+    ///   "select UserId, Username from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name) => new
+    ///     {
+    ///       id,
+    ///       name
+    ///     });
+    /// using (reader) while (reader.Read())
+    ///   {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///   }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static IReader<TResult>
+      Read<T1, T2, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Read<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var reader =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass
+    ///     });
+    /// using (reader) while (reader.Read())
+    ///   {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///   }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static IReader<TResult>
+      Read<T1, T2, T3, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Read<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var reader =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// using (reader) while (reader.Read())
+    ///   {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    ///   }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static IReader<TResult>
+      Read<T1, T2, T3, T4, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Read<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var reader =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// using (reader) while (reader.Read())
+    ///   {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    ///   }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static IReader<TResult>
+      Read<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Read<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var reader =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// using (reader) while (reader.Read())
+    ///   {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    ///   }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static IReader<TResult>
+      Read<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Read<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var reader =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// using (reader) while (reader.Read())
+    ///   {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    ///   }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static IReader<TResult>
+      Read<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Read<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var reader =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// using (reader) while (reader.Read())
+    ///   {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    ///   }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static IReader<TResult>
+      Read<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Read<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var reader =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// using (reader) while (reader.Read())
+    ///   {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    ///   }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static IReader<TResult>
+      Read<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Read<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var reader =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// using (reader) while (reader.Read())
+    ///   {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    ///   }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static IReader<TResult>
+      Read<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Read<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var reader =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// using (reader) while (reader.Read())
+    ///   {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    ///   }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static IReader<TResult>
+      Read<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Read<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var reader =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// using (reader) while (reader.Read())
+    ///   {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    ///   }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static IReader<TResult>
+      Read<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Read<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    #endregion
+
+    #region TryRead
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   using (var reader = ret.Value)
+    ///   {
+    ///     while (reader.Read())
+    ///     {
+    ///       Debug.WriteLine(reader.Current.id);
+    ///       Debug.WriteLine(reader.Current.name);
+    ///       Debug.WriteLine(reader.Current.pass);
+    ///       ...
+    ///     }
+    ///   }
+    /// }
+    /// else
+    /// {
+    ///   Debug.WriteLine(ret.Fault.Message);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<IReader<TResult>>
+      TryRead<T1, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TryRead<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   using (var reader = ret.Value)
+    ///   {
+    ///     while (reader.Read())
+    ///     {
+    ///       Debug.WriteLine(reader.Current.id);
+    ///       Debug.WriteLine(reader.Current.name);
+    ///       Debug.WriteLine(reader.Current.pass);
+    ///       ...
+    ///     }
+    ///   }
+    /// }
+    /// else
+    /// {
+    ///   Debug.WriteLine(ret.Fault.Message);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<IReader<TResult>>
+      TryRead<T1, T2, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TryRead<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   using (var reader = ret.Value)
+    ///   {
+    ///     while (reader.Read())
+    ///     {
+    ///       Debug.WriteLine(reader.Current.id);
+    ///       Debug.WriteLine(reader.Current.name);
+    ///       Debug.WriteLine(reader.Current.pass);
+    ///       ...
+    ///     }
+    ///   }
+    /// }
+    /// else
+    /// {
+    ///   Debug.WriteLine(ret.Fault.Message);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<IReader<TResult>>
+      TryRead<T1, T2, T3, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TryRead<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   using (var reader = ret.Value)
+    ///   {
+    ///     while (reader.Read())
+    ///     {
+    ///       Debug.WriteLine(reader.Current.id);
+    ///       Debug.WriteLine(reader.Current.name);
+    ///       Debug.WriteLine(reader.Current.pass);
+    ///       ...
+    ///     }
+    ///   }
+    /// }
+    /// else
+    /// {
+    ///   Debug.WriteLine(ret.Fault.Message);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<IReader<TResult>>
+      TryRead<T1, T2, T3, T4, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TryRead<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   using (var reader = ret.Value)
+    ///   {
+    ///     while (reader.Read())
+    ///     {
+    ///       Debug.WriteLine(reader.Current.id);
+    ///       Debug.WriteLine(reader.Current.name);
+    ///       Debug.WriteLine(reader.Current.pass);
+    ///       ...
+    ///     }
+    ///   }
+    /// }
+    /// else
+    /// {
+    ///   Debug.WriteLine(ret.Fault.Message);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<IReader<TResult>>
+      TryRead<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TryRead<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   using (var reader = ret.Value)
+    ///   {
+    ///     while (reader.Read())
+    ///     {
+    ///       Debug.WriteLine(reader.Current.id);
+    ///       Debug.WriteLine(reader.Current.name);
+    ///       Debug.WriteLine(reader.Current.pass);
+    ///       ...
+    ///     }
+    ///   }
+    /// }
+    /// else
+    /// {
+    ///   Debug.WriteLine(ret.Fault.Message);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<IReader<TResult>>
+      TryRead<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TryRead<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   using (var reader = ret.Value)
+    ///   {
+    ///     while (reader.Read())
+    ///     {
+    ///       Debug.WriteLine(reader.Current.id);
+    ///       Debug.WriteLine(reader.Current.name);
+    ///       Debug.WriteLine(reader.Current.pass);
+    ///       ...
+    ///     }
+    ///   }
+    /// }
+    /// else
+    /// {
+    ///   Debug.WriteLine(ret.Fault.Message);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<IReader<TResult>>
+      TryRead<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TryRead<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   using (var reader = ret.Value)
+    ///   {
+    ///     while (reader.Read())
+    ///     {
+    ///       Debug.WriteLine(reader.Current.id);
+    ///       Debug.WriteLine(reader.Current.name);
+    ///       Debug.WriteLine(reader.Current.pass);
+    ///       ...
+    ///     }
+    ///   }
+    /// }
+    /// else
+    /// {
+    ///   Debug.WriteLine(ret.Fault.Message);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<IReader<TResult>>
+      TryRead<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TryRead<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   using (var reader = ret.Value)
+    ///   {
+    ///     while (reader.Read())
+    ///     {
+    ///       Debug.WriteLine(reader.Current.id);
+    ///       Debug.WriteLine(reader.Current.name);
+    ///       Debug.WriteLine(reader.Current.pass);
+    ///       ...
+    ///     }
+    ///   }
+    /// }
+    /// else
+    /// {
+    ///   Debug.WriteLine(ret.Fault.Message);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<IReader<TResult>>
+      TryRead<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TryRead<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   using (var reader = ret.Value)
+    ///   {
+    ///     while (reader.Read())
+    ///     {
+    ///       Debug.WriteLine(reader.Current.id);
+    ///       Debug.WriteLine(reader.Current.name);
+    ///       Debug.WriteLine(reader.Current.pass);
+    ///       ...
+    ///     }
+    ///   }
+    /// }
+    /// else
+    /// {
+    ///   Debug.WriteLine(ret.Fault.Message);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<IReader<TResult>>
+      TryRead<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TryRead<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   using (var reader = ret.Value)
+    ///   {
+    ///     while (reader.Read())
+    ///     {
+    ///       Debug.WriteLine(reader.Current.id);
+    ///       Debug.WriteLine(reader.Current.name);
+    ///       Debug.WriteLine(reader.Current.pass);
+    ///       ...
+    ///     }
+    ///   }
+    /// }
+    /// else
+    /// {
+    ///   Debug.WriteLine(ret.Fault.Message);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<IReader<TResult>>
+      TryRead<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TryRead<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém resultados de uma consulta SQL transformados por um algoritmo
+    /// personalizado para varredura em tempo real.
+    /// 
+    /// Ao final da varredura a instância de <see cref="IReader"/> deve
+    /// ser descartada pelo seu método <see cref="IDisposable.Dispose"/>.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId, Username, Password from User"
+    ///     .AsSql()
+    ///     .Read(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   using (var reader = ret.Value)
+    ///   {
+    ///     while (reader.Read())
+    ///     {
+    ///       Debug.WriteLine(reader.Current.id);
+    ///       Debug.WriteLine(reader.Current.name);
+    ///       Debug.WriteLine(reader.Current.pass);
+    ///       ...
+    ///     }
+    ///   }
+    /// }
+    /// else
+    /// {
+    ///   Debug.WriteLine(ret.Fault.Message);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<IReader<TResult>>
+      TryRead<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TryRead<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    #endregion
+
+    #endregion
+
+    #endregion
+
+    #region Select
+
+    #region Select(Type)
+
+    /// <summary>
+    /// Obtém uma coleção de resultados.
+    /// </summary>
+    public static object[] Select(this SqlBuilder sqlBuilder,
+      IDbConnection cn, Type type, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+    {
+      using (var ctx = new ConnectionContext(cn))
+      {
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        using (var cm = ctx.CreateCommand(sql, tx))
+        {
+          var result = new TransformReader<object>(
+            () => cm,
+            reader => Caster.CastTo(reader, type)
+          );
+
+          using (result) return result.ToArray();
+        }
+      }
+    }
+
+    /// <summary>
+    /// Obtém uma coleção de resultados.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma instância de <see cref="Ret"/> é retornada
+    /// contendo informações sobre a falha e um resultado vazio.
+    /// </summary>
+    public static Ret<object[]> TrySelect(this SqlBuilder sqlBuilder,
+      IDbConnection cn, Type type, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+    {
+      try
+      {
+        var ret = Select(sqlBuilder, cn, type, tx,
+          comment, callerName, callerFile, callerLine);
+
+        return Ret.OK(ret);
+      }
+      catch (Exception ex)
+      {
+        return Ret.FailWithValue(ex, new object[0]);
+      }
+    }
+
+    #endregion
+
+    #region Select(Type)
+
+    /// <summary>
+    /// Obtém uma coleção de resultados.
+    /// </summary>
+    public static T[] Select<T>(this SqlBuilder sqlBuilder,
+      IDbConnection cn, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+    {
+      using (var ctx = new ConnectionContext(cn))
+      {
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        using (var cm = ctx.CreateCommand(sql, tx))
+        {
+          var result = new TransformReader<T>(
+            () => cm,
+            reader => Caster.CastTo<T>(reader)
+          );
+
+          using (result) return result.ToArray();
+        }
+      }
+    }
+
+    /// <summary>
+    /// Obtém uma coleção de resultados.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma instância de <see cref="Ret"/> é retornada
+    /// contendo informações sobre a falha e um resultado vazio.
+    /// </summary>
+    public static Ret<T[]> TrySelect<T>(this SqlBuilder sqlBuilder,
+      IDbConnection cn, Type type, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+    {
+      try
+      {
+        var ret = Select<T>(sqlBuilder, cn, tx,
+          comment, callerName, callerFile, callerLine);
+
+        return Ret.OK(ret);
+      }
+      catch (Exception ex)
+      {
+        return Ret.FailWithValue(ex, new T[0]);
+      }
+    }
+
+    #endregion
+
+    #region Select(Delegate)
+
+    /// <summary>
+    /// Obtém uma coleção de resultados.
+    /// </summary>
+    private static TResult[] Select<TResult>(
+      SqlBuilder sqlBuilder, IDbConnection cn,
+      Delegate transform, IDbTransaction tx,
+      string comment, string callerName, string callerFile, int callerLine)
+    {
+      using (var ctx = new ConnectionContext(cn))
+      {
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        using (var cm = ctx.CreateCommand(sql, tx))
+        {
+          var result = new TransformReader<TResult>(
+            () => cm,
+            reader => Transform<TResult>(reader, transform)
+          );
+
+          using (result) return result.ToArray();
+        }
+      }
+    }
+
+    /// <summary>
+    /// Obtém uma coleção de resultados.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma instância de <see cref="Ret"/> é retornada
+    /// contendo informações sobre a falha e um resultado vazio.
+    /// </summary>
+    private static Ret<TResult[]> TrySelect<TResult>(
+      SqlBuilder sqlBuilder, IDbConnection cn,
+      Delegate transform, IDbTransaction tx,
+      string comment, string callerName, string callerFile, int callerLine)
+    {
+      try
+      {
+        var result = Select<TResult>(sqlBuilder, cn, transform, tx,
+          comment, callerName, callerFile, callerLine);
+        return Ret.OK(result);
+      }
+      catch (Exception ex)
+      {
+        return Ret.FailWithValue(ex, new TResult[0]);
+      }
+    }
+
+    #endregion
+
+    #region Select(Transform)
+
+    #region Select
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var records =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .Select(cn, (int id) => new
+    ///     {
+    ///       id
+    ///     });
+    /// foreach (var record in records)
+    /// {
+    ///     Debug.WriteLine(reader.Current.id);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static TResult[]
+      Select<T1, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Select<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var records =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .Select(cn, (int id, string name) => new
+    ///     {
+    ///       id,
+    ///       name
+    ///     });
+    /// foreach (var record in records)
+    /// {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static TResult[]
+      Select<T1, T2, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Select<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var records =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .Select(cn, (int id, string name, string pass) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass
+    ///     });
+    /// foreach (var record in records)
+    /// {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static TResult[]
+      Select<T1, T2, T3, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Select<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var records =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .Select(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// foreach (var record in records)
+    /// {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static TResult[]
+      Select<T1, T2, T3, T4, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Select<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var records =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .Select(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// foreach (var record in records)
+    /// {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static TResult[]
+      Select<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Select<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var records =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .Select(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// foreach (var record in records)
+    /// {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static TResult[]
+      Select<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Select<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var records =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .Select(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// foreach (var record in records)
+    /// {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static TResult[]
+      Select<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Select<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var records =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .Select(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// foreach (var record in records)
+    /// {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static TResult[]
+      Select<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Select<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var records =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .Select(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// foreach (var record in records)
+    /// {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static TResult[]
+      Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Select<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var records =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .Select(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// foreach (var record in records)
+    /// {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static TResult[]
+      Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Select<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var records =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .Select(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// foreach (var record in records)
+    /// {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static TResult[]
+      Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Select<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var records =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .Select(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// foreach (var record in records)
+    /// {
+    ///     Debug.WriteLine(reader.Current.id);
+    ///     Debug.WriteLine(reader.Current.name);
+    ///     Debug.WriteLine(reader.Current.pass);
+    ///     ...
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static TResult[]
+      Select<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => Select<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    #endregion
+
+    #region TrySelect
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .TrySelect(cn, (int id) => new
+    ///     {
+    ///       id
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   foreach (var record in ret.Value)
+    ///   {
+    ///     Debug.WriteLine(recotd.id);
+    ///   }
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<TResult[]>
+      TrySelect<T1, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TrySelect<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .TrySelect(cn, (int id, string name) => new
+    ///     {
+    ///       id,
+    ///       name
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   foreach (var record in ret.Value)
+    ///   {
+    ///     Debug.WriteLine(recotd.id);
+    ///     Debug.WriteLine(recotd.name);
+    ///   }
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<TResult[]>
+      TrySelect<T1, T2, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TrySelect<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .TrySelect(cn, (int id, string name, string pass) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   foreach (var record in ret.Value)
+    ///   {
+    ///     Debug.WriteLine(recotd.id);
+    ///     Debug.WriteLine(recotd.name);
+    ///     Debug.WriteLine(recotd.pass);
+    ///   }
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<TResult[]>
+      TrySelect<T1, T2, T3, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TrySelect<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .TrySelect(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   foreach (var record in ret.Value)
+    ///   {
+    ///     Debug.WriteLine(recotd.id);
+    ///     Debug.WriteLine(recotd.name);
+    ///     Debug.WriteLine(recotd.pass);
+    ///     ...
+    ///   }
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<TResult[]>
+      TrySelect<T1, T2, T3, T4, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TrySelect<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .TrySelect(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   foreach (var record in ret.Value)
+    ///   {
+    ///     Debug.WriteLine(recotd.id);
+    ///     Debug.WriteLine(recotd.name);
+    ///     Debug.WriteLine(recotd.pass);
+    ///     ...
+    ///   }
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<TResult[]>
+      TrySelect<T1, T2, T3, T4, T5, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TrySelect<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .TrySelect(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   foreach (var record in ret.Value)
+    ///   {
+    ///     Debug.WriteLine(recotd.id);
+    ///     Debug.WriteLine(recotd.name);
+    ///     Debug.WriteLine(recotd.pass);
+    ///     ...
+    ///   }
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<TResult[]>
+      TrySelect<T1, T2, T3, T4, T5, T6, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TrySelect<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .TrySelect(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   foreach (var record in ret.Value)
+    ///   {
+    ///     Debug.WriteLine(recotd.id);
+    ///     Debug.WriteLine(recotd.name);
+    ///     Debug.WriteLine(recotd.pass);
+    ///     ...
+    ///   }
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<TResult[]>
+      TrySelect<T1, T2, T3, T4, T5, T6, T7, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TrySelect<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .TrySelect(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   foreach (var record in ret.Value)
+    ///   {
+    ///     Debug.WriteLine(recotd.id);
+    ///     Debug.WriteLine(recotd.name);
+    ///     Debug.WriteLine(recotd.pass);
+    ///     ...
+    ///   }
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<TResult[]>
+      TrySelect<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TrySelect<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .TrySelect(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   foreach (var record in ret.Value)
+    ///   {
+    ///     Debug.WriteLine(recotd.id);
+    ///     Debug.WriteLine(recotd.name);
+    ///     Debug.WriteLine(recotd.pass);
+    ///     ...
+    ///   }
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<TResult[]>
+      TrySelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TrySelect<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .TrySelect(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   foreach (var record in ret.Value)
+    ///   {
+    ///     Debug.WriteLine(recotd.id);
+    ///     Debug.WriteLine(recotd.name);
+    ///     Debug.WriteLine(recotd.pass);
+    ///     ...
+    ///   }
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<TResult[]>
+      TrySelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TrySelect<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .TrySelect(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   foreach (var record in ret.Value)
+    ///   {
+    ///     Debug.WriteLine(recotd.id);
+    ///     Debug.WriteLine(recotd.name);
+    ///     Debug.WriteLine(recotd.pass);
+    ///     ...
+    ///   }
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<TResult[]>
+      TrySelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TrySelect<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    /// <summary>
+    /// Obtém uma coleção de resultados de uma consulta SQL transformados por um
+    /// algoritmo personalizado.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// 
+    /// Exemplo de uso:
+    /// 
+    /// var cn = ...
+    /// var ret =
+    ///   "select UserId from User"
+    ///     .AsSql()
+    ///     .TrySelect(cn, (int id, string name, string pass, ...) => new
+    ///     {
+    ///       id,
+    ///       name,
+    ///       pass,
+    ///       ...
+    ///     });
+    /// if (ret.Ok)
+    /// {
+    ///   foreach (var record in ret.Value)
+    ///   {
+    ///     Debug.WriteLine(recotd.id);
+    ///     Debug.WriteLine(recotd.name);
+    ///     Debug.WriteLine(recotd.pass);
+    ///     ...
+    ///   }
+    /// }
+    /// </summary>
+    /// <param name="sql">A SQL construída com o Sequel.</param>
+    /// <param name="cn">A conexão com a base de dados.</param>
+    /// <param name="transform">O algoritmo de transformação de dados.</param>
+    /// <param name="tx">A transação se existir.</param>
+    /// <param name="comment">Um comentário para documentar a SQL executada.</param>
+    /// <param name="callerName">O nome do método chamador.</param>
+    /// <param name="callerFile">O arquivo que contém o método chamador.</param>
+    /// <param name="callerLine">A linha a partir da qual o chamador invoca este método.</param>
+    /// <returns>
+    /// Uma instância de <see cref="IReader"/> para varredura dos dados.
+    /// </returns> 
+    public static Ret<TResult[]>
+      TrySelect<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(this SqlBuilder sql, IDbConnection cn,
+      Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult> transform, IDbTransaction tx = null,
+      string comment = null, [CallerMemberName] string callerName = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = 0)
+      => TrySelect<TResult>(sql, cn, transform, tx, comment, callerName, callerFile, callerLine);
+
+    #endregion
+
+    #endregion
+
+    #endregion
+
+    #region SelectOne(...)
+
+    #region SelectOne()
+
+    /// <summary>
+    /// Obtém um IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// </summary>
+    /// <param name="sqlBuilder">A SQL a ser executada.</param>
+    /// <returns>
+    /// O IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </returns>
+    public static Ret TrySelectOne(this SqlBuilder sqlBuilder,
+      IDbConnection cn, IDbTransaction tx = null, object defaultValue = null,
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      try
+      {
+        var result = SelectOne(sqlBuilder, cn, tx,
+          comment, callerName, callerFile, callerLine);
+
+        return Ret.OK(result);
+      }
+      catch (Exception ex)
+      {
+        return Ret.FailWithValue(ex, defaultValue);
+      }
+    }
+
+    /// <summary>
+    /// Obtém um IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </summary>
+    /// <param name="sqlBuilder">A SQL a ser executada.</param>
+    /// <returns>
+    /// O IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </returns>
+    public static object SelectOne(this SqlBuilder sqlBuilder,
+      IDbConnection cn, IDbTransaction tx = null,
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      using (var ctx = new ConnectionContext(cn))
+      {
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        using (var cm = ctx.CreateCommand(sql, tx))
+        {
+          var result = cm.ExecuteScalar();
+          return result;
+        }
+      }
+    }
+
+    #endregion
+
+    #region SelectOne<T>()
+
+    /// <summary>
+    /// Obtém um IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// </summary>
+    /// <param name="sqlBuilder">A SQL a ser executada.</param>
+    /// <returns>
+    /// O IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </returns>
+    public static Ret<T> TrySelectOne<T>(this SqlBuilder sqlBuilder,
+      IDbConnection cn, IDbTransaction tx = null, T defaultValue = default(T),
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      try
+      {
+        return SelectOne<T>(sqlBuilder, cn, tx,
+          comment, callerName, callerFile, callerLine);
+      }
+      catch (Exception ex)
+      {
+        return Ret.FailWithValue(ex, defaultValue);
+      }
+    }
+
+    /// <summary>
+    /// Obtém um IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </summary>
+    /// <param name="sqlBuilder">A SQL a ser executada.</param>
+    /// <returns>
+    /// O IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </returns>
+    public static T SelectOne<T>(this SqlBuilder sqlBuilder,
+      IDbConnection cn, IDbTransaction tx = null,
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      using (var ctx = new ConnectionContext(cn))
+      {
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        using (var cm = ctx.CreateCommand(sql, tx))
+        {
+          var result = cm.ExecuteScalar();
+          return Change.To<T>(result);
+        }
+      }
+    }
+
+    #endregion
+
+    #region SelectOne(ColumnIndex)
+
+    /// <summary>
+    /// Obtém um IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// </summary>
+    /// <param name="sqlBuilder">A SQL a ser executada.</param>
+    /// <param name="columnName">Número da coluna de resultado considerada.</param>
+    /// <returns>
+    /// O IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </returns>
+    public static Ret TrySelectOne(this SqlBuilder sqlBuilder,
+      IDbConnection cn, int columnIndex, IDbTransaction tx = null,
+      object defaultValue = null,
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      try
+      {
+        var result = SelectOne(sqlBuilder, cn, columnIndex, tx,
+          comment, callerName, callerFile, callerLine);
+
+        return Ret.OK(result);
+      }
+      catch (Exception ex)
+      {
+        return Ret.FailWithValue(ex, defaultValue);
+      }
+    }
+
+    /// <summary>
+    /// Obtém um IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </summary>
+    /// <param name="sqlBuilder">A SQL a ser executada.</param>
+    /// <param name="columnName">Número da coluna de resultado considerada.</param>
+    /// <returns>
+    /// O IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </returns>
+    public static object SelectOne(this SqlBuilder sqlBuilder,
+      IDbConnection cn, int columnIndex, IDbTransaction tx = null,
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      using (var ctx = new ConnectionContext(cn))
+      {
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        using (var cm = ctx.CreateCommand(sql, tx))
+        using (var reader = cm.ExecuteReader())
+        {
+          var result = reader.Read() ? reader.GetValue(columnIndex) : null;
+          return result;
+        }
+      }
+    }
+
+    #endregion
+
+    #region SelectOne<T>(ColumnIndex)
+
+    /// <summary>
+    /// Obtém um IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// </summary>
+    /// <param name="sqlBuilder">A SQL a ser executada.</param>
+    /// <param name="columnName">Número da coluna de resultado considerada.</param>
+    /// <returns>
+    /// O IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </returns>
+    public static Ret<T> TrySelectOne<T>(this SqlBuilder sqlBuilder,
+      IDbConnection cn, int columnIndex, IDbTransaction tx = null,
+      T defaultValue = default(T),
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      try
+      {
+        return SelectOne<T>(sqlBuilder, cn, columnIndex, tx,
+          comment, callerName, callerFile, callerLine);
+      }
+      catch (Exception ex)
+      {
+        return Ret.FailWithValue(ex, defaultValue);
+      }
+    }
+
+    /// <summary>
+    /// Obtém um IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </summary>
+    /// <param name="sqlBuilder">A SQL a ser executada.</param>
+    /// <param name="columnName">Número da coluna de resultado considerada.</param>
+    /// <returns>
+    /// O IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </returns>
+    public static T SelectOne<T>(this SqlBuilder sqlBuilder,
+      IDbConnection cn, int columnIndex, IDbTransaction tx = null,
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      using (var ctx = new ConnectionContext(cn))
+      {
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        using (var cm = ctx.CreateCommand(sql, tx))
+        using (var reader = cm.ExecuteReader())
+        {
+          var result = reader.Read() ? reader.GetValue(columnIndex) : null;
+          return Change.To<T>(result);
+        }
+      }
+    }
+
+    #endregion
+
+    #region SelectOne(ColumnName)
+
+    /// <summary>
+    /// Obtém um IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// </summary>
+    /// <param name="sqlBuilder">A SQL a ser executada.</param>
+    /// <param name="columnName">Número da coluna de resultado considerada.</param>
+    /// <returns>
+    /// O IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </returns>
+    public static Ret TrySelectOne(this SqlBuilder sqlBuilder,
+      IDbConnection cn, string columnName, IDbTransaction tx = null,
+      object defaultValue = null,
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      try
+      {
+        var result = SelectOne(sqlBuilder, cn, columnName, tx,
+          comment, callerName, callerFile, callerLine);
+
+        return Ret.OK(result);
+      }
+      catch (Exception ex)
+      {
+        return Ret.FailWithValue(ex, defaultValue);
+      }
+    }
+
+    /// <summary>
+    /// Obtém um IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </summary>
+    /// <param name="sqlBuilder">A SQL a ser executada.</param>
+    /// <param name="columnName">Número da coluna de resultado considerada.</param>
+    /// <returns>
+    /// O IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </returns>
+    public static object SelectOne(this SqlBuilder sqlBuilder,
+      IDbConnection cn, string columnName, IDbTransaction tx = null,
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      using (var ctx = new ConnectionContext(cn))
+      {
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        using (var cm = ctx.CreateCommand(sql, tx))
+        using (var reader = cm.ExecuteReader())
+        {
+          var columnIndex = reader.GetOrdinal(columnName);
+          var result = reader.Read() ? reader.GetValue(columnIndex) : null;
+          return result;
+        }
+      }
+    }
+
+    #endregion
+
+    #region SelectOne<T>(ColumnName)
+
+    /// <summary>
+    /// Obtém um IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// 
+    /// Como todo método Try* este método não lança exceção.
+    /// Se uma falha ocorrer uma coleção vazia será retornada.
+    /// </summary>
+    /// <param name="sqlBuilder">A SQL a ser executada.</param>
+    /// <param name="columnName">Número da coluna de resultado considerada.</param>
+    /// <returns>
+    /// O IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </returns>
+    public static Ret<T> TrySelectOne<T>(this SqlBuilder sqlBuilder,
+      IDbConnection cn, string columnName, IDbTransaction tx = null,
+      T defaultValue = default(T),
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      try
+      {
+        return SelectOne<T>(sqlBuilder, cn, columnName, tx,
+          comment, callerName, callerFile, callerLine);
+      }
+      catch (Exception ex)
+      {
+        return Ret.FailWithValue(ex, defaultValue);
+      }
+    }
+
+    /// <summary>
+    /// Obtém um IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </summary>
+    /// <param name="sqlBuilder">A SQL a ser executada.</param>
+    /// <param name="columnName">Número da coluna de resultado considerada.</param>
+    /// <returns>
+    /// O IResult com os registros obtidos.
+    /// Todo objeto IResult deve ser fechado depois do uso.
+    /// Prefira encapsular o uso do IResult em um bloco using.
+    /// </returns>
+    public static T SelectOne<T>(this SqlBuilder sqlBuilder,
+      IDbConnection cn, string columnName, IDbTransaction tx = null,
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      using (var ctx = new ConnectionContext(cn))
+      {
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        using (var cm = ctx.CreateCommand(sql, tx))
+        using (var reader = cm.ExecuteReader())
+        {
+          var columnIndex = reader.GetOrdinal(columnName);
+          var result = reader.Read() ? reader.GetValue(columnIndex) : null;
+          return Change.To<T>(result);
+        }
+      }
+    }
+
+    #endregion
+
+    #endregion
+  }
+}

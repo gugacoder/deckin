@@ -1,23 +1,24 @@
 ﻿using System;
+using Director.Connectors;
 using Director.Models;
-using Paper;
-using Toolset;
+using Keep.Paper;
+using Keep.Tools;
 
 namespace Director.Papers
 {
   [Expose]
   public class LoginPaper : IPaper
   {
-    private readonly LoginModel loginModel;
+    private readonly DirectorDbContext dbDirector;
 
-    public LoginPaper(LoginModel loginModel)
+    public LoginPaper(DirectorDbContext dbDirector)
     {
-      this.loginModel = loginModel;
+      this.dbDirector = dbDirector;
     }
 
     public Ret Login(Domain.Login login)
     {
-      return loginModel.Autenticar(login);
+      return new LoginModel(dbDirector).Autenticar(login);
     }
   }
 }
