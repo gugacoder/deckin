@@ -280,6 +280,10 @@ namespace Keep.Tools
             return dateAndTime.ToString("yyyy-MM-ddTHH:mm:ss");
           }
         }
+        if (value is bool boolean)
+        {
+          return boolean ? "true" : "false";
+        }
         else
         {
           if (value._HasMethod("ToString", typeof(IFormatProvider)))

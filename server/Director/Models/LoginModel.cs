@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Dapper;
 using Director.Connectors;
-using Director.Domain;
-using Keep.Paper.Helpers;
+using Director.Domain.Aut;
+using Keep.Paper.Security;
 using Keep.Tools;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
@@ -19,46 +20,33 @@ namespace Director.Models
       this.dbDirector = dbDirector;
     }
 
-    public Ret<object> Autenticar(Login login)
+    public async Task<Identidade> AutenticarAsync(Credencial credencial)
     {
-      try
-      {
-        using var cn = dbDirector.Database.GetDbConnection();
-        var usuario =
-          @"select TBusuario.DFid_usuario
-                 , TBusuario.DFnome_usuario
-                 , TBnivel.DFdescricao
-                 , case when
-                     dbo.fn_decript(coalesce(TBopcoes.DFvalor, TBusuario.DFsenha))
-                         = @password
-                     then 1
-                     else 0
-                   end as DFautenticado
-              from TBusuario
-             inner join TBnivel
-                     on TBnivel.DFid_nivel_usuario = TBusuario.DFnivel_usuario
-              left join TBopcoes
-                     on TBopcoes.DFcodigo = 391
-                    and TBusuario.DFnivel_usuario = 99
-             where DFnome_usuario = @username"
-            .AsSql()
-            .Set(login)
-            .SelectOneAsync(cn, (int id, string nome, string papel, bool autenticado) =>
-                new { id, nome, papel, autenticado }).Result;
+      using var cn = dbDirector.Database.GetDbConnection();
 
-        if (usuario?.autenticado != true)
-          return null;
+      var identidade = await
+        @"select TBusuario.DFid_usuario as IdUsuario
+               , TBusuario.DFnome_usuario as Usuario
+               , TBnivel.DFid_nivel_usuario as IdNivel
+               , TBnivel.DFdescricao as Nivel
+               , case when
+                   dbo.fn_decript(coalesce(TBopcoes.DFvalor, TBusuario.DFsenha))
+                       = @senha
+                   then 1
+                   else 0
+                 end as Autenticado
+            from TBusuario
+           inner join TBnivel
+                   on TBnivel.DFid_nivel_usuario = TBusuario.DFnivel_usuario
+            left join TBopcoes
+                   on TBopcoes.DFcodigo = 391
+                  and TBusuario.DFnivel_usuario = 99
+           where DFnome_usuario = @usuario"
+          .AsSql()
+          .Set(credencial)
+          .SelectOneAsync<Identidade>(cn);
 
-        var jwtBuilder = new JwtTokenBuilder();
-        jwtBuilder.AddUsername(usuario.nome);
-
-        var jwtToken = jwtBuilder.BuildJwtToken();
-        return jwtToken;
-      }
-      catch(Exception ex)
-      {
-        return ex;
-      }
+      return identidade;
     }
   }
 }

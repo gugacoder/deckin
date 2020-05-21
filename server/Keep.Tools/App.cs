@@ -10,6 +10,10 @@ namespace Keep.Tools
 {
   public static class App
   {
+    private static string _commonPath;
+    private static string _manufacturer;
+    private static string _sharedPath;
+
     static App()
     {
       App.Guid = FindGuid();
@@ -36,7 +40,54 @@ namespace Keep.Tools
     /// </summary>
     public static string Path { get; set; }
 
-    public static string CommonPath { get; set; }
+    /// <summary>
+    /// Nome de identificação do fabricante do sistema.
+    /// </summary>
+    public static string Manufacturer
+    {
+      get => _manufacturer ?? "KeepCoding";
+      set => _manufacturer = value;
+    }
+
+    /// <summary>
+    /// Caminho dos arquivos de dados públicos de acesso livre à todas as
+    /// instâncias do aplicativo.
+    /// Geralmente em "%ProgramData%\MANUFACTURER\APP_NAME"
+    /// </summary>
+    public static string DataPath
+    {
+      get
+      {
+        if (_commonPath != null)
+          return _commonPath;
+
+        var appData = Environment.GetFolderPath(
+            Environment.SpecialFolder.ApplicationData);
+        var commonPath = System.IO.Path.Combine(appData, Manufacturer, Name);
+        return commonPath;
+      }
+      set => _commonPath = value;
+    }
+
+    /// <summary>
+    /// Caminho dos arquivos compartilhados por todas as instâncias de
+    /// aplicativo do mesmo fabricante.
+    /// Geralmente em "%ProgramData%\MANUFACTURER"
+    /// </summary>
+    public static string SharedPath
+    {
+      get
+      {
+        if (_sharedPath != null)
+          return _sharedPath;
+
+        var appData = Environment.GetFolderPath(
+            Environment.SpecialFolder.ApplicationData);
+        var sharedPath = System.IO.Path.Combine(appData, Manufacturer);
+        return sharedPath;
+      }
+      set => _sharedPath = value;
+    }
 
     /// <summary>
     /// Versão corrente do aplicativo.

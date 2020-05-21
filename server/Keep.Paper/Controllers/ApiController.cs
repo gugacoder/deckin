@@ -1,24 +1,23 @@
 ﻿using System;
 using System.Net;
+using Keep.Paper.Formatters;
 using Keep.Tools;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Keep.Paper.Controllers
 {
-  [Route("/Api/1/{*path}")]
-  public class NotFoundController : Controller
+  [Route("/Api/1")]
+  public class ApiController : Controller
   {
-    public IActionResult Index()
+    [Route("{*path}")]
+    public IActionResult SendNotFound()
     {
-      return NotFound(new
+      var status = HttpStatusCode.NotFound;
+      return StatusCode((int)status, new
       {
-        Type = "fault",
-        Data = new
-        {
-          Status = (int)HttpStatusCode.NotFound,
-          Reason = HttpStatusCode.NotFound.ToString().ChangeCase(TextCase.ProperCase)
-        },
+        Type = Entities.GetType(status),
+        Data = Entities.GetData(status),
         Links = new
         {
           Self = new

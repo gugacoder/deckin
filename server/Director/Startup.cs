@@ -27,6 +27,8 @@ namespace Director
 
     public void ConfigureServices(IServiceCollection services)
     {
+      services.AddHttpContextAccessor();
+
       services.AddControllers();
       services.AddPaperControllers();
 

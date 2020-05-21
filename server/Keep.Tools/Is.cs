@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Keep.Tools.Collections;
 
@@ -18,6 +20,29 @@ namespace Keep.Tools
           || typeof(IList<>).IsAssignableFrom(type)
           || typeof(ICollection).IsAssignableFrom(type)
           || typeof(ICollection<>).IsAssignableFrom(type);
+    }
+
+    public static bool Anonymous(object graph)
+    {
+      var type = graph is Type t ? t : graph?.GetType();
+      if (type == null)
+        return false;
+
+      if (!Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false))
+        return false;
+
+      if (!type.IsGenericType &&
+          !type.Attributes.HasFlag(TypeAttributes.NotPublic))
+        return false;
+
+      if (!type.Name.StartsWith("<>"))
+        return false;
+
+      if (!type.Name.Contains("AnonymousType") &&
+          !type.Name.Contains("AnonType"))
+        return false;
+
+      return true;
     }
 
     public static bool Dictionary(object graph)

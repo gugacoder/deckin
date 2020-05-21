@@ -36,5 +36,11 @@ namespace Keep.Tools.Collections
       : base(keyComparer, entries)
     {
     }
+
+    public void Add(object target)
+    {
+      var items = Reflection.ObjectExtensions._GetMap(target);
+      AddMany(items);
+    }
   }
 }

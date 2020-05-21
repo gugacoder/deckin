@@ -219,6 +219,11 @@ namespace Keep.Tools.Reflection
 
     public static HashMap _GetMap(this object target, IEnumerable<string> propertyNames)
     {
+      if (propertyNames!.Any() != true)
+      {
+        propertyNames = _GetPropertyNames(target);
+      }
+
       var map = new HashMap();
       foreach (var propertyName in propertyNames)
       {

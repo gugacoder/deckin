@@ -20,4 +20,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Keep.Tools\Keep.Tools.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Security\" />
+    <Folder Include="Formatters\" />
+    <Folder Include="Papers\" />
+  </ItemGroup>
 </Project>
