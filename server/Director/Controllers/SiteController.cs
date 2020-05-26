@@ -3,10 +3,9 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Director.Connectors;
-using Director.Domain.Aut;
 using Director.Models;
 using Keep.Paper.Formatters;
-using Keep.Paper.Security;
+using Keep.Paper.Helpers;
 using Keep.Tools;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
@@ -55,35 +54,35 @@ namespace Director.Controllers
       }
     }
 
-    [Route("/Sandbox")]
-    public async Task<IActionResult> SandboxAsync()
-    {
-      var identidade = await new LoginModel(dbDirector).AutenticarAsync(
-        new Credencial
-        {
-          Usuario = "processa",
-          Senha = "prodir669"
-        });
-
-      var token = new JwtTokenBuilder()
-        .AddUsername(identidade.Usuario)
-        .AddClaim(identidade)
-        .AddClaimNameConvention(TextCase.Underscore, prefix: "_")
-        .BuildJwtToken();
-
-      return Ok(new
-      {
-        Type = Entities.GetType(token),
-        Data = Entities.GetData(token),
-        Links = new
-        {
-          Self = new
-          {
-            Href = this.HttpContext.Request.GetDisplayUrl()
-          }
-        }
-      });
-    }
+    //[Route("/Sandbox")]
+    //public async Task<IActionResult> SandboxAsync()
+    //{
+    //  var identidade = await new LoginModel(dbDirector).AutenticarAsync(
+    //    new Credencial
+    //    {
+    //      Usuario = "processa",
+    //      Senha = "prodir669"
+    //    });
+    //
+    //  var token = new JwtTokenBuilder()
+    //    .AddUsername(identidade.Usuario)
+    //    .AddClaim(identidade)
+    //    .AddClaimNameConvention(TextCase.Underscore, prefix: "_")
+    //    .BuildJwtToken();
+    //
+    //  return Ok(new
+    //  {
+    //    Type = Entities.GetType(token),
+    //    Data = Entities.GetData(token),
+    //    Links = new
+    //    {
+    //      Self = new
+    //      {
+    //        Href = this.HttpContext.Request.GetDisplayUrl()
+    //      }
+    //    }
+    //  });
+    //}
 
     [Route("/{*path}", Order = 999)]
     public IActionResult NaoEncontrado()

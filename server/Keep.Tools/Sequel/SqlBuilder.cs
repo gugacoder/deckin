@@ -591,7 +591,7 @@ namespace Keep.Tools.Sequel
                 var keyValue = bag[key];
 
                 args[keyName] = keyValue;
-                sentence = sentence.Stuff(index, count, keyName);
+                sentence = sentence.Inject(index, count, keyName);
               }
             }
 
@@ -611,7 +611,7 @@ namespace Keep.Tools.Sequel
           replacement = $" ({string.Join("\n or ", sentences.Distinct())})";
         }
 
-        target.Text = target.Text.Stuff(
+        target.Text = target.Text.Inject(
           match.Index, match.Length, $" {replacement}");
       }
     }
@@ -703,7 +703,7 @@ namespace Keep.Tools.Sequel
             var keyValue = nestArgs[key];
 
             target.Args[keyName] = keyValue;
-            nestText = nestText.Stuff(index, count, keyName);
+            nestText = nestText.Inject(index, count, keyName);
           }
         }
 

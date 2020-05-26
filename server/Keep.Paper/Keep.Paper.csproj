@@ -15,14 +15,19 @@
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.5.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.5.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Keep.Tools\Keep.Tools.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Security\" />
+    <Folder Include="Helpers\" />
     <Folder Include="Formatters\" />
     <Folder Include="Papers\" />
+    <Folder Include="Api\" />
+    <Folder Include="Services\" />
+    <Folder Include="Domain\" />
+    <Folder Include="Models\" />
   </ItemGroup>
 </Project>

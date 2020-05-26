@@ -23,11 +23,18 @@ namespace Keep.Tools
     }
 
     /// <summary>
-    /// Identificador único da instância do aplicativo instalada.
+    /// Identificador único da instância do aplicativo.
+    /// Instância identifica uma instalação do aplicativo.
+    /// 
     /// Por padrão o identificador é armazenado na pasta de instalação do
-    /// aplicativo sob o nome de Guid.txt.
+    /// aplicativo sob o nome de GUID.info.
     /// </summary>
     public static Guid Guid { get; set; }
+
+    /// <summary>
+    /// Identificador único de execução do aplicativo.
+    /// </summary>
+    public static Guid ProcessGuid { get; } = Guid.NewGuid();
 
     /// <summary>
     /// Nome interno do aplicativo.
@@ -104,7 +111,7 @@ namespace Keep.Tools
       Guid? guid = null;
 
       var path = FindPath();
-      var filepath = System.IO.Path.Combine(path, "Guid.txt");
+      var filepath = System.IO.Path.Combine(path, "GUID.info");
 
       if (File.Exists(filepath))
       {

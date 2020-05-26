@@ -189,7 +189,7 @@ namespace Keep.Tools
       {
         text = string.Join(".", words);
       }
-      else 
+      else
       {
         text = string.Concat(words);
       }
@@ -279,20 +279,22 @@ namespace Keep.Tools
       return split;
     }
 
-    ///// <summary>
-    ///// Aplica uma substituição no texto usando regras de expressão regular.
-    ///// </summary>
-    ///// <param name="text">O texto a ser modificado.</param>
-    ///// <param name="regex">A expressão regular aplicada.</param>
-    ///// <param name="replacement">
-    ///// O texto substituto segundo as regeras de <see cref="Regex.Replace(string, string, string, RegexOptions)"/>
-    ///// </param>
-    ///// <param name="options">Opções de aplicação da expressão regular.</param>
-    ///// <returns>O texto com a substituição aplicada.</returns>
-    //public static string ReplacePattern(this string text, string regex, string replacement, RegexOptions options = default(RegexOptions))
-    //{
-    //  return Regex.Replace(text, regex, replacement, options);
-    //}
+    /// <summary>
+    /// Remove uma parte do texto correspondente à expressào regular.
+    /// Mais detalhes em:
+    ///   https://msdn.microsoft.com/pt-br/library/ewy2t5e0(v=vs.110).aspx
+    /// </summary>
+    /// <param name="text">O texto a ser pesquisado./param>
+    /// <param name="regex">A expressão regular.</param>
+    /// <param name="options">Opções de aplicação da expressão regular.</param>
+    /// <returns>O trecho extraído da string.</returns>
+    public static string Remove(this string text, string regex, RegexOptions options = default)
+    {
+      options |= RegexOptions.Multiline;
+      text = text.Replace("\r", "");
+      var replacement = "";
+      return Regex.Replace(text, regex, replacement, options);
+    }
 
     /// <summary>
     /// Extrai um trecho de uma sentença pela aplicação de uma expressão regular.
@@ -316,20 +318,50 @@ namespace Keep.Tools
     /// </param>
     /// <param name="options">Opções de aplicação da expressão regular.</param>
     /// <returns>O trecho extraído da string.</returns>
-    public static string Strip(this string text, string regex, string replacement = null, RegexOptions options = default(RegexOptions))
+    public static string Extract(this string text, string regex, string replacement = null, RegexOptions options = default)
     {
-      options |= System.Text.RegularExpressions.RegexOptions.Multiline;
+      options |= RegexOptions.Multiline;
 
       text = text.Replace("\r", "");
 
-      var match = System.Text.RegularExpressions.Regex.Match(text, regex, (RegexOptions)options);
+      var match = Regex.Match(text, regex, options);
       if (!match.Success)
         return null;
 
       text = match.Captures[0].Value;
 
       if (replacement == null) replacement = "$&";
-      return System.Text.RegularExpressions.Regex.Replace(text, regex, replacement, (RegexOptions)options);
+      return Regex.Replace(text, regex, replacement, options);
+    }
+
+    /// <summary>
+    /// Remove uma parte do texto correspondente à expressào regular.
+    /// 
+    /// Suporta todas as substituições de Regex.Replace:
+    /// -   $número     Grupo pelo índice.
+    /// -   ${name}     Grupo pelo nome.
+    /// -   $$          Literal "$".
+    /// -   $&          Texto capturado inteiro.
+    /// -   $`          Texto antes da captura.
+    /// -   $'          Texto depois da captura.
+    /// -   $+          Último grupo capturado.
+    /// 
+    /// Mais detalhes em:
+    ///   https://msdn.microsoft.com/pt-br/library/ewy2t5e0(v=vs.110).aspx
+    /// </summary>
+    /// <param name="text">O texto a ser pesquisado./param>
+    /// <param name="regex">A expressão regular.</param>
+    /// <param name="replacement">
+    /// Uma substituição opcional. De acordo com as regras de Regex.Replace.
+    /// </param>
+    /// <param name="options">Opções de aplicação da expressão regular.</param>
+    /// <returns>O trecho extraído da string.</returns>
+    public static string Inject(this string text, string regex, string replacement, RegexOptions options = default)
+    {
+      options |= RegexOptions.Multiline;
+      text = text.Replace("\r", "");
+      if (replacement == null) replacement = "$&";
+      return Regex.Replace(text, regex, replacement, options);
     }
 
     /// <summary>
@@ -340,7 +372,7 @@ namespace Keep.Tools
     /// <param name="length">A quantidade de caracteres no invervalo.</param>
     /// <param name="replacement">O texto que será posto no lugar do invervalo.</param>
     /// <returns>O texto modificado.</returns>
-    public static string Stuff(this string text, int index, int length, string replacement)
+    public static string Inject(this string text, int index, int length, string replacement)
     {
       text = text.Substring(0, index) + replacement + text.Substring(index + length);
       return text;
