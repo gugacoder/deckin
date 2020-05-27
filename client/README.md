@@ -1,4 +1,4 @@
-# paper-vue-concept
+# client
 
 ## Project setup
 ```
