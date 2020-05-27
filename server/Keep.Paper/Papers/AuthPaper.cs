@@ -60,8 +60,7 @@ namespace Keep.Paper.Papers
 
     public object Logout() => new
     {
-      Kind = Kind.Meta,
-      Data = new
+      Meta = new
       {
         Identity = default(object)
       },
@@ -112,8 +111,7 @@ namespace Keep.Paper.Papers
 
         return new
         {
-          Kind = Kind.Meta,
-          Data = new
+          Meta = new
           {
             Identity = identity
           },

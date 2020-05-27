@@ -3,9 +3,6 @@ namespace Keep.Paper.Api
 {
   public static class Kind
   {
-    // System Wide Actions
-    public const string Meta = "meta";
-
     // Notifications
     public const string Fault = "fault";
     public const string Validation = "validation";

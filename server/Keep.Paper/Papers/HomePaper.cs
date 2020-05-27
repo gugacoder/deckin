@@ -10,7 +10,6 @@ namespace Keep.Paper.Papers
   {
     public object Index() => new
     {
-      Kind = Kind.Meta,
       Links = new object[]
       {
         new
