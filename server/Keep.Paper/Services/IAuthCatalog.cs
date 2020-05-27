@@ -1,7 +1,7 @@
 ﻿using System;
 namespace Keep.Paper.Services
 {
-  public interface IAuthTypeCollection
+  public interface IAuthCatalog
   {
     Type FindAuthType(string domain);
   }

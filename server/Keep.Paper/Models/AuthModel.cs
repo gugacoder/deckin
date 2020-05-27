@@ -11,10 +11,10 @@ namespace Keep.Paper.Models
   public class AuthModel
   {
     private readonly IServiceProvider serviceProvider;
-    private readonly IAuthTypeCollection authTypeCollection;
+    private readonly IAuthCatalog authTypeCollection;
 
     public AuthModel(IServiceProvider serviceProvider,
-        IAuthTypeCollection authenticators)
+        IAuthCatalog authenticators)
     {
       this.serviceProvider = serviceProvider;
       this.authTypeCollection = authenticators;

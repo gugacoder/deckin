@@ -6,75 +6,78 @@ using Keep.Paper.Models;
 using Keep.Paper.Helpers;
 using Keep.Tools;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Http;
 
 namespace Keep.Paper.Papers
 {
   [Expose]
-  public class AuthPaper : IPaper
+  public class AuthPaper : BasicPaper
   {
-    private IServiceProvider serviceProvider;
-
-    public AuthPaper(IServiceProvider serviceProvider)
-    {
-      this.serviceProvider = serviceProvider;
-    }
-
     public object Index() => Login();
 
     public object Login() => new
     {
-      Kind = Kinds.Action,
+      Kind = Kind.Action,
       View = new
       {
-        Title = "Credenciais de Usuário",
-        Post = nameof(AuthenticateAsync).Remove("Async$"),
-        Fields = new
+        Title = "Credenciais de Usuário"
+      },
+      Fields = new
+      {
+        Username = new
         {
-          Username = new
+          Kind = FieldKind.Username,
+          View = new
           {
             Title = "Usuário",
             Required = true
-          },
-          Password = new
+          }
+        },
+        Password = new
+        {
+          Kind = FieldKind.Password,
+          View = new
           {
             Title = "Senha",
-            Required = true,
-            Password = true
+            Required = true
           }
         }
       },
-      Links = new
+      Links = new object[]
       {
-        Self = new { Href = Names.Get(GetType()) }
+        new
+        {
+          Rel = Rel.Self,
+          Href = Href.To(HttpContext, GetType(), Name.Action())
+        },
+        new
+        {
+          Rel = Rel.Action,
+          Href = Href.To(base.HttpContext, GetType(), nameof(AuthenticateAsync))
+        },
       }
     };
 
     public object Logout() => new
     {
-      Kind = Kinds.Batch,
-      Name = Names.Get(GetType()),
-      Embedded = new object[]
+      Kind = Kind.Meta,
+      Data = new
+      {
+        Identity = default(object)
+      },
+      Links = new object[]
       {
         new
         {
-          Kind = Kinds.Set,
-          Data = new
-          {
-            Identity = default(object)
-          }
+          Rel = Rel.Self,
+          Href = Href.To(HttpContext, GetType(), Name.Action())
         },
         new
         {
-          Kind = Kinds.Forward,
-          Data = new
-          {
-            To = "DesktopPaper"
-          }
+          Rel = Rel.Forward,
+          Href = Href.To(HttpContext, typeof(DesktopPaper),
+              nameof(DesktopPaper.Index))
         }
-      },
-      Links = new
-      {
-        Self = new { Href = Names.Get(GetType()) }
       }
     };
 
@@ -82,56 +85,51 @@ namespace Keep.Paper.Papers
     {
       try
       {
-        var model = ActivatorUtilities.CreateInstance<AuthModel>(serviceProvider);
+        var model = CreateInstance<AuthModel>();
 
         var identity = await model.AuthenticateAsync(credential);
         if (identity == null)
         {
           return new
           {
-            Kind = Kinds.Validation,
+            Kind = Kind.Validation,
             Data = new
             {
               Field = nameof(credential.Username),
               Message = "Usuário e senha não conferem.",
               Severity = Severities.Warning
             },
-            Links = new
+            Links = new object[]
             {
-              Self = new { Href = Names.Get(GetType()) }
+              new
+              {
+                Rel = Rel.Self,
+                Href = Href.To(HttpContext, GetType(), Name.Action())
+              }
             }
           };
         }
 
         return new
         {
-          Kind = Kinds.Batch,
-          Embedded = new object[]
+          Kind = Kind.Meta,
+          Data = new
+          {
+            Identity = identity
+          },
+          Links = new object[]
           {
             new
             {
-              Kind = Kinds.Set,
-              Data = new
-              {
-                Identity = identity
-              }
+              Rel = Rel.Self,
+              Href = Href.To(HttpContext, GetType(), Name.Action())
             },
             new
             {
-              Kind = Kinds.Forward,
-              Data = new
-              {
-                // Quando FollowUp está ativo e existe uma navegação em andamento
-                // a navegação segue. Em qualquer outra situação Fallback é
-                // definido como destino.
-                FollowUp = true,
-                Fallback = "DesktopPaper"
-              }
+              Rel = Rel.Forward,
+              Href = Href.To(HttpContext, typeof(DesktopPaper),
+                  nameof(DesktopPaper.Index))
             }
-          },
-          Links = new
-          {
-            Self = new { Href = Names.Get(GetType()) }
           }
         };
       }
@@ -139,16 +137,20 @@ namespace Keep.Paper.Papers
       {
         return new
         {
-          Kind = Kinds.Fault,
+          Kind = Kind.Fault,
           Data = new
           {
             Status = 500,
             StatusDescription = "Falha Processando Requisição",
-            Messages = ex.GetCauseMessages()
+            Cause = ex.GetCauseMessages()
           },
-          Links = new
+          Links = new object[]
           {
-            Self = new { Href = Names.Get(GetType()) }
+            new
+            {
+              Rel = Rel.Self,
+              Href = Href.To(HttpContext, GetType(), Name.Action())
+            }
           }
         };
       }

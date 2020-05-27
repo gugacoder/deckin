@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using Keep.Paper.Api;
 using Keep.Paper.Formatters;
 using Keep.Tools;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -11,21 +12,21 @@ namespace Keep.Paper.Controllers
   public class ApiController : Controller
   {
     [Route("{*path}")]
-    public IActionResult SendNotFound()
+    public IActionResult FallThrough() => StatusCode(404, new
     {
-      var status = HttpStatusCode.NotFound;
-      return StatusCode((int)status, new
+      Kind = Kind.Fault,
+      Data = new
       {
-        Type = Entities.GetType(status),
-        Data = Entities.GetData(status),
-        Links = new
-        {
-          Self = new
-          {
-            Href = this.Request.GetDisplayUrl()
-          }
+        Status = 404,
+        StatusDescription = "Não Encontrado"
+      },
+      Links = new object[]
+      {
+        new {
+          Rel = Rel.Self,
+          Href = HttpContext.Request.GetDisplayUrl()
         }
-      });
-    }
+      }
+    });
   }
 }

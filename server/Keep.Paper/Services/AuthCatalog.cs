@@ -5,11 +5,11 @@ using Keep.Tools;
 
 namespace Keep.Paper.Services
 {
-  internal class AuthTypeCollection : IAuthTypeCollection
+  internal class AuthCatalog : IAuthCatalog
   {
     private static Type[] authenticators;
 
-    public AuthTypeCollection()
+    public AuthCatalog()
     {
       Initialize();
     }

@@ -148,6 +148,38 @@ namespace Keep.Tools.Collections
       }
     }
 
+    /// <summary>
+    /// Ordena o enumerado pelo próprio dado contido nele.
+    /// </summary>
+    public static IOrderedQueryable<T> OrderBy<T>(this IQueryable<T> enumerable)
+    {
+      return enumerable.OrderBy(x => x);
+    }
+
+    /// <summary>
+    /// Ordena o enumerado pelo próprio dado contido nele.
+    /// </summary>
+    public static IOrderedQueryable<T> ThenBy<T>(this IOrderedQueryable<T> enumerable)
+    {
+      return enumerable.ThenBy(x => x);
+    }
+
+    /// <summary>
+    /// Ordena o enumerado pelo próprio dado contido nele.
+    /// </summary>
+    public static IOrderedQueryable<T> OrderByDescending<T>(this IQueryable<T> enumerable)
+    {
+      return enumerable.OrderByDescending(x => x);
+    }
+
+    /// <summary>
+    /// Ordena o enumerado pelo próprio dado contido nele.
+    /// </summary>
+    public static IOrderedQueryable<T> ThenByDescending<T>(this IOrderedQueryable<T> enumerable)
+    {
+      return enumerable.ThenByDescending(x => x);
+    }
+
 #if !NETCOREAPP
 
     /// <summary>

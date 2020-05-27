@@ -91,7 +91,7 @@ namespace Keep.Tools.Collections
     {
       if (enumerable == null)
         return Enumerable.Empty<T>();
-      
+
       return enumerable.Where(x =>
       {
         if (x == null || x is DBNull)
@@ -178,6 +178,38 @@ namespace Keep.Tools.Collections
       {
         action.Invoke(item.element, item.index);
       }
+    }
+
+    /// <summary>
+    /// Ordena o enumerado pelo próprio dado contido nele.
+    /// </summary>
+    public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> enumerable)
+    {
+      return enumerable.OrderBy(x => x);
+    }
+
+    /// <summary>
+    /// Ordena o enumerado pelo próprio dado contido nele.
+    /// </summary>
+    public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> enumerable)
+    {
+      return enumerable.ThenBy(x => x);
+    }
+
+    /// <summary>
+    /// Ordena o enumerado pelo próprio dado contido nele.
+    /// </summary>
+    public static IOrderedEnumerable<T> OrderByDescending<T>(this IEnumerable<T> enumerable)
+    {
+      return enumerable.OrderByDescending(x => x);
+    }
+
+    /// <summary>
+    /// Ordena o enumerado pelo próprio dado contido nele.
+    /// </summary>
+    public static IOrderedEnumerable<T> ThenByDescending<T>(this IOrderedEnumerable<T> enumerable)
+    {
+      return enumerable.ThenByDescending(x => x);
     }
 
 #if !NETCOREAPP
