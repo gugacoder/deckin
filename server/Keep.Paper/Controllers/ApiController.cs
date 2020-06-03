@@ -12,13 +12,13 @@ namespace Keep.Paper.Controllers
   public class ApiController : Controller
   {
     [Route("{*path}")]
-    public IActionResult FallThrough() => StatusCode(404, new
+    public IActionResult FallThrough() => Ok(new
     {
       Kind = Kind.Fault,
       Data = new
       {
-        Status = 404,
-        StatusDescription = "Não Encontrado"
+        Fault = Fault.NotFound,
+        Reason = "The requested path does not match any valid resource."
       },
       Links = new object[]
       {

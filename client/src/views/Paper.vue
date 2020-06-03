@@ -12,7 +12,10 @@
 
       <v-toolbar-title>
         <strong>Director</strong>Alfa
-        - Title
+        
+        <span v-show="title">-</span>
+        
+        {{title}}
       </v-toolbar-title>
       
       <v-spacer></v-spacer>
@@ -73,17 +76,30 @@
       </v-alert>
 
       <template v-if="paper">
-        <h1>It works!</h1>
+        <component :is="paperComponent" v-bind="paperComponentProperties">
+        </component>
       </template>
+
+      <br>
+      <v-expansion-panels>
+        <v-expansion-panel>
+          <v-expansion-panel-header>Raw Data</v-expansion-panel-header>
+          <v-expansion-panel-content>
+            <pre>{{ paper }}</pre>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+      </v-expansion-panels>
     </v-container>
   </div>
 </template>
 
 <script>
+import Vue from 'vue'
+
 export default {
   // Strategy: Fetching After Navigation
 
-  name: 'Paper',
+  name: 'paper-view',
 
   components: {
   },
@@ -99,6 +115,55 @@ export default {
     paper: null
   }),
 
+  computed: {
+    title () {
+      if (this.paper === null) return null;
+      return [
+        this.paperName, 
+        this.paperAction,
+        ...this.paperKeys
+      ].join(' / ');
+    },
+    
+    catalogName () {
+      var path = this.$route.params.pathMatch;
+      return path.split('/')[0] ?? null;
+    },
+    
+    paperName () {
+      var path = this.$route.params.pathMatch;
+      return path.split('/')[1] ?? null;
+    },
+    
+    paperAction () {
+      var path = this.$route.params.pathMatch;
+      return path.split('/')[2] ?? null;
+    },
+    
+    paperKeys () {
+      var path = this.$route.params.pathMatch;
+      return path.split('/').slice(3);
+    },
+
+    paperComponent () {
+      var componentName = `${this.paper.kind || "data"}-paper`;
+      if (!Vue.options.components[componentName]) {
+        componentName = 'invalid-paper'
+      }
+      return componentName;
+    },
+
+    paperComponentProperties () {
+      return {
+        catalogName: this.catalogName,
+        paperName: this.paperName,
+        paperAction: this.paperAction,
+        paperKeys: this.paperKeys,
+        paper: this.paper
+      };
+    }
+  },
+
   created () {
     this.fetchData();
   },
@@ -108,13 +173,38 @@ export default {
   },
 
   methods: {
+    openPaper (paper) {
+      var meta = paper.meta;
+      if (meta && meta.go) {
+        var link = paper.links.filter(link => link.rel === meta.go)[0];
+        if (link && link.href) {
+          var path = link.href.split('!/')[1];
+          var href = `/Papers/${path}`;
+          console.log({ autoRedirectingTo: href });
+          this.$router.push(href);
+        }
+      }
+
+      this.paper = paper;
+    },
+
     fetchData () {
-      this.alert = this.paper = null;
+      this.alert = {};
+      this.paper = null;
       this.loading = true;
 
-      fetch('/!/Keep.Paper/Home/Index')
+      var tokens = [
+        this.catalogName,
+        this.paperName,
+        this.paperAction,
+        ...this.paperKeys
+      ]
+      var path = `/!/${tokens.join('/')}`;
+      console.log({ path });
+      
+      fetch(path)
         .then(response => response.json())
-        .then(data => console.log(data))
+        .then(data => this.openPaper(data))
         .catch(error => this.alert = {
           type: 'error',
           message: 'O servidor não respondeu como esperado.',
@@ -122,7 +212,9 @@ export default {
               disponível nesta mesma rede.`,
           fault: error
         })
-        .finally(() => this.loading = false);
+        .finally(() => {
+          this.loading = false;
+        });
     }
   }
 }

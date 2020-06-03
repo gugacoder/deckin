@@ -25,7 +25,7 @@ namespace Keep.Paper.Papers
         new
         {
           Rel = Rel.Logout,
-          Href = Href.To(HttpContext, typeof(AuthPaper), nameof(AuthPaper.Logout))
+          Href = Href.To(HttpContext, typeof(LoginPaper), nameof(LoginPaper.Logout))
         }
       }
     };

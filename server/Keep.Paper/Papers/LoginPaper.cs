@@ -7,15 +7,17 @@ using Keep.Paper.Helpers;
 using Keep.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http;
+using System.Net;
+using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Keep.Paper.Papers
 {
   [Expose]
-  public class AuthPaper : BasicPaper
+  [AllowAnonymous]
+  public class LoginPaper : BasicPaper
   {
-    public object Index() => Login();
-
-    public object Login() => new
+    public object Index() => new
     {
       Kind = Kind.Action,
       View = new
@@ -138,9 +140,12 @@ namespace Keep.Paper.Papers
           Kind = Kind.Fault,
           Data = new
           {
-            Status = 500,
-            StatusDescription = "Falha Processando Requisição",
-            Cause = ex.GetCauseMessages()
+            Fault = Fault.ServerFailure,
+            Reason = ex.GetCauseMessages()
+#if DEBUG
+            ,
+            Trace = ex.GetStackTrace()
+#endif
           },
           Links = new object[]
           {

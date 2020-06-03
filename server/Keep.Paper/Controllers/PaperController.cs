@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,9 +9,12 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Keep.Paper.Api;
 using Keep.Paper.Formatters;
+using Keep.Paper.Papers;
 using Keep.Paper.Services;
 using Keep.Tools;
 using Keep.Tools.Reflection;
+using Keep.Tools.Web;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
@@ -42,15 +46,35 @@ namespace Keep.Paper.Controllers
       {
         var paperType = paperCatalog.FindPaperType(catalogName, paperName);
         if (paperType == null)
-          return Fail(HttpStatusCode.NotFound);
+          return Fail(Fault.NotFound,
+              $"O paper {paperName} do catálogo {catalogName} não existe.");
 
         var getter = paperType.GetMethod(actionName)
                   ?? paperType.GetMethod($"{actionName}Async");
         if (getter == null)
-          return Fail(HttpStatusCode.BadRequest,
-              "O Paper existe mas não está preparado para responder uma " +
-              "requisição direta. Não possui um método " +
-              "`Resolve(object):object'.");
+          return Fail(Fault.NotFound,
+              $"O paper {paperName} do catálogo {catalogName} existe mas " +
+              $"não possui um método para resolver a ação {actionName}");
+
+        // Autenticação...
+        //
+        object userToken = null;
+        if (Request.Headers.ContainsKey(HeaderNames.Authorization))
+        {
+          userToken = Request.Headers[HeaderNames.Authorization].ToString();
+          // FIXME O token deve ser rejeitado se inválido...
+        }
+
+        // Autorização...
+        //
+        if (userToken == null)
+        {
+          var allowAnonymous =
+              paperType._HasAttribute<AllowAnonymousAttribute>() ||
+              getter._HasAttribute<AllowAnonymousAttribute>();
+          if (!allowAnonymous)
+            return RequireAuthentication();
+        }
 
         var paper = ActivatorUtilities.CreateInstance(serviceProvider, paperType);
 
@@ -59,15 +83,22 @@ namespace Keep.Paper.Controllers
 
         var ret = await TryCreateParametersAsync(getter, keys, Request.Body);
         if (!ret.Ok)
-          return Fail(ret.Status.Code, ret.Fault.Message);
+          return Fail(Fault.ServerFailure, ret.Fault.Message);
 
         var getterParameters = ret.Value;
 
         var result = await getter.InvokeAsync(paper, getterParameters);
         if (result == null)
-          return Fail(HttpStatusCode.NotFound);
+          return Fail(Fault.NotFound);
 
-        return Ok(result);
+        var location = result._Get("Data")?._Get<string>("Location");
+        if (!string.IsNullOrEmpty(location))
+        {
+          Response.Headers[HeaderNames.Location] = location;
+        }
+
+        var status = result._Get("Data")?._Get<int?>("Status") ?? 200;
+        return StatusCode(status, result);
       }
       catch (Exception ex)
       {
@@ -76,10 +107,12 @@ namespace Keep.Paper.Controllers
           Kind = Kind.Fault,
           Data = new
           {
-            Status = 500,
-            StatusDescription = "Falha Processando a Requisição",
-            Cause = ex.GetCauseMessages(),
+            Fault = Fault.ServerFailure,
+            Reason = ex.GetCauseMessages()
+#if DEBUG
+            ,
             Trace = ex.GetStackTrace()
+#endif
           },
           Links = new
           {
@@ -93,26 +126,55 @@ namespace Keep.Paper.Controllers
       }
     }
 
-    [Route("{*path}")]
-    public IActionResult FallThrough(string path)
+    private IActionResult RequireAuthentication()
     {
-      return Fail(HttpStatusCode.NotFound);
+      return Ok(new
+      {
+        Meta = new
+        {
+          Go = Rel.Forward
+        },
+        Kind = Kind.Fault,
+        Data = new
+        {
+          Fault = Fault.Unauthorized,
+          Reason = new[]{
+            "Acesso restrito a usuários autenticados."
+          }
+        },
+        Links = new[]
+        {
+          new
+          {
+            Rel = Rel.Self,
+            Href = HttpContext.Request.GetDisplayUrl()
+          },
+          new
+          {
+            Rel = Rel.Forward,
+            Href = Href.To(HttpContext, typeof(LoginPaper),
+              nameof(LoginPaper.Index))
+          }
+        }
+      }); ;
     }
 
-    private IActionResult Fail(HttpStatusCode status, params string[] messages)
+    private IActionResult Fail(string fault, params string[] messages)
     {
-      return NotFound(new
+      return Ok(new
       {
         Kind = Kind.Fault,
         Data = new
         {
-          Status = (int)status,
-          StatusDescription = status.ToString().ChangeCase(TextCase.ProperCase),
-          Causes = messages
+          Fault = fault,
+          Reason = messages
         },
-        Links = new
+        Links = new[]
         {
-          Self = new { Href = HttpContext.Request.GetDisplayUrl() }
+          new {
+            Rel = Rel.Self,
+            Href = HttpContext.Request.GetDisplayUrl()
+          }
         }
       }); ;
     }

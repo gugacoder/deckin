@@ -11,5 +11,8 @@ namespace Keep.Paper.Api
     public const string Field = "field";
     public const string Action = "action";
     public const string Collection = "collection";
+
+    // System actions
+    public const string Forward = "forward";
   }
 }
