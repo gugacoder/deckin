@@ -12,54 +12,32 @@
           v-for="field in fields"
           :key="field.name"
         >
-        <p>
-          <span
-            v-show="field.kind !== 'information'"
-          >
-            {{ field.name }}
-            
-            <br>
-          </span>
-
-          <span
-            v-if="field.linkTo"
-          >
-            <router-link
-              :to="makeLink(field.linkTo)"
+          <p>
+            <span
+              v-show="field.kind !== 'information'"
             >
-            {{ fieldValue(field.name) }}
-            </router-link>
-          </span>
+              {{ field.name }}
+              
+              <br>
+            </span>
 
-          <span
-            v-else
-            class="text--primary"
-          >
-            {{ fieldValue(field.name) }}
-          </span>
-        </p>
-<!--
-          <div
-            v-if="field.kind === 'information'"
-            class="text--primary"
-          >
-            <p v-if="field.linkTo">
+            <span
+              v-if="field.linkTo"
+            >
               <router-link
-                :to="field.linkTo"
+                :to="makeLink(field.linkTo)"
               >
-                {{ fieldValue(field.name) }}
-              </router-link>
-            </p>
-            <p v-else>
               {{ fieldValue(field.name) }}
-            </p>
-          </div>
-          <div
-            v-else
-          >
+              </router-link>
+            </span>
 
-          </div>
-        -->
+            <span
+              v-else
+              class="text--primary"
+            >
+              {{ fieldValue(field.name) }}
+            </span>
+          </p>
         </div>
       </v-card-text>
     </v-card>
@@ -82,26 +60,26 @@ export default {
 
   computed: {
     title () {
-      if (this.paper.title) return this.paper.title;
+      if (this.paper.title) return this.paper.title
 
       var tokens = [
         this.paperName, 
         this.paperAction,
         ...this.paperKeys
-      ];
+      ]
 
-      return tokens.join(' / ');
+      return tokens.join(' / ')
     },
 
     fields () {
       lodash.startCase('');
-      if (!this.paper) return [];
+      if (!this.paper) return []
 
       if (this.paper.fields) {
         return Object.keys(this.paper.fields).map(name => ({
           name,
           ...this.paper.fields[name]
-        }));
+        }))
       }
 
       /*
@@ -115,26 +93,26 @@ export default {
       }));
       */
 
-      return [];
+      return []
     }
   },
 
   methods: {
     fieldValue (fieldName) {
-      return this.paper.data[fieldName];
+      return this.paper.data[fieldName]
     },
 
     makeLink (rel) {
-      var link = this.paper.links.filter(link => link.rel === rel)[0];
-      if (!link) return '';
+      var link = this.paper.links.filter(link => link.rel === rel)[0]
+      if (!link) return ''
 
-      var href = link.href;
-      if (!href) return '';
+      var href = link.href
+      if (!href) return ''
  
-      var path = href.split('!/')[1];
-      if (!path) return '';
+      var path = href.split('!/')[1]
+      if (!path) return ''
 
-      return `/Papers/${path}`;
+      return `/Papers/${path}`
     }
   }
 }

@@ -81,7 +81,9 @@
       </template>
 
       <br>
-      <v-expansion-panels>
+      <v-expansion-panels
+        flat
+      >
         <v-expansion-panel>
           <v-expansion-panel-header>Raw Data</v-expansion-panel-header>
           <v-expansion-panel-content>
@@ -95,6 +97,7 @@
 
 <script>
 import Vue from 'vue'
+import lodash from 'lodash'
 
 export default {
   // Strategy: Fetching After Navigation
@@ -146,9 +149,10 @@ export default {
     },
 
     paperComponent () {
-      var componentName = `${this.paper.kind || "data"}-paper`;
+      var pascalName = lodash.startCase(this.paper.kind).replace(' ', '')
+      var componentName = `${pascalName}Paper`
       if (!Vue.options.components[componentName]) {
-        componentName = 'invalid-paper'
+        componentName = 'InvalidPaper'
       }
       return componentName;
     },
@@ -173,21 +177,6 @@ export default {
   },
 
   methods: {
-    openPaper (paper) {
-      var meta = paper.meta;
-      if (meta && meta.go) {
-        var link = paper.links.filter(link => link.rel === meta.go)[0];
-        if (link && link.href) {
-          var path = link.href.split('!/')[1];
-          var href = `/Papers/${path}`;
-          console.log({ autoRedirectingTo: href });
-          this.$router.push(href);
-        }
-      }
-
-      this.paper = paper;
-    },
-
     fetchData () {
       this.alert = {};
       this.paper = null;
@@ -215,6 +204,21 @@ export default {
         .finally(() => {
           this.loading = false;
         });
+    },
+
+    openPaper (paper) {
+      var meta = paper.meta;
+      if (meta && meta.go) {
+        var link = paper.links.filter(link => link.rel === meta.go)[0];
+        if (link && link.href) {
+          var path = link.href.split('!/')[1];
+          var href = `/Papers/${path}`;
+          console.log({ autoRedirectingTo: href });
+          this.$router.push(href);
+        }
+      }
+
+      this.paper = paper;
     }
   }
 }

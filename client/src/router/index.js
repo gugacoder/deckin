@@ -8,6 +8,7 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
+    name: 'Home',
     redirect: { path: '/Papers/Keep.Paper/Home/Index' }
   },
   {

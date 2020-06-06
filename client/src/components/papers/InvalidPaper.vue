@@ -19,15 +19,15 @@ export default {
 
   computed: {
     title () {
-      if (this.paper.title) return this.paper.title;
+      if (this.paper.title) return this.paper.title
 
       var tokens = [
         this.paperName, 
         this.paperAction,
         ...this.paperKeys
-      ];
+      ]
 
-      return tokens.join(' / ');
+      return tokens.join(' / ')
     }
   }
 }
