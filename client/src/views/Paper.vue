@@ -1,56 +1,57 @@
-<template>
-  <div
+<template lang="pug">
+  div(
     class="paper"
-  >
-    <v-app-bar
+  )
+    v-app-bar(
       app
       dense
       color="white"
       elevate-on-scroll
-    >    
-      <v-app-bar-nav-icon></v-app-bar-nav-icon>
+    )
+      v-app-bar-nav-icon
 
-      <v-toolbar-title>
-        <strong>Director</strong>Alfa
+      v-toolbar-title
+        strong Director
+        | Alfa
         
-        <span v-show="title">-</span>
+        span(
+          v-show="title"
+        )
         
-        {{title}}
-      </v-toolbar-title>
+        | {{ title }}
       
-      <v-spacer></v-spacer>
+      v-spacer
 
-      <template
+      template(
         v-if="loading"
-      >
-        <span
+      )
+        span(
           class="text--secondary"
-        >
-          Carregando dados...
-        </span>
+        )
+          | Carregando dados...
 
-        <v-progress-linear
+        v-progress-linear(
           :indeterminate="true"
           height="2"
           absolute
           bottom
-        ></v-progress-linear>
-      </template>
+        )
 
-      <v-btn icon>
-        <v-icon>mdi-magnify</v-icon>
-      </v-btn>
+      v-btn(
+        icon
+      )
+        v-icon mdi-magnify
 
-      <v-btn icon>
-        <v-icon>mdi-dots-vertical</v-icon>
-      </v-btn>
-    </v-app-bar>
+      v-btn(
+        icon
+      )
+        v-icon mdi-dots-vertical
 
-    <v-container
+    v-container(
       id="paper-content"
-    >
-      <!-- info success warning error -->
-      <v-alert
+    )
+      //- :type= info success warning error
+      v-alert(
         v-show="alert.message"
         :type="alert.type"
         dense
@@ -59,40 +60,37 @@
         border="left"
         elevation="1"
         transition="fade-transition"
-      >
-        <span
+      )
+        span(
           class="font-weight-medium"
-        >
-          {{alert.message}}
-        </span>
+        )
+          | {{ alert.message }}
         
-        <br>
+        br
 
-        <span
+        span(
           class="font-weight-light"
-        >
-          {{alert.detail}}          
-        </span>
-      </v-alert>
+        )
+          | {{ alert.detail }}
+          
+      template(
+        v-if="paper"
+      )
+        component(
+          :is="paperComponent"
+          v-bind="paperComponentProperties"
+        )
 
-      <template v-if="paper">
-        <component :is="paperComponent" v-bind="paperComponentProperties">
-        </component>
-      </template>
-
-      <br>
-      <v-expansion-panels
+      br
+      
+      v-expansion-panels(
         flat
-      >
-        <v-expansion-panel>
-          <v-expansion-panel-header>Raw Data</v-expansion-panel-header>
-          <v-expansion-panel-content>
-            <pre>{{ paper }}</pre>
-          </v-expansion-panel-content>
-        </v-expansion-panel>
-      </v-expansion-panels>
-    </v-container>
-  </div>
+      )
+        v-expansion-panel
+          v-expansion-panel-header Raw data
+
+          v-expansion-panel-content
+            pre {{ paper }}
 </template>
 
 <script>
@@ -178,9 +176,9 @@ export default {
 
   methods: {
     fetchData () {
-      this.alert = {};
-      this.paper = null;
-      this.loading = true;
+      this.alert = {}
+      this.paper = null
+      this.loading = true
 
       var tokens = [
         this.catalogName,
@@ -188,8 +186,7 @@ export default {
         this.paperAction,
         ...this.paperKeys
       ]
-      var path = `/!/${tokens.join('/')}`;
-      console.log({ path });
+      var path = `/!/${tokens.join('/')}`
       
       fetch(path)
         .then(response => response.json())
@@ -202,8 +199,8 @@ export default {
           fault: error
         })
         .finally(() => {
-          this.loading = false;
-        });
+          this.loading = false
+        })
     },
 
     openPaper (paper) {

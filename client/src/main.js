@@ -7,8 +7,9 @@ import vuetify from './plugins/vuetify'
 
 Vue.config.productionTip = false
 
-// Registrandos os componentes globalmente...
+// Registrandos componentes globais...
 import '@/components/papers'
+import '@/components/widgets'
 
 new Vue({
   router,

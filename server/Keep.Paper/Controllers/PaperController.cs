@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Keep.Paper.Controllers
 {
@@ -173,7 +174,7 @@ namespace Keep.Paper.Controllers
         {
           new {
             Rel = Rel.Self,
-            Href = HttpContext.Request.GetDisplayUrl()
+            Href = Href.MakeRelative(HttpContext.Request.GetDisplayUrl())
           }
         }
       }); ;
@@ -229,21 +230,62 @@ namespace Keep.Paper.Controllers
     {
       try
       {
-        using var reader = new StreamReader(body);
-        var json = await reader.ReadToEndAsync();
+        // var parameterValues = new List<object>();
 
-        if (string.IsNullOrWhiteSpace(json))
-          return Ret.Fail($"O parâmetro `{parameterType.Name}` deve ser " +
+        var payload = await ParsePayloadAsync(body);
+        if (payload == null)
+          return Ret.Fail(HttpStatusCode.BadRequest,
+              $"O parâmetro `{parameterType.Name}` deve ser " +
               "informado no corpo da requisição.");
 
-        var @object = JsonConvert.DeserializeObject(json, parameterType);
-        return @object;
+        foreach (JObject entry in payload)
+        {
+          JObject form = null;
+          JObject[] data = null;
+
+          form = entry.GetValue("form") as JObject;
+
+          if (entry.GetValue("data") is JArray array)
+          {
+            data = array.OfType<JObject>().ToArray();
+          }
+          else if (entry.GetValue("data") is JObject @object)
+          {
+            data = new[] { @object };
+          }
+
+          var parameterValue = form.ToObject(parameterType);
+          return parameterValue;
+
+          //parameterValues.Add(parameterValue);
+        }
+
+        return null;
+
+        // return parameterValues.ToArray();
       }
       catch (Exception ex)
       {
         return Ret.Fail("Os dados enviados com a requisição não satisfazem o " +
             $"contrato do parâmetro `{parameterType.Name}`", ex);
       }
+    }
+
+    private async Task<JArray> ParsePayloadAsync(Stream body)
+    {
+      using var reader = new StreamReader(body);
+      var json = await reader.ReadToEndAsync();
+      if (string.IsNullOrWhiteSpace(json))
+        return null;
+
+      var token = JToken.Parse(json);
+
+      if (token is JObject @object)
+      {
+        token = new JArray(@object);
+      }
+
+      return token as JArray;
     }
   }
 }

@@ -9,7 +9,8 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    redirect: { path: '/Papers/Keep.Paper/Home/Index' }
+//    redirect: { path: '/Papers/Keep.Paper/Home/Index' }
+    redirect: { path: '/Sandbox' }
   },
   {
     path: '/Papers/*',
@@ -22,12 +23,12 @@ const routes = [
     */
   },
   {
-    path: '/about',
-    name: 'About',
+    path: '/sandbox',
+    name: 'Sandbox',
     // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
+    // this generates a separate chunk (sandbox.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+    component: () => import(/* webpackChunkName: "sandbox" */ '../views/Sandbox.vue')
   },
   {
     path: '*',

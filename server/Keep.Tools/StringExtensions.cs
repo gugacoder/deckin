@@ -75,6 +75,15 @@ namespace Keep.Tools
 
     #region Name Conventions
 
+    public static string ToCamelCase(this string sentence)
+        => ChangeCase(sentence, TextCase.CamelCase);
+
+    public static string ToPascalCase(this string sentence)
+        => ChangeCase(sentence, TextCase.PascalCase);
+
+    public static string ToProperCase(this string sentence)
+        => ChangeCase(sentence, TextCase.ProperCase);
+
     public static string ChangeCase(this string sentence, TextCase textCase)
     {
       var isPreserveData = textCase.HasFlag(TextCase.PreserveSpecialCharacters);

@@ -1,48 +1,42 @@
-<template>
-  <div class="action-paper">
-    <v-card
+<template lang="pug"> 
+  div(
+    class="action-paper"
+  )
+    v-card(
       class="mx-auto"
-    >
-      <v-card-title>
-        {{ title }}
-      </v-card-title>
+    )
+      v-card-title
+        | {{ title }}
 
-      <v-card-text>
-        <v-form
+      v-card-text
+        v-form(
+          ref="form"
+          v-model="valid"
+          lazy-validation
           @submit.prevent="submit()"
-        >
-          <div
+        )
+          div(
             v-for="field in fields"
             :key="field.name"
-          >
-            <div>
-              <v-text-field
-                v-model="field.value"
-                :type="field.kind"
-                :label="field.title || field.name"
-              >
-              </v-text-field>
-            </div>
-          </div>
+          )
+            //- Instância do Widget
+            component(
+              :is="identifyWidget(field)"
+              :field="field"
+            )
 
-          <v-btn
+          v-btn(
             type="submit"
             color="primary"
             class="mr-2"
-          >
-            Confirmar
-          </v-btn>
+          )
+            | Confirmar
 
-          <v-btn
+          v-btn(
             class="mr-2"
             @click="cancel()"
-          >
-            Cancelar
-          </v-btn>
-        </v-form>
-      </v-card-text>
-    </v-card>
-  </div>
+          )
+            | Cancelar
 </template>
 
 <script>
@@ -61,6 +55,7 @@ export default {
   ],
 
   data: () => ({
+    valid: true,
   }),
 
   computed: {
@@ -78,51 +73,111 @@ export default {
     },
 
     fields () {
-      lodash.startCase('');
-      if (!this.paper) return []
+      if (!this.paper && !this.paper.fields) return []
 
-      if (this.paper.fields) {
-        var host = this.paper;
-        return Object.keys(host.fields).map(name => ({
-          name,
+      var host = this.paper
+      var field = Object.keys(host.fields).map(function(name) {
+        var view = ({
           ...host.fields[name],
           ...(host.fields[name].view ? host.fields[name].view : {}),
+        })
+        return {
+          ...view,
+          name,
+          label: view.title || view.name,
+          fault: null,
+          
           get value() {
-            return host.data ? host.data[name] : null
+            return host.payload ? host.payload[name] : null
           },
           set value(value) {
-            if (!host.data) {
-              Vue.set(host, 'data', {})
+            if (!host.payload) {
+              Vue.set(host, 'payload', {})
             }
-            Vue.set(host.data, name, value)
-          }
-        }))
-      }
+            Vue.set(host.payload, name, value)
+          },
+        }
+      })
 
-      return []
+      return Object.assign({}, field)
     }
   },
 
   methods: {
-    makeLink (rel) {
-      var link = this.paper.links.filter(link => link.rel === rel)[0]
-      if (!link) return ''
+    identifyWidget (field) {
+      var pascalName = lodash.startCase(field.kind).replace(' ', '')
+      var componentName = `${pascalName}Widget`
+      if (!Vue.options.components[componentName]) {
+        componentName = 'InvalidWidget'
+      }
+      return componentName;
+    },
 
-      var href = link.href
+    makeLink (rel) {
+      var x = this.paper.links.filter(x => x.rel === rel)[0]
+      if (!x) return ''
+
+      var href = x.href
       if (!href) return ''
  
       var path = href.split('!/')[1]
       if (!path) return ''
-
+      
       return `/Papers/${path}`
     },
 
-    submit () {
-      alert("It works!")
+    async submit () {
+      /*
+      var ok = this.$refs.form.validate()
+      if (!ok) return
+
+      var payload = {
+        form: {},
+        data: []
+      }
+      
+      this.fields.forEach(x => payload.form[x.name] = x.value)
+
+      if (this.paper.data) {
+        payload.data.push(this.paper.data)
+      }
+
+      var target = this.paper.links.filter(x => x.rel == "action").shift()
+      var uri = target.href
+
+      fetch(uri, {
+          method: 'post',
+          body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => this.postSubmit(data, null))
+        .catch(error => this.postSubmit(null, error))
+      */
+
+      var w = this.fields[0];
+      console.log(w.label)
+      this.$set(w, 'label', 'Tananana')
+      console.log(w.label)
+
     },
 
     cancel () {
+      this.$refs.form.reset()
       this.$router.push('/')
+    },
+
+    //postSubmit (response, error) {
+    postSubmit (response) {
+      //console.log(response, error)
+      if (response.kind === 'validation') {
+        var field = this.fields.filter(x => x.name === response.data.field).shift()
+        if (field) {
+          field.fault = response.data.message
+          field.rules = [ ( ) => !field.fault || field.fault ]
+        }
+        field.label = "Tananana"
+        console.log(field)
+      }
     }
   }
 }

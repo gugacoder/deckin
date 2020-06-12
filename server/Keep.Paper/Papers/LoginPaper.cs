@@ -96,7 +96,7 @@ namespace Keep.Paper.Papers
             Kind = Kind.Validation,
             Data = new
             {
-              Field = nameof(credential.Username),
+              Field = nameof(credential.Username).ToCamelCase(),
               Message = "Usuário e senha não conferem.",
               Severity = Severities.Warning
             },

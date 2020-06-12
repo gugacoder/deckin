@@ -1,47 +1,39 @@
-<template>
-  <div class="data-paper">
-    <v-card
+<template lang="pug">
+  div(
+    class="data-paper"
+  )
+    v-card(
       class="mx-auto"
-    >
-      <v-card-title>
-        {{ title }}
-      </v-card-title>
+    )
+      v-card-title
+        | {{ title }}
 
-      <v-card-text>
-        <div
+      v-card-text
+        div(
           v-for="field in fields"
           :key="field.name"
-        >
-          <p>
-            <span
+        )
+          p
+            span(
               v-show="field.kind !== 'information'"
-            >
-              {{ field.name }}
+            )
+              | {{ field.name }}
               
-              <br>
-            </span>
+              br
 
-            <span
+            span(
               v-if="field.linkTo"
-            >
-              <router-link
+            )
+              router-link(
                 :to="makeLink(field.linkTo)"
-              >
-              {{ fieldValue(field.name) }}
-              </router-link>
-            </span>
+              )
+                | {{ fieldValue(field.name) }}
 
-            <span
+            span(
               v-else
               class="text--primary"
-            >
-              {{ fieldValue(field.name) }}
-            </span>
-          </p>
-        </div>
-      </v-card-text>
-    </v-card>
-  </div>
+            )
+              | {{ fieldValue(field.name) }}
 </template>
 
 <script>

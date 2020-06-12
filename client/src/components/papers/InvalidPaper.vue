@@ -1,8 +1,9 @@
-<template>
-  <div class="invalid-paper">
-    <p>O conteúdo recebido do servidor não é suportado.</p>
-    <pre>{{ paper }}</pre>
-  </div>
+<template lang="pug">
+  div(
+    class="invalid-paper"
+  )
+    p O conteúdo recebido do servidor não é suportado.
+    pre {{ paper }}
 </template>
 
 <script>

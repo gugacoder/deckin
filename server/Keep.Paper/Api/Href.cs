@@ -10,6 +10,14 @@ namespace Keep.Paper.Api
 {
   public static class Href
   {
+    public static string MakeRelative(string href)
+    {
+      var builder = new UriBuilder(href);
+      builder.Scheme = null;
+      builder.Host = null;
+      var relativeUri = builder.ToString();
+      return relativeUri;
+    }
 
     #region To Paper
 
@@ -50,6 +58,8 @@ namespace Keep.Paper.Api
         string paper, string action, object[] keys)
     {
       var builder = new UriBuilder(ctx.Request.GetDisplayUrl());
+      builder.Scheme = null;
+      builder.Host = null;
       builder.Query = null;
       builder.Path = "/!";
 
