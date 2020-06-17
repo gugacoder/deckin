@@ -17,8 +17,7 @@
         span(
           v-show="title"
         )
-        
-        | {{ title }}
+          | &nbsp; - {{ title }}
       
       v-spacer
 
@@ -96,8 +95,8 @@
 
 <script>
 import Vue from 'vue'
-import '@/helpers/StringExtensions.js'
-import { sanitizeEntity } from "@/helpers/EntityOperations.js";
+import '@/helpers/StringOperations.js'
+import { fetchPaper } from '@/services/PaperService.js'
 
 export default {
   // Strategy: Fetching After Navigation
@@ -181,18 +180,7 @@ export default {
       this.alert = {}
       this.paper = null
       this.loading = true
-
-      var tokens = [
-        this.catalogName,
-        this.paperName,
-        this.paperAction,
-        ...this.paperKeys
-      ]
-      var path = `/!/${tokens.join('/')}`
-      
-      fetch(path)
-        .then(response => response.json())
-        .then(data => sanitizeEntity(data))
+      fetchPaper(this)
         .then(data => this.openPaper(data))
         .catch(error => this.alert = {
           type: 'error',
@@ -208,6 +196,7 @@ export default {
 
     openPaper (paper) {
       var meta = paper.meta;
+      
       if (meta && meta.go) {
         var link = paper.links.filter(link => link.rel === meta.go)[0];
         if (link && link.href) {

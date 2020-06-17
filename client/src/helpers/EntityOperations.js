@@ -47,7 +47,7 @@ export function sanitizeEntity (entity) {
   if (!Array.isArray(target.fields)) {
     target.fields = Object.keys(source.fields).map(fieldName => {
       let field = source.fields[fieldName]
-      let properties = { view: { name: fieldName } }
+      let properties = { data: { name: fieldName } }
       return lodash.merge({}, field, properties)
     })
   }
@@ -56,18 +56,24 @@ export function sanitizeEntity (entity) {
   target.fields = target.fields.map(field => {
     field.kind = field.kind || 'info'
     // FIXME: O nome deveria ser checado contra conflito de nome
-    field.view = field.view || {}
-    field.view.name = field.view.name || `_field${++index}`
+    field.data = field.data || {}
+    field.data.name = field.data.name || `_field${++index}`
     // Se um valor não é indicado diretamente então criamos uma função
     // de referência para a propriedade de mesmo nome na coleção de dados.
-    if (!field.view.value) {
-      Object.defineProperty(field.view, 'value', {
-        get: () => target.data[field.view.name],
-        set: (value) => target.data[field.view.name] = value
+    if (!field.data.value) {
+      if (!target.data[field.data.name]) {
+        // Se não existe uma propriedade correspondente na coleção de dados
+        // criamos uma valendo nulo.
+        target.data[field.data.name] = null
+      }
+      Object.defineProperty(field.data, 'value', {
+        get () {
+          return target.data[field.data.name]
+        },
+        set (value) {
+          target.data[field.data.name] = value
+        }
       })
-      // Se não existe uma propriedade correspondente na coleção de dados
-      // criamos uma valendo nulo.
-      target.data[field.view.name] = target.data[field.view.name] || null
     }
     return sanitizeEntity(field, target)
   })

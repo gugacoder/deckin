@@ -20,12 +20,16 @@ export default {
   ],
 
   computed: {
+    name () {
+      return this.field.data.name
+    },
+
     value: {
       get () {
-        return this.field.view.value
+        return this.field.data.value
       },
       set (value) {
-        this.field.view.value = value
+        this.field.data.value = value
       }
     },
 
@@ -51,5 +55,5 @@ export default {
       ]
     }
   }
-};
+}
 </script>

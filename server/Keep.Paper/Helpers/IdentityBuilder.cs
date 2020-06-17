@@ -105,39 +105,49 @@ namespace Keep.Paper.Helpers
 
     public Identity BuildIdentity()
     {
-      var caller = Assembly.GetCallingAssembly().GetName().Name;
-
-      var theIssuer = issuer ?? caller;
-      var theAudience = audience ?? caller;
-      var theClaims = CollectClaims();
-      var theIdentity = new ClaimsIdentity(
-          new GenericIdentity(username, issuer), theClaims);
-      var theCreation = DateTime.Now;
-      var theExpiration = theCreation + expiration;
-      var theCredentials = signingCredentials ?? CreateSigningCredentials(default);
-
-      var handler = new JwtSecurityTokenHandler();
-      var securityToken = handler.CreateToken(new SecurityTokenDescriptor
+      try
       {
-        Issuer = theIssuer,
-        Audience = theAudience,
-        SigningCredentials = theCredentials,
-        Subject = theIdentity,
-        NotBefore = theCreation,
-        Expires = theExpiration
-      });
+        var caller = Assembly.GetCallingAssembly().GetName().Name;
 
-      var token = handler.WriteToken(securityToken);
+        var theIssuer = issuer ?? caller;
+        var theAudience = audience ?? caller;
+        var theClaims = CollectClaims();
+        var theIdentity = new ClaimsIdentity(
+            new GenericIdentity(username, theIssuer), theClaims);
+        var theCreation = DateTime.Now;
+        var theExpiration = theCreation + expiration;
+        var theCredentials = signingCredentials ?? CreateSigningCredentials(default);
 
-      return new Identity
+        var handler = new JwtSecurityTokenHandler();
+        var securityToken = handler.CreateToken(new SecurityTokenDescriptor
+        {
+          Issuer = theIssuer,
+          Audience = theAudience,
+          SigningCredentials = theCredentials,
+          Subject = theIdentity,
+          NotBefore = theCreation,
+          Expires = theExpiration
+        });
+
+        var token = handler.WriteToken(securityToken);
+
+        return new Identity
+        {
+          Issuer = theIssuer,
+          Subject = username,
+          Audience = theAudience,
+          NotBefore = theCreation,
+          NotAfter = theExpiration,
+          Token = token
+        };
+      }
+      catch (Exception ex)
       {
-        Issuer = theIssuer,
-        Subject = username,
-        Audience = theAudience,
-        NotBefore = theCreation,
-        NotAfter = theExpiration,
-        Token = token
-      };
+        ex.Debug();
+        throw new Exception("Falhou a tentativa de construir um token de " +
+          "autenticação. As informações sobre o usuário não estão corretas.",
+          ex);
+      }
     }
 
     private SigningCredentials CreateSigningCredentials(object securityKey)

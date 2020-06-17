@@ -25,23 +25,28 @@
               :field="field"
             )
 
-          v-btn(
-            type="submit"
-            color="primary"
-            class="mr-2"
-          )
-            | Confirmar
+          div
+            p {{ message }}
 
-          v-btn(
-            class="mr-2"
-            @click="cancel()"
-          )
-            | Cancelar
+          div
+            v-btn(
+              type="submit"
+              color="primary"
+              class="mr-2"
+            )
+              | Confirmar
+
+            v-btn(
+              class="mr-2"
+              @click="cancel()"
+            )
+              | Cancelar
 </template>
 
 <script>
 import Vue from 'vue'
-import '@/helpers/StringExtensions.js'
+import '@/helpers/StringOperations.js'
+import { fetchPaper } from '@/services/PaperService.js'
 
 export default {
   name: 'action-paper',
@@ -56,6 +61,7 @@ export default {
 
   data: () => ({
     valid: true,
+    message: null
   }),
 
   computed: {
@@ -92,38 +98,21 @@ export default {
     },
 
     async submit () {
-      /*
+      this.message = null
+
       var ok = this.$refs.form.validate()
       if (!ok) return
 
       var payload = {
-        form: {},
+        form: { ...this.paper.data },
         data: []
       }
       
-      this.fields.forEach(x => payload.form[x.name] = x.value)
-
-      if (this.paper.data) {
-        payload.data.push(this.paper.data)
-      }
-
       var target = this.paper.links.filter(x => x.rel == "action").shift()
-      var uri = target.href
 
-      fetch(uri, {
-          method: 'post',
-          body: JSON.stringify(payload)
-        })
-        .then(response => response.json())
+      fetchPaper(target.href, payload)
         .then(data => this.postSubmit(data, null))
         .catch(error => this.postSubmit(null, error))
-      */
-
-      var w = this.fields[0];
-      console.log(w.label)
-      this.$set(w, 'label', 'Tananana')
-      console.log(w.label)
-
     },
 
     cancel () {
@@ -131,17 +120,15 @@ export default {
       this.$router.push('/')
     },
 
-    //postSubmit (response, error) {
-    postSubmit (response) {
-      //console.log(response, error)
-      if (response.kind === 'validation') {
-        var field = this.fields.filter(x => x.name === response.data.field).shift()
+    postSubmit (paper) {
+      if (paper.kind === 'validation') {
+        var field = this.fields.filter(x => x.name === paper.data.field).shift()
         if (field) {
-          field.fault = response.data.message
+          field.fault = paper.data.message
           field.rules = [ ( ) => !field.fault || field.fault ]
+        } else {
+          this.message = paper.data.message
         }
-        field.label = "Tananana"
-        console.log(field)
       }
     }
   }
