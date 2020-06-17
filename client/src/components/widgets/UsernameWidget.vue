@@ -2,11 +2,10 @@
   v-text-field(
     autocomplete="username"
     v-model="value"
-    :label="label"
+    :label="title"
     :rules="rules"
     :required="required"
     :hint="hint"
-    outlined
     dense
   )
 </template>
@@ -22,10 +21,10 @@ export default {
   computed: {
     value: {
       get () {
-        return this.field.value
+        return this.field.view.value
       },
       set (value) {
-        this.field.value = value
+        this.field.view.value = value
       }
     },
 
@@ -33,16 +32,16 @@ export default {
       return this.field.kind
     },
 
-    label () {
-      return this.field.label
+    title () {
+      return this.field.view.title
     },
 
     required () {
-      return this.field.required
+      return this.field.view.required
     },
 
     hint () {
-      return this.field.hint
+      return this.field.view.hint
     },
 
     rules () {

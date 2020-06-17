@@ -76,6 +76,7 @@
       template(
         v-if="paper"
       )
+      
         component(
           :is="paperComponent"
           v-bind="paperComponentProperties"
@@ -95,7 +96,8 @@
 
 <script>
 import Vue from 'vue'
-import lodash from 'lodash'
+import '@/helpers/StringExtensions.js'
+import { sanitizeEntity } from "@/helpers/EntityOperations.js";
 
 export default {
   // Strategy: Fetching After Navigation
@@ -147,10 +149,10 @@ export default {
     },
 
     paperComponent () {
-      var pascalName = lodash.startCase(this.paper.kind).replace(' ', '')
-      var componentName = `${pascalName}Paper`
+      var pascalName = this.paper.kind.toHyphenCase()
+      var componentName = `${pascalName}-paper`
       if (!Vue.options.components[componentName]) {
-        componentName = 'InvalidPaper'
+        componentName = 'invalid-paper'
       }
       return componentName;
     },
@@ -190,6 +192,7 @@ export default {
       
       fetch(path)
         .then(response => response.json())
+        .then(data => sanitizeEntity(data))
         .then(data => this.openPaper(data))
         .catch(error => this.alert = {
           type: 'error',

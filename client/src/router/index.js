@@ -9,8 +9,8 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-//    redirect: { path: '/Papers/Keep.Paper/Home/Index' }
-    redirect: { path: '/Sandbox' }
+    redirect: { path: '/Papers/Keep.Paper/Home/Index' }
+//    redirect: { path: '/Sandbox' }
   },
   {
     path: '/Papers/*',

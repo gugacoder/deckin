@@ -1,3 +1,5 @@
+import lodash from 'lodash'
+
 export function sanitizeEntity (entity) {
   let index = 0;
 
@@ -46,7 +48,7 @@ export function sanitizeEntity (entity) {
     target.fields = Object.keys(source.fields).map(fieldName => {
       let field = source.fields[fieldName]
       let properties = { view: { name: fieldName } }
-      return Object.assign({}, field, properties)
+      return lodash.merge({}, field, properties)
     })
   }
   // Aplicando sanitizações
@@ -87,7 +89,7 @@ export function sanitizeEntity (entity) {
     target.actions = Object.keys(source.actions).map(actionName => {
       let action = source.actions[actionName]
       let properties = { view: { name: actionName } }
-      return Object.assign({}, properties, action)
+      return lodash.merge({}, properties, action)
     })
   }
   // Aplicando sanitizações
@@ -121,7 +123,7 @@ export function sanitizeEntity (entity) {
     target.links = Object.keys(source.links).map(linkName => {
       let link = source.links[linkName]
       let properties = { rel: linkName }
-      return Object.assign({}, properties, link)
+      return lodash.merge({}, properties, link)
     })
   }
 
