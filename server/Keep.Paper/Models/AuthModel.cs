@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Net;
 using System.Threading.Tasks;
 using Keep.Paper.Api;
 using Keep.Paper.Domain;
 using Keep.Paper.Helpers;
 using Keep.Paper.Services;
+using Keep.Tools;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Keep.Paper.Models
@@ -20,27 +22,33 @@ namespace Keep.Paper.Models
       this.authTypeCollection = authenticators;
     }
 
-    public async Task<Identity> AuthenticateAsync(Credential credential)
+    public async Task<Ret<Identity>> AuthenticateAsync(Credential credential)
     {
-      var type = authTypeCollection.FindAuthType(null);
-      if (type == null)
-        throw new NotSupportedException("Não existe um autenticador registrado " +
-            "para validar estas credenciais.");
-
-      var instance = ActivatorUtilities.CreateInstance(serviceProvider, type);
       try
       {
-        if (instance is IAuth auth)
+        var type = authTypeCollection.FindAuthType(null);
+        if (type == null)
+          return Ret.Fail(HttpStatusCode.InternalServerError, "Não existe um " +
+              "autenticador registrado para validar estas credenciais.");
+
+        var instance = ActivatorUtilities.CreateInstance(serviceProvider, type);
+        try
         {
-          var identity = await auth.AuthenticateAsync(credential);
-          return identity;
+          if (instance is IAuth auth)
+          {
+            return await auth.AuthenticateAsync(credential);
+          }
+          return Ret.Fail(HttpStatusCode.InternalServerError, "Não existe um " +
+              "autenticador registrado para validar estas credenciais.");
         }
-        throw new NotSupportedException("Não existe um autenticador registrado " +
-            "para validar estas credenciais.");
+        finally
+        {
+          (instance as IDisposable)?.Dispose();
+        }
       }
-      finally
+      catch (Exception ex)
       {
-        (instance as IDisposable)?.Dispose();
+        return ex;
       }
     }
   }

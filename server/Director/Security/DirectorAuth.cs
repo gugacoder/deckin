@@ -19,11 +19,18 @@ namespace Director.Security
       this.serviceProvider = serviceProvider;
     }
 
-    public async Task<Identity> AuthenticateAsync(Credential credential)
+    public async Task<Ret<Identity>> AuthenticateAsync(Credential credential)
     {
-      var model = ActivatorUtilities.CreateInstance<LoginModel>(serviceProvider);
-      var identity = await model.AutenticarAsync(credential);
-      return identity;
+      try
+      {
+        var model = ActivatorUtilities.CreateInstance<LoginModel>(serviceProvider);
+        var ret = await model.AutenticarAsync(credential);
+        return ret;
+      }
+      catch (Exception ex)
+      {
+        return ex;
+      }
     }
   }
 }

@@ -23,6 +23,7 @@
             component(
               :is="nameWidget(field)"
               :field="field"
+              ref="widgets"
             )
 
           div
@@ -46,7 +47,7 @@
 <script>
 import Vue from 'vue'
 import '@/helpers/StringOperations.js'
-import { fetchPaper } from '@/services/PaperService.js'
+import { fetchPaper, handlePaper } from '@/services/PaperService.js'
 
 export default {
   name: 'action-paper',
@@ -76,8 +77,8 @@ export default {
 
   methods: {
     nameWidget (field) {
-      var pascalName = field.kind.toHyphenCase()
-      var componentName = `${pascalName}-widget`
+      let pascalName = field.kind.toHyphenCase()
+      let componentName = `${pascalName}-widget`
       if (!Vue.options.components[componentName]) {
         componentName = 'invalid-widget'
       }
@@ -111,8 +112,8 @@ export default {
       var target = this.paper.links.filter(x => x.rel == "action").shift()
 
       fetchPaper(target.href, payload)
-        .then(data => this.postSubmit(data, null))
-        .catch(error => this.postSubmit(null, error))
+        .then(data => this.handleResponse(data))
+        .catch(error => this.handleFailure(error))
     },
 
     cancel () {
@@ -120,16 +121,34 @@ export default {
       this.$router.push('/')
     },
 
-    postSubmit (paper) {
-      if (paper.kind === 'validation') {
-        var field = this.fields.filter(x => x.name === paper.data.field).shift()
-        if (field) {
-          field.fault = paper.data.message
-          field.rules = [ ( ) => !field.fault || field.fault ]
-        } else {
-          this.message = paper.data.message
-        }
+    handleResponse (paper) {
+      handlePaper(paper, this.showValidation, this.openPaper, this.redirectPaper)
+    },
+
+    showValidation (message, fieldName) {
+      var field = this.fields.filter(x => x.name === fieldName).shift()
+      if (field) {
+        field.fault = message
+        field.rules = [ ( ) => !field.fault || field.fault ]
+      } else {
+        field = this.fields[0]
+        this.message = message
       }
+
+      var widget = this.$refs.widgets[0]
+      widget && widget.focus()
+    },
+
+    openPaper (paper) {
+      console.log({ paper })
+    },
+
+    redirectPaper (href) {
+      this.$router.push(href);
+    },
+
+    handleFailure (error) {
+      console.log(error)
     }
   }
 }

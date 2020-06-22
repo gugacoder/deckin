@@ -8,6 +8,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
+using System.Threading.Tasks;
 using Keep.Paper.Domain;
 using Keep.Paper.Helpers;
 using Keep.Tools;

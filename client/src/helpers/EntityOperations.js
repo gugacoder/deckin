@@ -15,10 +15,10 @@ export function sanitizeEntity (entity) {
     links: null
   }
 
-  // Kind, contém o tipo do componente vinculado.
+  // Kind, contém a identificação dos tipos representados pela entidade.
   //
   target.kind = source.kind || 'data'
-
+  
   // Meta, contém instruções diretas para o motor do Paper.
   //
   target.meta = source.meta || {}
@@ -136,6 +136,11 @@ export function sanitizeEntity (entity) {
   return target
 }
 
+export function isKindOf(entity, kind) {
+  return entity.kind.filter(x => x === kind).length > 0
+}
+
 export default {
-  sanitizeEntity
+  sanitizeEntity,
+  isKindOf
 }

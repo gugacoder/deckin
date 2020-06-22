@@ -96,7 +96,7 @@
 <script>
 import Vue from 'vue'
 import '@/helpers/StringOperations.js'
-import { fetchPaper } from '@/services/PaperService.js'
+import { fetchPaper, handlePaper } from '@/services/PaperService.js'
 
 export default {
   // Strategy: Fetching After Navigation
@@ -195,19 +195,15 @@ export default {
     },
 
     openPaper (paper) {
-      var meta = paper.meta;
-      
-      if (meta && meta.go) {
-        var link = paper.links.filter(link => link.rel === meta.go)[0];
-        if (link && link.href) {
-          var path = link.href.split('!/')[1];
-          var href = `/Papers/${path}`;
-          console.log({ autoRedirectingTo: href });
-          this.$router.push(href);
-        }
-      }
+      handlePaper(paper, null, this.setPaper, this.redirectPaper)
+    },
 
-      this.paper = paper;
+    setPaper (paper) {
+      this.paper = paper
+    },
+
+    redirectPaper (href) {
+      this.$router.push(href);
     }
   }
 }

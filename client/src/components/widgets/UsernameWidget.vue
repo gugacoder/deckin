@@ -7,6 +7,7 @@
     :required="required"
     :hint="hint"
     dense
+    ref="widget"
   )
 </template>
 
@@ -52,6 +53,12 @@ export default {
       return [
         (v) => !this.required || !!v || 'Requerido'
       ]
+    }
+  },
+
+  methods: {
+    focus () {
+      this.$refs.widget.focus()
     }
   }
 }

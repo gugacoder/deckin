@@ -15,7 +15,7 @@ const routes = [
   {
     path: '/Papers/*',
     name: 'Paper',
-    component: Paper,
+    component: Paper
     /*
     meta: {
       reload: true,

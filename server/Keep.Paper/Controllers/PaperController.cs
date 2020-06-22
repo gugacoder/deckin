@@ -74,7 +74,12 @@ namespace Keep.Paper.Controllers
               paperType._HasAttribute<AllowAnonymousAttribute>() ||
               getter._HasAttribute<AllowAnonymousAttribute>();
           if (!allowAnonymous)
-            return RequireAuthentication();
+          {
+            var paperKeys = path?.Split('/');
+            var redirectPath = Href.To(this.HttpContext, catalogName, paperName,
+                actionName, paperKeys);
+            return RequireAuthentication(redirectPath);
+          }
         }
 
         var paper = ActivatorUtilities.CreateInstance(serviceProvider, paperType);
@@ -127,8 +132,9 @@ namespace Keep.Paper.Controllers
       }
     }
 
-    private IActionResult RequireAuthentication()
+    private IActionResult RequireAuthentication(string redirectPath)
     {
+      var ctx = this.HttpContext;
       return Ok(new
       {
         Meta = new
@@ -143,7 +149,7 @@ namespace Keep.Paper.Controllers
             "Acesso restrito a usuários autenticados."
           }
         },
-        Links = new[]
+        Links = new object[]
         {
           new
           {
@@ -153,11 +159,13 @@ namespace Keep.Paper.Controllers
           new
           {
             Rel = Rel.Forward,
-            Href = Href.To(HttpContext, typeof(LoginPaper),
-              nameof(LoginPaper.Index))
+            Href = Href.To(ctx, typeof(LoginPaper), nameof(LoginPaper.Index)),
+            Data = new {
+              From = redirectPath
+            }
           }
         }
-      }); ;
+      });
     }
 
     private IActionResult Fail(string fault, params string[] messages)

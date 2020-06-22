@@ -8,6 +8,6 @@ namespace Keep.Paper.Api
 {
   public interface IAuth
   {
-    Task<Identity> AuthenticateAsync(Credential credential);
+    Task<Ret<Identity>> AuthenticateAsync(Credential credential);
   }
 }

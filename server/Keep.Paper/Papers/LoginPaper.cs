@@ -88,8 +88,8 @@ namespace Keep.Paper.Papers
       {
         var model = CreateInstance<AuthModel>();
 
-        var identity = await model.AuthenticateAsync(credential);
-        if (identity == null)
+        var ret = await model.AuthenticateAsync(credential);
+        if (!ret.Ok)
         {
           return new
           {
@@ -97,7 +97,7 @@ namespace Keep.Paper.Papers
             Data = new
             {
               Field = nameof(credential.Username).ToCamelCase(),
-              Message = "Usuário e senha não conferem.",
+              Message = ret.Fault.Message ?? "Usuário e senha não conferem.",
               Severity = Severities.Warning
             },
             Links = new object[]
@@ -110,6 +110,8 @@ namespace Keep.Paper.Papers
             }
           };
         }
+
+        var identity = ret.Value;
 
         return new
         {

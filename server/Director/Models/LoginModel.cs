@@ -26,40 +26,48 @@ namespace Director.Models
       this.jwtSettings = jwtSettings;
     }
 
-    public async Task<Identity> AutenticarAsync(Credential credencial)
+    public async Task<Ret<Identity>> AutenticarAsync(Credential credencial)
     {
-      using var cn = dbDirector.Database.GetDbConnection();
+      try
+      {
+        using var cn = dbDirector.Database.GetDbConnection();
 
-      var info = await
-        @"select TBusuario.DFid_usuario
-               , TBusuario.DFnome_usuario
-               , TBnivel.DFid_nivel_usuario
-               , TBnivel.DFdescricao
-            from TBusuario
-           inner join TBnivel
-                   on TBnivel.DFid_nivel_usuario = TBusuario.DFnivel_usuario
-            left join TBopcoes
-                   on TBopcoes.DFcodigo = 391
-                  and TBusuario.DFnivel_usuario = 99
-           where TBusuario.DFnome_usuario = @username
-             and @password = dbo.fn_decript(coalesce(TBopcoes.DFvalor, TBusuario.DFsenha))"
-          .AsSql()
-          .Set(credencial)
-          .SelectOneAsync(cn,
-              (int id, string usuario, int idNivel, string nivel) =>
-                  new { id, usuario, idNivel, nivel });
+        var info = await
+          @"select TBusuario.DFid_usuario
+                 , TBusuario.DFnome_usuario
+                 , TBnivel.DFid_nivel_usuario
+                 , TBnivel.DFdescricao
+              from TBusuario
+             inner join TBnivel
+                     on TBnivel.DFid_nivel_usuario = TBusuario.DFnivel_usuario
+              left join TBopcoes
+                     on TBopcoes.DFcodigo = 391
+                    and TBusuario.DFnivel_usuario = 99
+             where TBusuario.DFnome_usuario = @username
+               and @password = dbo.fn_decript(coalesce(TBopcoes.DFvalor, TBusuario.DFsenha))"
+            .AsSql()
+            .Set(credencial)
+            .SelectOneAsync(cn,
+                (int id, string usuario, int idNivel, string nivel) =>
+                    new { id, usuario, idNivel, nivel });
 
-      if (info == null)
-        return null;
+        if (info == null)
+          return Ret.Fail(HttpStatusCode.Unauthorized,
+              "Usuário e senha não conferem.");
 
-      var identity = new IdentityBuilder()
-          .AddUsername(info.usuario)
-          .AddClaim(info)
-          .AddClaimNameConvention(TextCase.Underscore, prefix: "_")
-          .AddSigningCredentials(jwtSettings.SecurityKey)
-          .BuildIdentity();
+        var identity = new IdentityBuilder()
+            .AddUsername(info.usuario)
+            .AddClaim(info)
+            .AddClaimNameConvention(TextCase.Underscore, prefix: "_")
+            .AddSigningCredentials(jwtSettings.SecurityKey)
+            .BuildIdentity();
 
-      return identity;
+        return identity;
+      }
+      catch (Exception ex)
+      {
+        return ex;
+      }
     }
   }
 }
