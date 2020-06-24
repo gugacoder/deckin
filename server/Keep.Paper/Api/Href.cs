@@ -10,6 +10,8 @@ namespace Keep.Paper.Api
 {
   public static class Href
   {
+    public const string EntitiesPrefix = "/Api/1/Entities";
+
     public static string MakeRelative(string href)
     {
       var builder = new UriBuilder(href);
@@ -30,10 +32,16 @@ namespace Keep.Paper.Api
       return CreateHref(ctx, catalog, paper, action, keys);
     }
 
-    public static string To(HttpContext ctx, string catalog, string paper,
-        string action, params object[] keys)
+    public static string To(HttpContext ctx, string catalogName,
+        string paperName, string actionName, params object[] actionKeys)
     {
-      return CreateHref(ctx, catalog, paper, action, keys);
+      return CreateHref(ctx, catalogName, paperName, actionName, actionKeys);
+    }
+
+    public static string To(HttpContext ctx, string catalogName,
+        string paperName, string actionName, string actionKeys)
+    {
+      return CreateHref(ctx, catalogName, paperName, actionName, actionKeys);
     }
 
     #endregion
@@ -54,22 +62,22 @@ namespace Keep.Paper.Api
 
     #endregion
 
-    private static string CreateHref(HttpContext ctx, string catalog,
-        string paper, string action, object[] keys)
+    private static string CreateHref(HttpContext ctx, string catalogName,
+        string paperName, string actionName, params object[] actionKeys)
     {
       var builder = new UriBuilder(ctx.Request.GetDisplayUrl());
       builder.Scheme = null;
       builder.Host = null;
       builder.Query = null;
-      builder.Path = "/!";
+      builder.Path = EntitiesPrefix;
 
-      if (!string.IsNullOrEmpty(catalog)) builder.Path += $"/{catalog}";
-      if (!string.IsNullOrEmpty(paper)) builder.Path += $"/{paper}";
-      if (!string.IsNullOrEmpty(action)) builder.Path += $"/{action}";
-      if (keys?.Any() == true)
+      if (!string.IsNullOrEmpty(catalogName)) builder.Path += $"/{catalogName}";
+      if (!string.IsNullOrEmpty(paperName)) builder.Path += $"/{paperName}";
+      if (!string.IsNullOrEmpty(actionName)) builder.Path += $"/{actionName}";
+      if (actionKeys?.Any() == true)
       {
         builder.Path += $"/";
-        builder.Path += string.Join("/", keys.Select(Change.To<string>));
+        builder.Path += string.Join(";", actionKeys.Select(Change.To<string>));
       }
 
       var url = builder.ToString();

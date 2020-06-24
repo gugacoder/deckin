@@ -9,18 +9,14 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    redirect: { path: '/Papers/Keep.Paper/Home/Index' }
+    redirect: { path: '/!/Keep.Paper/Home/Index' }
 //    redirect: { path: '/Sandbox' }
   },
   {
-    path: '/Papers/*',
+    path: '/!/:catalogName/:paperName/:actionName/:actionKeys?',
     name: 'Paper',
-    component: Paper
-    /*
-    meta: {
-      reload: true,
-    },
-    */
+    component: Paper,
+    props: true
   },
   {
     path: '/sandbox',

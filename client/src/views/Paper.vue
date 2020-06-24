@@ -103,6 +103,26 @@ export default {
 
   name: 'paper-view',
 
+  props:
+  {
+    catalogName: {
+      type: String,
+      required: true
+    },
+    paperName: {
+      type: String,
+      required: true
+    },
+    actionName: {
+      type: String,
+      required: true
+    },
+    actionKeys: {
+      type: String,
+      required: false
+    }
+  },
+
   components: {
   },
 
@@ -119,32 +139,11 @@ export default {
 
   computed: {
     title () {
-      if (this.paper === null) return null;
-      return [
-        this.paperName, 
-        this.paperAction,
-        ...this.paperKeys
-      ].join(' / ');
+      return !this.paper || this.paper.view.title
     },
     
-    catalogName () {
-      var path = this.$route.params.pathMatch;
-      return path.split('/')[0] ?? null;
-    },
-    
-    paperName () {
-      var path = this.$route.params.pathMatch;
-      return path.split('/')[1] ?? null;
-    },
-    
-    paperAction () {
-      var path = this.$route.params.pathMatch;
-      return path.split('/')[2] ?? null;
-    },
-    
-    paperKeys () {
-      var path = this.$route.params.pathMatch;
-      return path.split('/').slice(3);
+    paperArgs () {
+      return (this.paperKeys || '').split(';')
     },
 
     paperComponent () {
@@ -181,7 +180,7 @@ export default {
       this.paper = null
       this.loading = true
       fetchPaper(this)
-        .then(data => this.openPaper(data))
+        .then(paper => this.showPaper(paper))
         .catch(error => this.alert = {
           type: 'error',
           message: 'O servidor não respondeu como esperado.',
@@ -194,7 +193,7 @@ export default {
         })
     },
 
-    openPaper (paper) {
+    showPaper (paper) {
       handlePaper(paper, null, this.setPaper, this.redirectPaper)
     },
 

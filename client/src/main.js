@@ -7,6 +7,10 @@ import vuetify from './plugins/vuetify'
 
 Vue.config.productionTip = false
 
+//import browserPlugin from '@/plugins/browser-plugin.js'
+//Vue.use(browserPlugin)
+//console.log('Hi there')
+
 // Registrandos componentes globais...
 import '@/components'
 

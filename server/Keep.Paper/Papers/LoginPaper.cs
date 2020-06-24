@@ -17,7 +17,12 @@ namespace Keep.Paper.Papers
   [AllowAnonymous]
   public class LoginPaper : BasicPaper
   {
-    public object Index() => new
+    public class Options
+    {
+      public string From { get; set; }
+    }
+
+    public object Index(Options options) => new
     {
       Kind = Kind.Action,
       View = new

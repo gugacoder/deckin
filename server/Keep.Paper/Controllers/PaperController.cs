@@ -24,8 +24,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Keep.Paper.Controllers
 {
-  [Route("/Api/1/Papers")]
-  [Route("/!")]
+  [Route(Href.EntitiesPrefix)]
   public class PaperController : Controller
   {
     private readonly IServiceProvider serviceProvider;
@@ -38,13 +37,14 @@ namespace Keep.Paper.Controllers
       this.paperCatalog = paperCatalog;
     }
 
-    [Route("{catalogName}/{paperName}/{actionName}/{*path}")]
+    [Route("{catalogName}/{paperName}/{actionName}/{actionKeys?}")]
     public async Task<IActionResult> GetPaperAsync(string catalogName,
-        string paperName, string actionName, string path)
+        string paperName, string actionName, string actionKeys)
     {
-      var keys = path?.Split('/');
       try
       {
+        var actionArgs = actionKeys?.Split(';') ?? new string[0];
+
         var paperType = paperCatalog.FindPaperType(catalogName, paperName);
         if (paperType == null)
           return Fail(Fault.NotFound,
@@ -75,9 +75,8 @@ namespace Keep.Paper.Controllers
               getter._HasAttribute<AllowAnonymousAttribute>();
           if (!allowAnonymous)
           {
-            var paperKeys = path?.Split('/');
             var redirectPath = Href.To(this.HttpContext, catalogName, paperName,
-                actionName, paperKeys);
+                actionName, actionArgs);
             return RequireAuthentication(redirectPath);
           }
         }
@@ -87,7 +86,7 @@ namespace Keep.Paper.Controllers
         // Configuração inicial
         (paper as BasicPaper)?.Configure(HttpContext, serviceProvider);
 
-        var ret = await TryCreateParametersAsync(getter, keys, Request.Body);
+        var ret = await TryCreateParametersAsync(getter, actionArgs, Request.Body);
         if (!ret.Ok)
           return Fail(Fault.ServerFailure, ret.Fault.Message);
 
@@ -125,22 +124,18 @@ namespace Keep.Paper.Controllers
             Self = new
             {
               Href = Href.To(HttpContext, catalogName, paperName, actionName,
-                  keys)
+                  actionKeys)
             }
           }
         });
       }
     }
 
-    private IActionResult RequireAuthentication(string redirectPath)
+    private IActionResult RequireAuthentication(string targetPaperHref)
     {
       var ctx = this.HttpContext;
       return Ok(new
       {
-        Meta = new
-        {
-          Go = Rel.Forward
-        },
         Kind = Kind.Fault,
         Data = new
         {
@@ -161,7 +156,7 @@ namespace Keep.Paper.Controllers
             Rel = Rel.Forward,
             Href = Href.To(ctx, typeof(LoginPaper), nameof(LoginPaper.Index)),
             Data = new {
-              From = redirectPath
+              From = targetPaperHref
             }
           }
         }
