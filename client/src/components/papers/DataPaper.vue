@@ -6,7 +6,7 @@
       class="mx-auto"
     )
       v-card-title
-        | {{ title }}
+        | {{ title }} | {{ actionName }}
 
       v-card-text
         div(
@@ -37,34 +37,38 @@
 </template>
 
 <script>
-import lodash from 'lodash'
-
 export default {
   name: 'data-paper',
 
-  props: [
-    'catalogName',
-    'paperName',
-    'paperAction',
-    'paperKeys',
-    'paper'
-  ],
+  props: {
+    catalogName: {
+      type: String,
+      required: false
+    },
+    paperName: {
+      type: String,
+      required: false
+    },
+    actionName: {
+      type: String,
+      required: true
+    },
+    actionKeys: {
+      type: String,
+      required: false
+    },
+    paper: {
+      type: Object,
+      required: true
+    },
+  },
 
   computed: {
     title () {
-      if (this.paper.title) return this.paper.title
-
-      var tokens = [
-        this.paperName, 
-        this.paperAction,
-        ...this.paperKeys
-      ]
-
-      return tokens.join(' / ')
+      return (this.paper ? this.paper.view.title : null) || 'Unnamed'
     },
 
     fields () {
-      lodash.startCase('');
       if (!this.paper) return []
 
       if (this.paper.fields) {
@@ -73,17 +77,6 @@ export default {
           ...this.paper.fields[name]
         }))
       }
-
-      /*
-      if (!this.paper.data) return [];
-
-      return this.paper.data.keys.map(name => ({
-        name,
-        title: lodash.startCase(name),
-        hidden: name.startsWith('_'),
-        value () { this.paper.data[name] }
-      }));
-      */
 
       return []
     }

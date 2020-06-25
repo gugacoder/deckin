@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Paper from '../views/Paper.vue'
-import NotFound from '../views/NotFound.vue'
+import PaperView from '../views/PaperView.vue'
+import NotFoundView from '../views/NotFoundView.vue'
 
 Vue.use(VueRouter)
 
@@ -15,7 +15,7 @@ const routes = [
   {
     path: '/!/:catalogName/:paperName/:actionName/:actionKeys?',
     name: 'Paper',
-    component: Paper,
+    component: PaperView,
     props: true
   },
   {
@@ -29,7 +29,7 @@ const routes = [
   {
     path: '*',
     name: 'NotFound',
-    component: NotFound
+    component: NotFoundView
   }
 ]
 

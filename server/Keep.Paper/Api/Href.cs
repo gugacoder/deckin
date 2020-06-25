@@ -10,7 +10,7 @@ namespace Keep.Paper.Api
 {
   public static class Href
   {
-    public const string EntitiesPrefix = "/Api/1/Entities";
+    public const string ApiPrefix = "/Api/1/Papers";
 
     public static string MakeRelative(string href)
     {
@@ -69,7 +69,7 @@ namespace Keep.Paper.Api
       builder.Scheme = null;
       builder.Host = null;
       builder.Query = null;
-      builder.Path = EntitiesPrefix;
+      builder.Path = ApiPrefix;
 
       if (!string.IsNullOrEmpty(catalogName)) builder.Path += $"/{catalogName}";
       if (!string.IsNullOrEmpty(paperName)) builder.Path += $"/{paperName}";

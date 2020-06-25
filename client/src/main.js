@@ -4,14 +4,13 @@ import './registerServiceWorker'
 import router from './router'
 import store from './store'
 import vuetify from './plugins/vuetify'
+import BrowserPlugin from '@/plugins/BrowserPlugin.js'
 
 Vue.config.productionTip = false
 
-//import browserPlugin from '@/plugins/browser-plugin.js'
-//Vue.use(browserPlugin)
-//console.log('Hi there')
+Vue.use(BrowserPlugin)
 
-// Registrandos componentes globais...
+// Registrando componentes globais...
 import '@/components'
 
 new Vue({

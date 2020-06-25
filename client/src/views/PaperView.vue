@@ -1,6 +1,6 @@
 <template lang="pug">
   div(
-    class="paper"
+    class="paper-view"
   )
     v-app-bar(
       app
@@ -10,14 +10,7 @@
     )
       v-app-bar-nav-icon
 
-      v-toolbar-title
-        strong Director
-        | Alfa
-        
-        span(
-          v-show="title"
-        )
-          | &nbsp; - {{ title }}
+      v-toolbar-title {{ title }}
       
       v-spacer
 
@@ -38,6 +31,13 @@
 
       v-btn(
         icon
+        @click="$router.push('/!/Keep.Paper/Home/Index')"
+      )
+        v-icon mdi-magnify
+
+      v-btn(
+        icon
+        @click="$router.push('/!/My/Paper/Index')"
       )
         v-icon mdi-magnify
 
@@ -90,13 +90,19 @@
           v-expansion-panel-header Raw data
 
           v-expansion-panel-content
-            pre {{ paper }}
+            pre(v-if="paper") {{ paper }}
+            small(v-else) ( Waiting for data... )
+
 </template>
 
 <script>
 import Vue from 'vue'
-import '@/helpers/StringOperations.js'
-import { fetchPaper, handlePaper } from '@/services/PaperService.js'
+import { createNamespacedHelpers } from 'vuex'
+import { createPromisePaperForLink, unknownPaper } from '@/helpers/PaperHelper.js'
+import '@/helpers/StringHelper.js'
+import { API_PREFIX } from '@/plugins/BrowserPlugin.js'
+
+const { mapActions, mapGetters } = createNamespacedHelpers('paper')
 
 export default {
   // Strategy: Fetching After Navigation
@@ -138,71 +144,92 @@ export default {
   }),
 
   computed: {
-    title () {
-      return !this.paper || this.paper.view.title
+    ...mapGetters([
+      'getPaper'
+    ]),
+
+    href () {
+      return this.$href(this)
     },
-    
+
+    title () {
+      return (this.paper ? this.paper.view.title : null) || 'Unnamed'
+    },
+
     paperArgs () {
       return (this.paperKeys || '').split(';')
     },
 
     paperComponent () {
-      var pascalName = this.paper.kind.toHyphenCase()
-      var componentName = `${pascalName}-paper`
-      if (!Vue.options.components[componentName]) {
-        componentName = 'invalid-paper'
+      let kind = (this.paper ? this.paper.kind : 'unknown').toHyphenCase()
+      var name = `${kind}-paper`
+      if (!Vue.options.components[name]) {
+        name = 'unknown-paper'
       }
-      return componentName;
+      return name;
     },
 
     paperComponentProperties () {
       return {
         catalogName: this.catalogName,
         paperName: this.paperName,
-        paperAction: this.paperAction,
-        paperKeys: this.paperKeys,
-        paper: this.paper
-      };
-    }
+        actionName: this.actionName,
+        actionKeys: this.actionKeys,
+        paper: this.paper || unknownPaper
+      }
+    },
   },
 
   created () {
+    this.awaitData();
     this.fetchData();
   },
 
   watch: {
-    '$route': 'fetchData'
+    '$route': 'fetchData',
+    paper: 'awaitData'
   },
 
   methods: {
-    fetchData () {
+    ...mapActions([
+      'storePaper',
+      'purgePaper',
+      'fetchPaper',
+      'ensurePaper',
+    ]),
+
+    awaitData() {
       this.alert = {}
-      this.paper = null
-      this.loading = true
-      fetchPaper(this)
-        .then(paper => this.showPaper(paper))
-        .catch(error => this.alert = {
-          type: 'error',
-          message: 'O servidor não respondeu como esperado.',
-          detail: `Certifique-se de que o servidor esteja operando normalmente e
-              disponível nesta mesma rede.`,
-          fault: error
-        })
-        .finally(() => {
-          this.loading = false
-        })
+      this.loading = !this.paper
     },
 
-    showPaper (paper) {
-      handlePaper(paper, null, this.setPaper, this.redirectPaper)
-    },
+    async fetchData () {
+      let paper
 
-    setPaper (paper) {
+      paper = this.getPaper(this.href)
+      if (paper && paper.kind === 'promise') {
+        // Resolvendo promessa...
+        var selfLink = paper.links.filter(link => link.rel === 'self')[0]
+        await this.purgePaper(selfLink.href)
+        await this.fetchPaper({ href: selfLink.href, payload: selfLink.data })
+      }
+
+      await this.ensurePaper(this.href)
+      paper = this.getPaper(this.href) || unknownPaper
+      await this.purgePaper(this.href)
+
+      // Validando redirecionamento...
+      let forwardLink = paper.links.filter(link => link.rel === 'forward')[0]
+      if (forwardLink) {
+        let href = forwardLink.href
+        let route = forwardLink.href.replace(API_PREFIX, '/!')
+        let promisePaper = createPromisePaperForLink(forwardLink)
+        await this.storePaper({ href, paper: promisePaper })
+        this.$router.push(route)
+        return
+      }
+
       this.paper = paper
-    },
-
-    redirectPaper (href) {
-      this.$router.push(href);
     }
   }
 }

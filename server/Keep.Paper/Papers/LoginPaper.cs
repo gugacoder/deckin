@@ -17,9 +17,11 @@ namespace Keep.Paper.Papers
   [AllowAnonymous]
   public class LoginPaper : BasicPaper
   {
+    public const string Title = "Credenciais de Usuário";
+
     public class Options
     {
-      public string From { get; set; }
+      public string RedirectTo { get; set; }
     }
 
     public object Index(Options options) => new
@@ -27,10 +29,22 @@ namespace Keep.Paper.Papers
       Kind = Kind.Action,
       View = new
       {
-        Title = "Credenciais de Usuário"
+        Title
       },
       Fields = new
       {
+        RedirectTo = new
+        {
+          Kind = FieldKind.Uri,
+          Data = new
+          {
+            Value = options?.RedirectTo ?? $"{Href.ApiPrefix}/Keep.Paper/Home/Index"
+          },
+          View = new
+          {
+            Hidden = true
+          }
+        },
         Username = new
         {
           Kind = FieldKind.Username,

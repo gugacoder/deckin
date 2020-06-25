@@ -24,7 +24,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Keep.Paper.Controllers
 {
-  [Route(Href.EntitiesPrefix)]
+  [Route(Href.ApiPrefix)]
   public class PaperController : Controller
   {
     private readonly IServiceProvider serviceProvider;
@@ -153,10 +153,13 @@ namespace Keep.Paper.Controllers
           },
           new
           {
+            LoginPaper.Title,
             Rel = Rel.Forward,
             Href = Href.To(ctx, typeof(LoginPaper), nameof(LoginPaper.Index)),
             Data = new {
-              From = targetPaperHref
+              Form = new {
+               RedirectTo = targetPaperHref
+              }
             }
           }
         }
@@ -243,20 +246,21 @@ namespace Keep.Paper.Controllers
 
         foreach (JObject entry in payload)
         {
-          JObject form = null;
-          JObject[] data = null;
+          // FIXME: O que fazer com "data"?
+          // "data" contém os objetos afetados pelo form.
+          // 
+          // JObject[] data = null;
+          // 
+          // if (entry.GetValue("data") is JArray array)
+          // {
+          //   data = array.OfType<JObject>().ToArray();
+          // }
+          // else if (entry.GetValue("data") is JObject @object)
+          // {
+          //   data = new[] { @object };
+          // }
 
-          form = entry.GetValue("form") as JObject;
-
-          if (entry.GetValue("data") is JArray array)
-          {
-            data = array.OfType<JObject>().ToArray();
-          }
-          else if (entry.GetValue("data") is JObject @object)
-          {
-            data = new[] { @object };
-          }
-
+          var form = entry.GetValue("form") as JObject ?? new JObject();
           var parameterValue = form.ToObject(parameterType);
           return parameterValue;
 

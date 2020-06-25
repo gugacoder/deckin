@@ -1,5 +1,5 @@
 <template>
-  <div class="not-found">
+  <div class="not-found-view">
     <p>Página Não Encontrada</p>
   </div>
 </template>
@@ -11,7 +11,7 @@ export default {
   components: {
   },
 
-  data() {
-  }
+  data: () => ({
+  })
 }
 </script>

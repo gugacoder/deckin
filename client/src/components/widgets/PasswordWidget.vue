@@ -1,7 +1,8 @@
 <template lang="pug">
   v-text-field(
-    autocomplete="current-password"
     type="password"
+    autocomplete="current-password"
+    v-show="!hidden"
     v-model="value"
     :label="title"
     :rules="rules"
@@ -47,6 +48,10 @@ export default {
 
     hint () {
       return this.field.view.hint
+    },
+
+    hidden () {
+      return !!this.field.view.hidden
     },
 
     rules () {

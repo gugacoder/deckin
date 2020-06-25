@@ -1,20 +1,18 @@
 <template lang="pug">
   v-text-field(
-    autocomplete="username"
+    autocomplete="current-password"
     v-show="!hidden"
     v-model="value"
     :label="title"
-    :rules="rules"
-    :required="required"
     :hint="hint"
+    enabled="false"
     dense
-    ref="widget"
   )
 </template>
 
 <script>
 export default {
-  name: 'username-widget',
+  name: 'password-widget',
 
   props: [
     'field'
@@ -34,16 +32,8 @@ export default {
       }
     },
 
-    kind () {
-      return this.field.kind
-    },
-
     title () {
       return this.field.view.title
-    },
-
-    required () {
-      return this.field.view.required
     },
 
     hint () {
@@ -52,18 +42,6 @@ export default {
 
     hidden () {
       return !!this.field.view.hidden
-    },
-
-    rules () {
-      return [
-        (v) => !this.required || !!v || 'Requerido'
-      ]
-    }
-  },
-
-  methods: {
-    focus () {
-      this.$refs.widget.focus()
     }
   }
 }
