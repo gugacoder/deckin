@@ -46,8 +46,13 @@
 
 <script>
 import Vue from 'vue'
-import '@/helpers/StringOperations.js'
-import { fetchPaper, handlePaper } from '@/services/PaperService.js'
+import { createNamespacedHelpers } from 'vuex'
+import lodash from 'lodash'
+import { API_PREFIX } from '@/plugins/BrowserPlugin.js'
+import '@/helpers/StringHelper.js'
+import { createPaperPromise, unknownPaper } from '@/helpers/PaperHelper.js'
+
+const { mapActions, mapGetters } = createNamespacedHelpers('paper')
 
 export default {
   name: 'action-paper',
@@ -66,6 +71,10 @@ export default {
   }),
 
   computed: {
+    ...mapGetters([
+      'getPaper'
+    ]),
+
     title () {
       return this.paper.view.title
     },
@@ -76,6 +85,13 @@ export default {
   },
 
   methods: {
+    ...mapActions([
+      'storePaper',
+      'purgePaper',
+      'fetchPaper',
+      'ensurePaper',
+    ]),
+
     nameWidget (field) {
       let pascalName = field.kind.toHyphenCase()
       let componentName = `${pascalName}-widget`
@@ -86,34 +102,67 @@ export default {
     },
 
     makeLink (rel) {
-      var x = this.paper.links.filter(x => x.rel === rel)[0]
+      let x = this.paper.links.filter(x => x.rel === rel)[0]
       if (!x) return ''
 
-      var href = x.href
+      let href = x.href
       if (!href) return ''
  
-      var path = href.split('!/')[1]
+      let path = href.split('!/')[1]
       if (!path) return ''
       
       return `/Papers/${path}`
     },
 
     async submit () {
+      let ok
+
       this.message = null
 
-      var ok = this.$refs.form.validate()
+      ok = this.$refs.form.validate()
       if (!ok) return
 
-      var payload = {
+      let payload = {
         form: { ...this.paper.data },
         data: []
       }
       
-      var target = this.paper.links.filter(x => x.rel == "action").shift()
+      let link = this.paper.links.filter(link => link.rel == "action")[0]
+      let linkPayload = lodash.merge({}, link.data || {}, payload)
 
-      fetchPaper(target.href, payload)
-        .then(data => this.handleResponse(data))
-        .catch(error => this.handleFailure(error))
+      await this.fetchPaper({ href: link.href, payload: linkPayload })
+      let paper = this.getPaper(link.href) || unknownPaper
+
+      // Validando possível redirecionamento...
+      //
+      ok = this.handleForward(paper)
+      if (ok) return
+      
+      // O que fazer?...
+    },
+
+    async handleForward (paper) {
+      let forwardLink
+
+      forwardLink = paper.links.filter(link => link.rel === 'forward')[0]
+      
+      if (!forwardLink) {
+        let selfLink = paper.links.filter(link => link.rel === 'self')[0]
+        if (selfLink && selfLink.href !== this.href) {
+          forwardLink = selfLink
+        }
+      }
+      
+      if (forwardLink) {
+        let href = forwardLink.href
+        let route = forwardLink.href.replace(API_PREFIX, '/!')
+        let promisePaper = createPaperPromise(forwardLink)
+        await this.storePaper({ href, paper: promisePaper })
+        this.$router.push(route)
+        return true
+      }
+      
+      return false
     },
 
     cancel () {
@@ -121,12 +170,8 @@ export default {
       this.$router.push('/')
     },
 
-    handleResponse (paper) {
-      handlePaper(paper, this.showValidation, this.openPaper, this.redirectPaper)
-    },
-
     showValidation (message, fieldName) {
-      var field = this.fields.filter(x => x.name === fieldName).shift()
+      let field = this.fields.filter(x => x.name === fieldName).shift()
       if (field) {
         field.fault = message
         field.rules = [ ( ) => !field.fault || field.fault ]
@@ -135,8 +180,12 @@ export default {
         this.message = message
       }
 
-      var widget = this.$refs.widgets[0]
+      let widget = this.$refs.widgets[0]
       widget && widget.focus()
+    },
+/*    
+    handleResponse (paper) {
+      handlePaper(paper, this.showValidation, this.openPaper, this.redirectPaper)
     },
 
     openPaper (paper) {
@@ -150,6 +199,7 @@ export default {
     handleFailure (error) {
       console.log(error)
     }
+    */
   }
 }
 </script>

@@ -1,16 +1,29 @@
+import Vue from 'vue'
 import { canonifyPaper } from '@/helpers/PaperHelper.js'
+import '@/helpers/StorageHelper.js'
 
 export const API_PREFIX = '/Api/1/Papers'
 
-export default {
+const BrowserPlugin = Vue.observable({
   API_PREFIX,
-  
+
   get identity() {
-    return sessionStorage.getItem('identity')
+    return sessionStorage.getObject('identity')
   },
 
   set identity(value) {
-    sessionStorage.setItem('identity', value)
+    sessionStorage.setObject('identity', value)
+  },
+
+  install (Vue /*, options */) {
+    Vue.prototype.$browser = this
+    Vue.prototype.$href = this.href
+    Vue.prototype.$fetch = this.fetch
+
+    Object.defineProperty(Vue.prototype, '$identity', {
+      get: () => this.identity,
+      set: (value) => this.identity = value
+    })
   },
 
   href (catalogName, paperName, actionName, actionKeys) {
@@ -57,15 +70,6 @@ export default {
         .catch(error => reject(error))
     })
   },
+})
 
-  install (Vue /*, options */) {
-    Vue.prototype.$browser = this
-    Vue.prototype.$href = this.href
-    Vue.prototype.$fetch = this.fetch
-
-    Object.defineProperty(Vue.prototype, '$identity', {
-      get () { return this.identity },
-      set (value) { this.identity = value }
-    })
-  }
-}
+export default BrowserPlugin

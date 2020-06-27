@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Browser from '@/plugins/BrowserPlugin.js'
+import { unknownPaper } from '@/helpers/PaperHelper.js'
 
 const state = {
   papers: {}
@@ -48,11 +49,17 @@ const actions = {
       payload = { href: payload }
     }
     let { href, payload: content } = payload
-    let paper = await Browser.fetch(href, content)
+    let paper = await Browser.fetch(href, content) || unknownPaper    
+    
+    // Processando metas
+    if (paper.meta.identity) {
+      Browser.identity = paper.meta.identity
+    }
+
     await dispatch('storePaper', { href, paper })
   },
 
-  async ensurePaper({ state, dispatch }, payload) {
+  async ensurePaper ({ state, dispatch }, payload) {
     if (!payload.href) {
       payload = { href: payload }
     }

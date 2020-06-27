@@ -41,6 +41,35 @@
       )
         v-icon mdi-magnify
 
+      v-menu(
+        :close-on-click="true"
+        :close-on-content-click="true"
+        :offset-x="false"
+        :offset-y="true"
+        v-if="!!identity"
+        dense
+      )
+        template(
+          v-slot:activator="{ on, attrs }"
+        )
+          v-btn(
+            icon
+            v-bind="attrs"
+            v-on="on"
+          )
+            v-icon mdi-account-circle
+
+        v-list
+          v-list-item(
+            disabled
+          )
+            v-list-item-title {{ identity.subject }}
+
+          v-list-item(
+            @click="logout()"
+          )
+            v-list-item-title Sair do Sistema
+
       v-btn(
         icon
       )
@@ -98,7 +127,7 @@
 <script>
 import Vue from 'vue'
 import { createNamespacedHelpers } from 'vuex'
-import { createPromisePaperForLink, unknownPaper } from '@/helpers/PaperHelper.js'
+import { createPaperPromise, unknownPaper } from '@/helpers/PaperHelper.js'
 import '@/helpers/StringHelper.js'
 import { API_PREFIX } from '@/plugins/BrowserPlugin.js'
 
@@ -148,6 +177,10 @@ export default {
       'getPaper'
     ]),
 
+    identity () {
+      return this.$identity
+    },
+
     href () {
       return this.$href(this)
     },
@@ -162,7 +195,7 @@ export default {
 
     paperComponent () {
       let kind = (this.paper ? this.paper.kind : 'unknown').toHyphenCase()
-      var name = `${kind}-paper`
+      let name = `${kind}-paper`
       if (!Vue.options.components[name]) {
         name = 'unknown-paper'
       }
@@ -209,7 +242,7 @@ export default {
       paper = this.getPaper(this.href)
       if (paper && paper.kind === 'promise') {
         // Resolvendo promessa...
-        var selfLink = paper.links.filter(link => link.rel === 'self')[0]
+        let selfLink = paper.links.filter(link => link.rel === 'self')[0]
         await this.purgePaper(selfLink.href)
         await this.fetchPaper({ href: selfLink.href, payload: selfLink.data })
       }
@@ -218,18 +251,31 @@ export default {
       paper = this.getPaper(this.href) || unknownPaper
       await this.purgePaper(this.href)
 
-      // Validando redirecionamento...
-      let forwardLink = paper.links.filter(link => link.rel === 'forward')[0]
+      // Validando possível redirecionamento...
+      //
+      let forwardLink
+      forwardLink = paper.links.filter(link => link.rel === 'forward')[0]
+      if (!forwardLink) {
+        let selfLink = paper.links.filter(link => link.rel === 'self')[0]
+        if (selfLink && selfLink.href !== this.href) {
+          forwardLink = selfLink
+        }
+      }
       if (forwardLink) {
         let href = forwardLink.href
         let route = forwardLink.href.replace(API_PREFIX, '/!')
-        let promisePaper = createPromisePaperForLink(forwardLink)
+        let promisePaper = createPaperPromise(forwardLink)
         await this.storePaper({ href, paper: promisePaper })
         this.$router.push(route)
         return
       }
 
       this.paper = paper
+    },
+
+    logout () {
+      this.$identity = null
+      this.$router.go()
     }
   }
 }

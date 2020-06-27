@@ -14,7 +14,7 @@ export const unknownPaper = canonifyPaper({
   ]
 })
 
-export function createPromisePaperForLink (link) {
+export function createPaperPromise (link) {
   return canonifyPaper({
     kind: 'promise',
     view: {
@@ -172,5 +172,5 @@ export function canonifyPaper (paper) {
 export default {
   unknownPaper,
   canonifyPaper,
-  createPromisePaperForLink
+  createPaperPromise
 }
