@@ -10,7 +10,7 @@ const routes = [
     path: '/',
     name: 'Home',
     redirect: { path: '/!/Keep.Paper/Home/Index' }
-//    redirect: { path: '/Sandbox' }
+//    redirect: { path: '/Sandbox/Hi' }
   },
   {
     path: '/!/:catalogName/:paperName/:actionName/:actionKeys?',
@@ -19,7 +19,7 @@ const routes = [
     props: true
   },
   {
-    path: '/sandbox',
+    path: '/Sandbox/:arg',
     name: 'Sandbox',
     // route level code-splitting
     // this generates a separate chunk (sandbox.[hash].js) for this route

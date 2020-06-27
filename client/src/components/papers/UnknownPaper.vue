@@ -13,11 +13,11 @@ export default {
   props: {
     catalogName: {
       type: String,
-      required: false
+      required: true
     },
     paperName: {
       type: String,
-      required: false
+      required: true
     },
     actionName: {
       type: String,
@@ -27,9 +27,16 @@ export default {
       type: String,
       required: false
     },
-    paper: {
+    content: {
       type: Object,
       required: true
+    }
+  },
+
+  computed: {
+    paper () {
+      console.log('content', this.content)
+      return this.content.paper
     },
   }
 }

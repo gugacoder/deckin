@@ -1,8 +1,7 @@
 <template lang="pug"> 
-  div(
-    class="action-paper"
-  )
+  div.action-paper
     v-card(
+      flat
       class="mx-auto"
     )
       v-card-title
@@ -46,24 +45,15 @@
 
 <script>
 import Vue from 'vue'
-import { createNamespacedHelpers } from 'vuex'
+import BasePaper from './BasePaper'
 import lodash from 'lodash'
-import { API_PREFIX } from '@/plugins/BrowserPlugin.js'
 import '@/helpers/StringHelper.js'
-import { createPaperPromise, unknownPaper } from '@/helpers/PaperHelper.js'
-
-const { mapActions, mapGetters } = createNamespacedHelpers('paper')
+import { unknownPaper } from '@/helpers/PaperHelper.js'
 
 export default {
-  name: 'action-paper',
+  extends: BasePaper,
 
-  props: [
-    'catalogName',
-    'paperName',
-    'paperAction',
-    'paperKeys',
-    'paper'
-  ],
+  name: 'action-paper',
 
   data: () => ({
     valid: true,
@@ -71,26 +61,12 @@ export default {
   }),
 
   computed: {
-    ...mapGetters([
-      'getPaper'
-    ]),
-
-    title () {
-      return this.paper.view.title
-    },
-    
     fields () {
       return this.paper.fields
     }
   },
 
   methods: {
-    ...mapActions([
-      'storePaper',
-      'purgePaper',
-      'fetchPaper',
-      'ensurePaper',
-    ]),
 
     nameWidget (field) {
       let pascalName = field.kind.toHyphenCase()
@@ -99,19 +75,6 @@ export default {
         componentName = 'invalid-widget'
       }
       return componentName;
-    },
-
-    makeLink (rel) {
-      let x = this.paper.links.filter(x => x.rel === rel)[0]
-      if (!x) return ''
-
-      let href = x.href
-      if (!href) return ''
- 
-      let path = href.split('!/')[1]
-      if (!path) return ''
-      
-      return `/Papers/${path}`
     },
 
     async submit () {
@@ -127,47 +90,30 @@ export default {
         data: []
       }
       
-      let link = this.paper.links.filter(link => link.rel == "action")[0]
-      let linkPayload = lodash.merge({}, link.data || {}, payload)
+      let link = this.paper.getLink('action')
+          || this.paper.getLink('self')
+          || { href: this.$href(this) }
 
-      await this.fetchPaper({ href: link.href, payload: linkPayload })
-      let paper = this.getPaper(link.href) || unknownPaper
+      let { href, data } = link
+      lodash.merge(payload.form, data)
 
-      // Validando possível redirecionamento...
-      //
-      ok = this.handleForward(paper)
-      if (ok) return
-      
-      // O que fazer?...
-    },
+      let paper = await this.$fetch(href, payload) || unknownPaper
 
-    async handleForward (paper) {
-      let forwardLink
-
-      forwardLink = paper.links.filter(link => link.rel === 'forward')[0]
-      
-      if (!forwardLink) {
-        let selfLink = paper.links.filter(link => link.rel === 'self')[0]
-        if (selfLink && selfLink.href !== this.href) {
-          forwardLink = selfLink
-        }
+      let paperLink = paper.getLink('self')
+          || this.paper.getLink('self')
+          || { href: this.$href(this) }
+      let path = this.$routeFor(paperLink.href)
+      if (path !== this.$route.path) {
+        this.$router.push(path)
       }
-      
-      if (forwardLink) {
-        let href = forwardLink.href
-        let route = forwardLink.href.replace(API_PREFIX, '/!')
-        let promisePaper = createPaperPromise(forwardLink)
-        await this.storePaper({ href, paper: promisePaper })
-        this.$router.push(route)
-        return true
-      }
-      
-      return false
+
+      this.setPaper(paper)
     },
 
     cancel () {
       this.$refs.form.reset()
-      this.$router.push('/')
+      this.$router.back()
+      this.$router.go()
     },
 
     showValidation (message, fieldName) {
@@ -183,23 +129,6 @@ export default {
       let widget = this.$refs.widgets[0]
       widget && widget.focus()
     },
-/*    
-    handleResponse (paper) {
-      handlePaper(paper, this.showValidation, this.openPaper, this.redirectPaper)
-    },
-
-    openPaper (paper) {
-      console.log({ paper })
-    },
-
-    redirectPaper (href) {
-      this.$router.push(href);
-    },
-
-    handleFailure (error) {
-      console.log(error)
-    }
-    */
   }
 }
 </script>

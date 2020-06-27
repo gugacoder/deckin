@@ -10,8 +10,10 @@
     )
       v-app-bar-nav-icon
 
-      v-toolbar-title {{ title }}
-      
+      v-toolbar-title
+        span.font-weight-bold Paper
+        span.font-weight-thin Alfa
+
       v-spacer
 
       template(
@@ -46,7 +48,7 @@
         :close-on-content-click="true"
         :offset-x="false"
         :offset-y="true"
-        v-if="!!identity"
+        v-if="identity"
         dense
       )
         template(
@@ -80,8 +82,8 @@
     )
       //- :type= info success warning error
       v-alert(
-        v-show="alert.message"
-        :type="alert.type"
+        v-show="content.alert.message"
+        :type="content.alert.type"
         dense
         text
         dismissible
@@ -92,14 +94,14 @@
         span(
           class="font-weight-medium"
         )
-          | {{ alert.message }}
+          | {{ content.alert.message }}
         
         br
 
         span(
           class="font-weight-light"
         )
-          | {{ alert.detail }}
+          | {{ content.alert.detail }}
           
       template(
         v-if="paper"
@@ -126,12 +128,8 @@
 
 <script>
 import Vue from 'vue'
-import { createNamespacedHelpers } from 'vuex'
-import { createPaperPromise, unknownPaper } from '@/helpers/PaperHelper.js'
+import { unknownPaper } from '@/helpers/PaperHelper.js'
 import '@/helpers/StringHelper.js'
-import { API_PREFIX } from '@/plugins/BrowserPlugin.js'
-
-const { mapActions, mapGetters } = createNamespacedHelpers('paper')
 
 export default {
   // Strategy: Fetching After Navigation
@@ -162,35 +160,33 @@ export default {
   },
 
   data: () => ({
-    loading: false,
-    alert: {
-      type: null,
-      message: null,
-      detail: null,
-      fault: null
+    content: {
+      paper: null,
+      alert: {
+        type: null,
+        message: null,
+        detail: null,
+        fault: null
+      },
     },
-    paper: null
+    loading: false,
   }),
 
   computed: {
-    ...mapGetters([
-      'getPaper'
-    ]),
-
+    actionArgs () {
+      return (this.paperKeys || '').split(';')
+    },
+    
     identity () {
       return this.$identity
     },
 
-    href () {
-      return this.$href(this)
+    paper () {
+      return this.content.paper
     },
 
     title () {
-      return (this.paper ? this.paper.view.title : null) || 'Unnamed'
-    },
-
-    paperArgs () {
-      return (this.paperKeys || '').split(';')
+      return this.paper && this.paper.view.title
     },
 
     paperComponent () {
@@ -208,7 +204,7 @@ export default {
         paperName: this.paperName,
         actionName: this.actionName,
         actionKeys: this.actionKeys,
-        paper: this.paper || unknownPaper
+        content: this.content
       }
     },
   },
@@ -219,62 +215,38 @@ export default {
   },
 
   watch: {
-    '$route': 'fetchData',
-    paper: 'awaitData'
+//    '$route': 'fetchData',
+    paper: 'awaitData',
   },
 
   methods: {
-    ...mapActions([
-      'storePaper',
-      'purgePaper',
-      'fetchPaper',
-      'ensurePaper',
-    ]),
-
-    awaitData() {
-      this.alert = {}
-      this.loading = !this.paper
+    setPaper (value) {
+      this.content.paper = value
     },
 
     async fetchData () {
-      let paper
+      let self = (this.paper ? this.paper.getLink('self') : null) ||
+          { href: this.$href(this) }
 
-      paper = this.getPaper(this.href)
-      if (paper && paper.kind === 'promise') {
-        // Resolvendo promessa...
-        let selfLink = paper.links.filter(link => link.rel === 'self')[0]
-        await this.purgePaper(selfLink.href)
-        await this.fetchPaper({ href: selfLink.href, payload: selfLink.data })
+      let { href, data } = self
+      let paper = await this.$fetch(href, data) || unknownPaper
+
+      let path = this.$routeFor(href)
+      if (path !== this.$route.path) {
+        this.$router.push(path)
       }
 
-      await this.ensurePaper(this.href)
-      paper = this.getPaper(this.href) || unknownPaper
-      await this.purgePaper(this.href)
+      this.setPaper(paper)
+    },
 
-      // Validando possível redirecionamento...
-      //
-      let forwardLink
-      forwardLink = paper.links.filter(link => link.rel === 'forward')[0]
-      if (!forwardLink) {
-        let selfLink = paper.links.filter(link => link.rel === 'self')[0]
-        if (selfLink && selfLink.href !== this.href) {
-          forwardLink = selfLink
-        }
-      }
-      if (forwardLink) {
-        let href = forwardLink.href
-        let route = forwardLink.href.replace(API_PREFIX, '/!')
-        let promisePaper = createPaperPromise(forwardLink)
-        await this.storePaper({ href, paper: promisePaper })
-        this.$router.push(route)
-        return
-      }
-
-      this.paper = paper
+    awaitData () {
+      this.content.alert = {}
+      this.loading = !this.paper
     },
 
     logout () {
       this.$identity = null
+      this.$router.push('/')
       this.$router.go()
     }
   }

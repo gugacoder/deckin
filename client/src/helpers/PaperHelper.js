@@ -36,18 +36,26 @@ export function canonifyPaper (paper) {
   let source = paper
   let target = {
     kind: null,
+    rel: null,
     meta: null,
     data: null,
     view: null,
     fields: null,
     actions: null,
     embedded: null,
-    links: null
+    links: null,
+    getLink (rel) {
+      return this.links.filter(link => link.rel == rel)[0]
+    }
   }
 
   // Kind, contém a identificação dos tipos representados pela entidade.
   //
   target.kind = source.kind || 'unknown'
+  
+  // Kind, contém a identificação dos tipos representados pela entidade.
+  //
+  target.rel = source.rel
   
   // Meta, contém instruções diretas para o motor do Paper.
   //

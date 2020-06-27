@@ -1,27 +1,9 @@
 <template lang="pug">
-  div(
-    class="data-paper"
-  )
-    v-card(
-      class="mx-auto"
-    )
-      v-card-title
-        | {{ title }} | {{ actionName }}
-
-      v-card-text
-        v-btn(
-          class="mr-2"
-          color="primary"
-          @click="$router.go()"
-        )
-          | Recarregar esta página
-
+  div
 </template>
 
 <script>
 export default {
-  name: 'promise-paper',
-
   props: {
     catalogName: {
       type: String,
@@ -47,12 +29,25 @@ export default {
 
   computed: {
     paper () {
-      console.log('content', this.content)
       return this.content.paper
     },
 
     title () {
-      return (this.paper ? this.paper.view.title : null) || 'Unnamed'
+      return this.paper.view.title
+    },
+    
+    alert () {
+      return this.content.alert
+    }
+  },
+
+  methods: {
+    setPaper (value) {
+      this.content.paper = value
+    },
+
+    setAlert (value) {
+      this.content.alert = value
     }
   }
 }

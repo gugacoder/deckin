@@ -10,10 +10,42 @@ namespace Keep.Paper.Papers
   {
     public object Index() => new
     {
+      Kind = Kind.Desktop,
       View = new
       {
         Title = "Área de Trabalho",
         Design = Design.Dashboard
+      },
+      Embedded = new object[] {
+        new
+        {
+          Rel = Rel.Item,
+          View = new {
+            Title = "Catálogo",
+          },
+          Links = new object[] {
+            new
+            {
+              Rel = Rel.Item,
+              Href = Href.To(HttpContext, typeof(CatalogPaper), nameof(CatalogPaper.Index))
+            }
+          }
+        },
+        new
+        {
+          Rel = Rel.Item,
+          View = new {
+            Title = "Home",
+          },
+          Links = new object[] {
+            new
+            {
+              Title = "Home",
+              Rel = Rel.Item,
+              Href = Href.To(HttpContext, typeof(HomePaper), nameof(HomePaper.Index))
+            }
+          }
+        },
       },
       Links = new object[]
       {
@@ -21,11 +53,6 @@ namespace Keep.Paper.Papers
         {
           Rel = Rel.Self,
           Href = Href.To(HttpContext, GetType(), nameof(Index))
-        },
-        new
-        {
-          Rel = Rel.Logout,
-          Href = Href.To(HttpContext, typeof(LoginPaper), nameof(LoginPaper.Logout))
         }
       }
     };
