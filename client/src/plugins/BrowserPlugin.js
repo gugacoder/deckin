@@ -2,14 +2,42 @@ import Vue from 'vue'
 import { canonifyPaper, unknownPaper } from '@/helpers/PaperHelper.js'
 import '@/helpers/StorageHelper.js'
 
-export const API_PREFIX = '/Api/1/Papers'
+const API_PREFIX = '/Api/1/Papers'
 
-function _fetch (href, payload, identity) {
+function href (catalogName, paperName, actionName, actionKeys) {
+  if (!(catalogName instanceof String)) {
+    let options = catalogName
+    catalogName = options.catalogName
+    paperName = options.paperName
+    actionName = options.actionName
+    actionKeys = options.actionKeys
+  }
+
+  if (Array.isArray(actionKeys)) {
+    actionKeys = actionKeys.join(';')
+  }
+
+  let tokens = [
+    catalogName,
+    paperName,
+    actionName,
+    ...(actionKeys ? [ actionKeys ] : [])
+  ]
+
+  let path = tokens.join('/')
+  return `${API_PREFIX}/${path}`
+}
+
+function routeFor (href) {
+  return href.replace(API_PREFIX, '/!')
+}
+
+function requestData (href, payload, identity) {
   return new Promise((resolve, reject) => {
     let options = {
       headers: new Headers()
     }
-    
+
     if (identity && identity.token) {
       options.headers.append('Authorization', `Token ${identity.token}`)
     }
@@ -25,79 +53,58 @@ function _fetch (href, payload, identity) {
   })
 }
 
-export default Vue.observable({
+async function request (href, payload, options, inspector) {
+  let paper
+  let skipRedirection = options && options.skipRedirection
+  let link = { href, data: payload }
+
+  do {
+    let { href, data } = link
+    paper = await requestData(href, data, Browser.identity) || unknownPaper
+
+    // Inspecting data...
+    if (inspector) {
+      inspector(paper)
+    }
+    
+    // Applying metas...
+    if (paper.meta.identity) {
+      Browser.identity = paper.meta.identity
+    }
+
+    link = paper.getLink('forward')
+  } while (!skipRedirection && link)
+
+  return paper
+}
+
+const Browser = Vue.observable({
   API_PREFIX,
 
   get identity() {
     return sessionStorage.getObject('identity')
   },
-
   set identity(value) {
     sessionStorage.setObject('identity', value)
   },
 
-  install (Vue /*, options */) {
-    Vue.prototype.$browser = this
-    Vue.prototype.$fetch = this.fetch
-    Vue.prototype.$href = this.href
-    Vue.prototype.$routeFor = this.routeFor
-
-    Object.defineProperty(Vue.prototype, '$identity', {
-      get: () => this.identity,
-      set: (value) => this.identity = value
-    })
-  },
-
-  href (catalogName, paperName, actionName, actionKeys) {
-    if (!(catalogName instanceof String)) {
-      let options = catalogName
-      catalogName = options.catalogName
-      paperName = options.paperName
-      actionName = options.actionName
-      actionKeys = options.actionKeys
-    }
-
-    if (Array.isArray(actionKeys)) {
-      actionKeys = actionKeys.join(';')
-    }
-
-    let tokens = [
-      catalogName,
-      paperName,
-      actionName,
-      ...(actionKeys ? [ actionKeys ] : [])
-    ]
-
-    let path = tokens.join('/')
-    return `${API_PREFIX}/${path}`
-  },
-
-  routeFor (href) {
-    return href.replace(API_PREFIX, '/!')
-  },
-
-  async fetch (href, payload, options, inspector) {
-    let paper
-    let skipRedirection = options && options.skipRedirection
-    let link = { href, data: payload }
-
-    do {
-      let { href, data } = link
-      paper = await _fetch(href, data, this.$identity) || unknownPaper
-
-      // Inspecting data...
-      if (inspector) {
-        inspector(paper)
-      }
-      
-      // Applying metas...
-      if (paper.meta.identity) {
-        this.$identity = paper.meta.identity
-      }
-
-      link = paper.getLink('forward')
-    } while (!skipRedirection && link)
-
-    return paper
-  },
+  href,
+  routeFor,
+  request,
+  install
 })
+
+function install (Vue /*, options */) {
+  Vue.prototype.$browser = Browser
+  //Vue.prototype.$request = request
+  //Vue.prototype.$href = href
+  //Vue.prototype.$routeFor = routeFor
+
+  Object.defineProperty(Vue.prototype, '$identity', {
+    get: () => Browser.identity,
+    set: (value) => Browser.identity = value
+  })
+}
+
+export { API_PREFIX }
+export default Browser

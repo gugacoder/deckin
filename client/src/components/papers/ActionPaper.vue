@@ -92,17 +92,17 @@ export default {
       
       let link = this.paper.getLink('action')
           || this.paper.getLink('self')
-          || { href: this.$href(this) }
+          || { href: this.$browser.href(this) }
 
       let { href, data } = link
       lodash.merge(payload.form, data)
 
-      let paper = await this.$fetch(href, payload) || unknownPaper
+      let paper = await this.$browser.request(href, payload) || unknownPaper
 
       let paperLink = paper.getLink('self')
           || this.paper.getLink('self')
-          || { href: this.$href(this) }
-      let path = this.$routeFor(paperLink.href)
+          || { href: this.$browser.href(this) }
+      let path = this.$browser.routeFor(paperLink.href)
       if (path !== this.$route.path) {
         this.$router.push(path)
       }

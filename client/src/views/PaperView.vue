@@ -226,12 +226,12 @@ export default {
 
     async fetchData () {
       let self = (this.paper ? this.paper.getLink('self') : null) ||
-          { href: this.$href(this) }
+          { href: this.$browser.href(this) }
 
       let { href, data } = self
-      let paper = await this.$fetch(href, data) || unknownPaper
+      let paper = await this.$browser.request(href, data) || unknownPaper
 
-      let path = this.$routeFor(href)
+      let path = this.$browser.routeFor(href)
       if (path !== this.$route.path) {
         this.$router.push(path)
       }

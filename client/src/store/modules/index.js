@@ -1,7 +1,5 @@
-import Vue from 'vue'
-
 //
-// Importação global de todos os componentes *Paper.vue.
+// Importação automática dos módulos do Vuex
 //
 
 const filepaths = require.context(
@@ -10,19 +8,23 @@ const filepaths = require.context(
   // Varrer sub-pastas?
   true,
   // Padrão de nome dos arquivos de componentes: *Paper.vue e *Widget.vue
-  /[\w-]+(Paper|Widget)\.vue$/
+  /[\w-]+Store\.vue$/
 )
+
+const modules = {}
 
 filepaths.keys().forEach((filepath) => {
   const sourceCode = filepaths(filepath)
   const targetName = filepath.split('/')
     // Pegando o nome do arquivo
     .slice(-1).pop()
-    // Removendo a extensão
-    .replace(/\.\w+$/, '')
-    // Hifenizando "foo-bar"
-    .toHyphenCase()
+    // Removendo o sufixo Store.js
+    .replace(/Store\.\w+$/, '')
+    // Camelizando "fooBar"
+    .toCamelCase()
     
-  // Registrando o componente globalmente...
-  Vue.component(targetName, sourceCode.default || sourceCode)
+  // Adicionando o módulo à coleção de módulos
+  Object.assign(modules, targetName, sourceCode.default)
 })
+
+export default modules
