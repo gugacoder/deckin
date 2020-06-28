@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import { canonifyPaper, unknownPaper } from '@/helpers/PaperHelper.js'
 import '@/helpers/StorageHelper.js'
+import store from '@/store'
 
 const API_PREFIX = '/Api/1/Papers'
 
@@ -53,6 +54,14 @@ function requestData (href, payload, identity) {
   })
 }
 
+function getIdentity() {
+  return store.state.system.identity
+}
+
+function setIdentity(value) {
+  store.state.system.identity = value
+}
+
 async function request (href, payload, options, inspector) {
   let paper
   let skipRedirection = options && options.skipRedirection
@@ -60,7 +69,7 @@ async function request (href, payload, options, inspector) {
 
   do {
     let { href, data } = link
-    paper = await requestData(href, data, Browser.identity) || unknownPaper
+    paper = await requestData(href, data, getIdentity()) || unknownPaper
 
     // Inspecting data...
     if (inspector) {
@@ -69,7 +78,7 @@ async function request (href, payload, options, inspector) {
     
     // Applying metas...
     if (paper.meta.identity) {
-      Browser.identity = paper.meta.identity
+      setIdentity(paper.meta.identity)
     }
 
     link = paper.getLink('forward')
@@ -80,14 +89,14 @@ async function request (href, payload, options, inspector) {
 
 const Browser = Vue.observable({
   API_PREFIX,
-
+/*
   get identity() {
     return sessionStorage.getObject('identity')
   },
   set identity(value) {
     sessionStorage.setObject('identity', value)
   },
-
+*/
   href,
   routeFor,
   request,
@@ -99,11 +108,12 @@ function install (Vue /*, options */) {
   //Vue.prototype.$request = request
   //Vue.prototype.$href = href
   //Vue.prototype.$routeFor = routeFor
-
+/*
   Object.defineProperty(Vue.prototype, '$identity', {
     get: () => Browser.identity,
     set: (value) => Browser.identity = value
   })
+  */
 }
 
 export { API_PREFIX }

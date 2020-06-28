@@ -80,7 +80,7 @@
     v-container(
       id="paper-content"
     )
-      //- :type= info success warning error
+      //- :type can be either info, success, warning or error
       v-alert(
         v-show="content.alert.message"
         :type="content.alert.type"
@@ -104,7 +104,7 @@
           | {{ content.alert.detail }}
           
       template(
-        v-if="paper"
+        v-if="content.paper"
       )
       
         component(
@@ -121,13 +121,14 @@
           v-expansion-panel-header Raw data
 
           v-expansion-panel-content
-            pre(v-if="paper") {{ paper }}
+            pre(v-if="content.paper") {{ content.paper }}
             small(v-else) ( Waiting for data... )
 
 </template>
 
 <script>
 import Vue from 'vue'
+import { mapState } from 'vuex'
 import { unknownPaper } from '@/helpers/PaperHelper.js'
 import '@/helpers/StringHelper.js'
 
@@ -160,6 +161,7 @@ export default {
   },
 
   data: () => ({
+    preFetchedPaper: null,
     content: {
       paper: null,
       alert: {
@@ -173,24 +175,26 @@ export default {
   }),
 
   computed: {
+    ...mapState('system', [
+      'identity'
+    ]),
+
+    href () {
+      return this.$browser.href(this)
+    },
+
     actionArgs () {
       return (this.paperKeys || '').split(';')
     },
     
-    identity () {
-      return this.$identity
-    },
-
-    paper () {
-      return this.content.paper
-    },
-
     title () {
-      return this.paper && this.paper.view.title
+      let paper = this.content.paper
+      return paper && paper.view.title
     },
 
     paperComponent () {
-      let kind = (this.paper ? this.paper.kind : 'unknown').toHyphenCase()
+      let paper = this.content.paper
+      let kind = (paper ? paper.kind : 'unknown').toHyphenCase()
       let name = `${kind}-paper`
       if (!Vue.options.components[name]) {
         name = 'unknown-paper'
@@ -215,37 +219,39 @@ export default {
   },
 
   watch: {
-//    '$route': 'fetchData',
-    paper: 'awaitData',
+    '$route': 'fetchData',
+    'content.paper': 'awaitData',
   },
 
   methods: {
-    setPaper (value) {
-      this.content.paper = value
-    },
-
     async fetchData () {
-      let self = (this.paper ? this.paper.getLink('self') : null) ||
-          { href: this.$browser.href(this) }
+      let targetPaper = this.preFetchedPaper
 
-      let { href, data } = self
-      let paper = await this.$browser.request(href, data) || unknownPaper
-
-      let path = this.$browser.routeFor(href)
-      if (path !== this.$route.path) {
-        this.$router.push(path)
+      if (!targetPaper) {
+        let href = this.href
+        let data = this.$route.query
+        targetPaper = await this.$browser.request(href, data) || unknownPaper
       }
 
-      this.setPaper(paper)
+      let targetSelf = targetPaper.getLink('self') || { href: this.href }
+      let targetPath = this.$browser.routeFor(targetSelf.href)
+      if (targetPath !== this.$route.path) {
+        this.fetchedPaper = targetPaper
+        this.$router.push(targetPath)
+        return
+      }
+
+      this.preFetchedPaper = null
+      this.content.paper = targetPaper
     },
 
     awaitData () {
       this.content.alert = {}
-      this.loading = !this.paper
+      this.loading = !this.content.paper
     },
 
     logout () {
-      this.$identity = null
+      this.identity = null
       this.$router.push('/')
       this.$router.go()
     }

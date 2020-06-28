@@ -1,6 +1,5 @@
-import Vue from 'vue'
-
 const state = {
+  version: '0.1.0',
   identity: null
 }
 

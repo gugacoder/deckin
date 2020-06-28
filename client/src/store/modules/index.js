@@ -8,7 +8,7 @@ const filepaths = require.context(
   // Varrer sub-pastas?
   true,
   // Padrão de nome dos arquivos de componentes: *Paper.vue e *Widget.vue
-  /[\w-]+Store\.vue$/
+  /[\w-]+Store\.js$/
 )
 
 const modules = {}
@@ -24,7 +24,7 @@ filepaths.keys().forEach((filepath) => {
     .toCamelCase()
     
   // Adicionando o módulo à coleção de módulos
-  Object.assign(modules, targetName, sourceCode.default)
+  modules[targetName] = sourceCode.default
 })
 
 export default modules
