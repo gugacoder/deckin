@@ -39,8 +39,9 @@ namespace Keep.Paper.Configurations
     //  });
     //}
 
-    public static void AddPaperControllers(this IServiceCollection services)
+    public static void AddPapers(this IServiceCollection services)
     {
+      services.AddHttpContextAccessor();
       services.AddSingleton<IJwtSettings, JwtSettings>();
       services.AddSingleton<IAuthCatalog, AuthCatalog>();
       services.AddSingleton<IPaperCatalog, PaperCatalog>();
@@ -52,8 +53,16 @@ namespace Keep.Paper.Configurations
       });
     }
 
-    public static void MapPaperControllers(this IEndpointRouteBuilder endpoints)
+    public static void MapPapers(this IEndpointRouteBuilder endpoints,
+        Action<MapPaperOptions> configuration = null)
     {
+      var options = new MapPaperOptions();
+      configuration?.Invoke(options);
+
+      var settings = endpoints.ServiceProvider.GetService<IPaperCatalog>();
+      settings.SetType(PaperCatalog.Home, options.HomePaper);
+      settings.SetType(PaperCatalog.Login, options.LoginPaper);
+
       endpoints.MapControllers();
     }
   }

@@ -9,7 +9,7 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    redirect: { path: '/!/Keep.Paper/Home/Index' }
+    redirect: { path: '/!/App/Home/Index' }
 //    redirect: { path: '/Sandbox/Hi' }
   },
   {

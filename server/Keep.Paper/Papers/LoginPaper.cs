@@ -10,12 +10,13 @@ using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
+using Keep.Paper.Services;
 
 namespace Keep.Paper.Papers
 {
   [Expose]
   [AllowAnonymous]
-  public class LoginPaper : BasicPaper
+  public class LoginPaper : IPaper
   {
     public const string Title = "Credenciais de Usuário";
 
@@ -24,9 +25,25 @@ namespace Keep.Paper.Papers
       public string RedirectTo { get; set; }
     }
 
+    private readonly HttpContext httpContext;
+    private readonly IServiceProvider serviceProvider;
+    private readonly IPaperCatalog paperCatalog;
+
+    public LoginPaper(IHttpContextAccessor httpContextAccessor,
+        IServiceProvider serviceProvider, IPaperCatalog paperCatalog)
+    {
+      this.httpContext = httpContextAccessor.HttpContext;
+      this.serviceProvider = serviceProvider;
+      this.paperCatalog = paperCatalog;
+    }
+
     public object Index(Options options) => new
     {
       Kind = Kind.Action,
+      Data = new
+      {
+        RedirectTo = options?.RedirectTo ?? $"{Href.ApiPrefix}/Keep.Paper/Home/Index"
+      },
       View = new
       {
         Title
@@ -36,10 +53,6 @@ namespace Keep.Paper.Papers
         RedirectTo = new
         {
           Kind = FieldKind.Uri,
-          Data = new
-          {
-            Value = options?.RedirectTo ?? $"{Href.ApiPrefix}/Keep.Paper/Home/Index"
-          },
           View = new
           {
             Hidden = true
@@ -69,43 +82,28 @@ namespace Keep.Paper.Papers
         new
         {
           Rel = Rel.Self,
-          Href = Href.To(HttpContext, GetType(), Name.Action())
+          Href = Href.To(httpContext, GetType(), Name.Action())
         },
         new
         {
           Rel = Rel.Action,
-          Href = Href.To(base.HttpContext, GetType(), nameof(AuthenticateAsync))
+          Href = Href.To(httpContext, GetType(), nameof(AuthenticateAsync))
         },
       }
     };
 
-    public object Logout() => new
-    {
-      Meta = new
-      {
-        Identity = default(object)
-      },
-      Links = new object[]
-      {
-        new
-        {
-          Rel = Rel.Self,
-          Href = Href.To(HttpContext, GetType(), Name.Action())
-        },
-        new
-        {
-          Rel = Rel.Forward,
-          Href = Href.To(HttpContext, typeof(DesktopPaper),
-              nameof(DesktopPaper.Index))
-        }
-      }
-    };
-
-    public async Task<object> AuthenticateAsync(Credential credential)
+    public async Task<object> AuthenticateAsync(Credential credential, Options options)
     {
       try
       {
-        var model = CreateInstance<AuthModel>();
+        var model = ActivatorUtilities.CreateInstance<AuthModel>(serviceProvider);
+
+        var redirectHref = options.RedirectTo;
+        if (redirectHref == null)
+        {
+          var homePaper = paperCatalog.GetType(PaperCatalog.Home);
+          redirectHref = Href.To(httpContext, homePaper, "Index");
+        }
 
         var ret = await model.AuthenticateAsync(credential);
         if (!ret.Ok)
@@ -124,7 +122,7 @@ namespace Keep.Paper.Papers
               new
               {
                 Rel = Rel.Self,
-                Href = Href.To(HttpContext, GetType(), Name.Action())
+                Href = Href.To(httpContext, GetType(), Name.Action())
               }
             }
           };
@@ -143,13 +141,12 @@ namespace Keep.Paper.Papers
             new
             {
               Rel = Rel.Self,
-              Href = Href.To(HttpContext, GetType(), Name.Action())
+              Href = Href.To(httpContext, GetType(), Name.Action())
             },
             new
             {
               Rel = Rel.Forward,
-              Href = Href.To(HttpContext, typeof(DesktopPaper),
-                  nameof(DesktopPaper.Index))
+              Href = redirectHref
             }
           }
         };
@@ -173,7 +170,7 @@ namespace Keep.Paper.Papers
             new
             {
               Rel = Rel.Self,
-              Href = Href.To(HttpContext, GetType(), Name.Action())
+              Href = Href.To(httpContext, GetType(), Name.Action())
             }
           }
         };

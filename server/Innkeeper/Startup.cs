@@ -18,7 +18,7 @@ namespace Innkeeper
     public void ConfigureServices(IServiceCollection services)
     {
       services.AddControllers();
-      services.AddPaperControllers();
+      services.AddPapers();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -33,7 +33,7 @@ namespace Innkeeper
       app.UseEndpoints(endpoints =>
       {
         endpoints.MapControllers();
-        endpoints.MapPaperControllers();
+        endpoints.MapPapers();
       });
     }
   }

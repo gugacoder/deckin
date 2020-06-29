@@ -48,11 +48,11 @@ namespace Keep.Paper.Api
 
     #region To Paper Specification
 
-    public static string To(HttpContext ctx, Type type)
+    public static string To(HttpContext ctx, Type type, string action = "Index")
     {
       var catalog = Name.Catalog(type);
       var paper = Name.Paper(type);
-      return CreateHref(ctx, catalog, paper, null, null);
+      return CreateHref(ctx, catalog, paper, action, null);
     }
 
     public static string To(HttpContext ctx, string catalog, string paper)

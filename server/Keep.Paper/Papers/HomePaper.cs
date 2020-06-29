@@ -1,51 +1,55 @@
 ﻿using System;
+using System.Linq;
 using Keep.Paper.Api;
+using Keep.Paper.Services;
 using Keep.Tools;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 
 namespace Keep.Paper.Papers
 {
   [Expose]
-  public class HomePaper : BasicPaper
+  public class HomePaper : IPaper
   {
-    public object Index() => new
+    private readonly HttpContext httpContext;
+    private readonly IPaperCatalog paperCatalog;
+
+    public HomePaper(IHttpContextAccessor httpContextAccessor,
+        IPaperCatalog paperCatalog)
     {
-      Meta = new
-      {
-        Go = Rel.Forward
-      },
-      Title = "Home",
-      Data = new
-      {
-        Welcome = "Bem vindo!",
-        Message = "Acesse a área de trabalho para começar..."
-      },
-      Fields = new
-      {
-        Welcome = new
+      this.httpContext = httpContextAccessor.HttpContext;
+      this.paperCatalog = paperCatalog;
+    }
+
+    public object Index()
+    {
+      var papers = (
+        from catalog in paperCatalog.EnumerateCatalogs()
+        from paper in paperCatalog.EnumeratePapers(catalog)
+        let paperType = paperCatalog.GetType(catalog, paper)
+        select new
         {
-          Kind = FieldKind.Information
+          Rel = Rel.Item,
+          Href = Href.To(httpContext, paperType, "Index")
+        }).ToArray();
+
+      return new
+      {
+        Kind = Kind.Desktop,
+        View = new
+        {
+          Title = "Catálogo",
+          Design = Design.Grid
         },
-        Message = new
+        Embedded = papers,
+        Links = new object[]
         {
-          Kind = FieldKind.Information,
-          LinkTo = Rel.Forward
+          new {
+            Rel = Rel.Self,
+            Href = Href.To(httpContext, GetType(), "Index")
+          }
         }
-      },
-      Links = new object[]
-      {
-        new
-        {
-          Rel = Rel.Self,
-          Href = Href.To(HttpContext, GetType(), Name.Action())
-        },
-        new
-        {
-          Rel = Rel.Forward,
-          Href = Href.To(HttpContext, typeof(DesktopPaper),
-              nameof(DesktopPaper.Index))
-        }
-      }
-    };
+      };
+    }
   }
 }

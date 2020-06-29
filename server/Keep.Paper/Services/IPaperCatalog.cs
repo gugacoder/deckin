@@ -7,12 +7,16 @@ namespace Keep.Paper.Services
 {
   public interface IPaperCatalog
   {
-    Type FindPaperType(string catalog, string paper);
+    public const string HomePaper = nameof(HomePaper);
+    public const string LoginPaper = nameof(LoginPaper);
+
+    Type GetType(string specialName);
+    void SetType(string specialName, Type paperType);
+
+    Type GetType(string catalogName, string paperName);
 
     IEnumerable<string> EnumerateCatalogs();
-
-    IEnumerable<string> EnumeratePapers(string catalog);
-
-    IEnumerable<Type> EnumeratePaperTypes(string catalog);
+    IEnumerable<string> EnumeratePapers(string catalogName);
+    IEnumerable<Type> EnumerateTypes(string catalogName);
   }
 }

@@ -28,7 +28,7 @@ namespace Director
     public void ConfigureServices(IServiceCollection services)
     {
       services.AddControllers();
-      services.AddPaperControllers();
+      services.AddPapers();
 
       services.AddDbContext<DirectorDbContext>(options =>
           options.UseSqlServer(configuration.GetConnectionString("Director"),
@@ -47,7 +47,7 @@ namespace Director
       app.UseEndpoints(endpoints =>
       {
         endpoints.MapControllers();
-        endpoints.MapPaperControllers();
+        endpoints.MapPapers();
       });
     }
   }

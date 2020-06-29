@@ -37,6 +37,40 @@ namespace Keep.Paper.Controllers
       this.paperCatalog = paperCatalog;
     }
 
+    [Route("App/Home/Index")]
+    public IActionResult GetHome()
+    {
+      try
+      {
+        var homeType = paperCatalog.GetType(PaperCatalog.Home);
+        var homeHref = Href.To(HttpContext, homeType);
+        return Redirect(homeHref);
+      }
+      catch (Exception ex)
+      {
+        return NotFound(new
+        {
+          Kind = Kind.Fault,
+          Data = new
+          {
+            Fault = Fault.ServerFailure,
+            Reason = ex.GetCauseMessages()
+#if DEBUG
+            ,
+            Trace = ex.GetStackTrace()
+#endif
+          },
+          Links = new
+          {
+            Self = new
+            {
+              Href = HttpContext.Request.Path
+            }
+          }
+        });
+      }
+    }
+
     [Route("{catalogName}/{paperName}/{actionName}/{actionKeys?}")]
     public async Task<IActionResult> GetPaperAsync(string catalogName,
         string paperName, string actionName, string actionKeys)
@@ -45,7 +79,7 @@ namespace Keep.Paper.Controllers
       {
         var actionArgs = actionKeys?.Split(';') ?? new string[0];
 
-        var paperType = paperCatalog.FindPaperType(catalogName, paperName);
+        var paperType = paperCatalog.GetType(catalogName, paperName);
         if (paperType == null)
           return Fail(Fault.NotFound,
               $"O paper {paperName} do catálogo {catalogName} não existe.");
@@ -82,9 +116,6 @@ namespace Keep.Paper.Controllers
         }
 
         var paper = ActivatorUtilities.CreateInstance(serviceProvider, paperType);
-
-        // Configuração inicial
-        (paper as BasicPaper)?.Configure(HttpContext, serviceProvider);
 
         var ret = await TryCreateParametersAsync(getter, actionArgs, Request.Body);
         if (!ret.Ok)
@@ -133,6 +164,8 @@ namespace Keep.Paper.Controllers
 
     private IActionResult RequireAuthentication(string targetPaperHref)
     {
+      var loginPaper = paperCatalog.GetType(PaperCatalog.Login);
+
       var ctx = this.HttpContext;
       return Ok(new
       {
@@ -155,7 +188,7 @@ namespace Keep.Paper.Controllers
           {
             LoginPaper.Title,
             Rel = Rel.Forward,
-            Href = Href.To(ctx, typeof(LoginPaper), nameof(LoginPaper.Index)),
+            Href = Href.To(ctx, loginPaper, "Index"),
             Data = new {
               Form = new {
                RedirectTo = targetPaperHref
@@ -193,29 +226,60 @@ namespace Keep.Paper.Controllers
       {
         var parameterValueList = new List<object>();
 
+        // Múltiplas ações ainda não são suportadas
+        JArray content = await ParsePayloadAsync(body);
+        var payload = content.OfType<JObject>().FirstOrDefault() ?? new JObject();
+
+        var form = payload["form"] as JObject ?? new JObject();
+
+        #region "payload.data"
+        // // FIXME: O que fazer com "data"?
+        // // "data" contém os objetos afetados pelo form.
+        // // 
+        // // JObject[] data = null;
+        // // 
+        // // if (entry.GetValue("data") is JArray array)
+        // // {
+        // //   data = array.OfType<JObject>().ToArray();
+        // // }
+        // // else if (entry.GetValue("data") is JObject @object)
+        // // {
+        // //   data = new[] { @object };
+        // // }
+        // var data = payload["data"] as JArray ?? new JArray();
+        // if (payload["data"] is JObject jObject)
+        // {
+        //   data.Add(jObject);
+        // }
+        #endregion
+
         var parameters = getter.GetParameters();
         var enumerator = parameters.Cast<ParameterInfo>().GetEnumerator();
 
-        if (keys != null)
+        foreach (var key in keys)
         {
-          foreach (var key in keys)
-          {
-            if (!enumerator.MoveNext())
-              return Ret.Fail(HttpStatusCode.NotFound, $"A chave `{key}` não " +
-                  "era esperada.");
+          if (!enumerator.MoveNext())
+            return Ret.Fail(HttpStatusCode.NotFound, $"A chave `{key}` não " +
+                "era esperada.");
 
-            var parameterType = enumerator.Current.ParameterType;
-            var parameterValue = Change.To(key, parameterType);
+          var parameterType = enumerator.Current.ParameterType;
+          var parameterValue = Change.To(key, parameterType);
 
-            parameterValueList.Add(parameterValue);
-          }
+          parameterValueList.Add(parameterValue);
         }
 
-        if (enumerator.MoveNext())
+        while (enumerator.MoveNext())
         {
+          var parameterInfo = enumerator.Current;
           var parameterType = enumerator.Current.ParameterType;
 
-          var ret = await TryParseBodyAsync(body, parameterType);
+          JObject current = form;
+          if (payload.ContainsKey(parameterInfo.Name))
+          {
+            current = current[parameterInfo.Name] as JObject ?? new JObject();
+          }
+
+          var ret = TryCreateParameter(current, parameterType);
           if (!ret.Ok)
             return (Ret)ret;
 
@@ -231,45 +295,14 @@ namespace Keep.Paper.Controllers
       }
     }
 
-    private async Task<Ret<object>> TryParseBodyAsync(Stream body,
+    private Ret<object> TryCreateParameter(JObject form,
         Type parameterType)
     {
       try
       {
-        // var parameterValues = new List<object>();
 
-        var payload = await ParsePayloadAsync(body);
-        if (payload == null)
-          return Ret.Fail(HttpStatusCode.BadRequest,
-              $"O parâmetro `{parameterType.Name}` deve ser " +
-              "informado no corpo da requisição.");
-
-        foreach (JObject entry in payload)
-        {
-          // FIXME: O que fazer com "data"?
-          // "data" contém os objetos afetados pelo form.
-          // 
-          // JObject[] data = null;
-          // 
-          // if (entry.GetValue("data") is JArray array)
-          // {
-          //   data = array.OfType<JObject>().ToArray();
-          // }
-          // else if (entry.GetValue("data") is JObject @object)
-          // {
-          //   data = new[] { @object };
-          // }
-
-          var form = entry.GetValue("form") as JObject ?? new JObject();
-          var parameterValue = form.ToObject(parameterType);
-          return parameterValue;
-
-          //parameterValues.Add(parameterValue);
-        }
-
-        return null;
-
-        // return parameterValues.ToArray();
+        var parameterValue = form.ToObject(parameterType);
+        return parameterValue;
       }
       catch (Exception ex)
       {
