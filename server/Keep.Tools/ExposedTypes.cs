@@ -62,13 +62,14 @@ namespace Keep.Tools
     /// </returns>
     public static IEnumerable<Type> GetTypes(string contractName, Type contractType)
     {
-      return
+      return (
         from assembly in Assemblies
         from type in assembly.GetTypes()
         from attribute in type.GetCustomAttributes().OfType<ExposeAttribute>()
         where (contractName == null) || attribute.ContractName == contractName
         where (contractType == null) || contractType.IsAssignableFrom(type)
-        select type;
+        select type
+      ).Distinct();
     }
 
     /// <summary>

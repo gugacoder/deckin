@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
+using Keep.Paper.Api;
+using Keep.Paper.Papers;
 using Keep.Paper.Services;
+using Keep.Tools.Reflection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -59,9 +63,16 @@ namespace Keep.Paper.Configurations
       var options = new MapPaperOptions();
       configuration?.Invoke(options);
 
-      var settings = endpoints.ServiceProvider.GetService<IPaperCatalog>();
-      settings.SetType(PaperCatalog.Home, options.HomePaper);
-      settings.SetType(PaperCatalog.Login, options.LoginPaper);
+      var catalog = endpoints.ServiceProvider.GetService<IPaperCatalog>();
+
+      if (options.HomePaper != null)
+      {
+        catalog.SetType(PaperCatalog.Home, options.HomePaper);
+      }
+      if (options.LoginPaper != null)
+      {
+        catalog.SetType(PaperCatalog.Login, options.LoginPaper);
+      }
 
       endpoints.MapControllers();
     }

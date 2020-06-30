@@ -12,6 +12,7 @@ using Keep.Paper.Formatters;
 using Keep.Paper.Papers;
 using Keep.Paper.Services;
 using Keep.Tools;
+using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
 using Keep.Tools.Web;
 using Microsoft.AspNetCore.Authorization;
@@ -116,6 +117,9 @@ namespace Keep.Paper.Controllers
         }
 
         var paper = ActivatorUtilities.CreateInstance(serviceProvider, paperType);
+
+        // Inicialização de BasePaper...
+        (paper as BasePaper)?.Initialize(HttpContext);
 
         var ret = await TryCreateParametersAsync(getter, actionArgs, Request.Body);
         if (!ret.Ok)
@@ -227,7 +231,7 @@ namespace Keep.Paper.Controllers
         var parameterValueList = new List<object>();
 
         // Múltiplas ações ainda não são suportadas
-        JArray content = await ParsePayloadAsync(body);
+        JArray content = await ParsePayloadAsync(body, HttpContext.Request.Query);
         var payload = content.OfType<JObject>().FirstOrDefault() ?? new JObject();
 
         var form = payload["form"] as JObject ?? new JObject();
@@ -311,21 +315,40 @@ namespace Keep.Paper.Controllers
       }
     }
 
-    private async Task<JArray> ParsePayloadAsync(Stream body)
+    private async Task<JArray> ParsePayloadAsync(Stream body, IQueryCollection query)
     {
       using var reader = new StreamReader(body);
       var json = await reader.ReadToEndAsync();
       if (string.IsNullOrWhiteSpace(json))
-        return null;
-
-      var token = JToken.Parse(json);
-
-      if (token is JObject @object)
       {
-        token = new JArray(@object);
+        json = "{}";
       }
 
-      return token as JArray;
+      var entries = JToken.Parse(json);
+
+      if (entries is JObject @object)
+      {
+        entries = new JArray(@object);
+      }
+
+      if (query.Count > 0)
+      {
+        foreach (var key in query.Keys)
+        {
+          var value = query[key].ToString();
+          entries.OfType<JObject>().ForEach(entry =>
+          {
+            var form = entry["form"] as JObject;
+            if (form == null)
+            {
+              entry["form"] = form = new JObject();
+            }
+            form[key] = value;
+          });
+        }
+      }
+
+      return entries as JArray;
     }
   }
 }

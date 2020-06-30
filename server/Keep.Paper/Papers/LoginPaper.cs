@@ -37,61 +37,69 @@ namespace Keep.Paper.Papers
       this.paperCatalog = paperCatalog;
     }
 
-    public object Index(Options options) => new
+    public object Index(Options options)
     {
-      Kind = Kind.Action,
-      Data = new
+      var redirectTo = options?.RedirectTo;
+      if (redirectTo == null)
       {
-        RedirectTo = options?.RedirectTo ?? $"{Href.ApiPrefix}/Keep.Paper/Home/Index"
-      },
-      View = new
-      {
-        Title
-      },
-      Fields = new
-      {
-        RedirectTo = new
-        {
-          Kind = FieldKind.Uri,
-          View = new
-          {
-            Hidden = true
-          }
-        },
-        Username = new
-        {
-          Kind = FieldKind.Username,
-          View = new
-          {
-            Title = "Usuário",
-            Required = true
-          }
-        },
-        Password = new
-        {
-          Kind = FieldKind.Password,
-          View = new
-          {
-            Title = "Senha",
-            Required = true
-          }
-        }
-      },
-      Links = new object[]
-      {
-        new
-        {
-          Rel = Rel.Self,
-          Href = Href.To(httpContext, GetType(), Name.Action())
-        },
-        new
-        {
-          Rel = Rel.Action,
-          Href = Href.To(httpContext, GetType(), nameof(AuthenticateAsync))
-        },
+        var homePaper = paperCatalog.GetType(PaperCatalog.Home);
+        redirectTo = Href.To(httpContext, homePaper, "Index");
       }
-    };
-
+      return new
+      {
+        Kind = Kind.Action,
+        Data = new
+        {
+          redirectTo
+        },
+        View = new
+        {
+          Title
+        },
+        Fields = new
+        {
+          RedirectTo = new
+          {
+            Kind = FieldKind.Uri,
+            View = new
+            {
+              Hidden = true
+            }
+          },
+          Username = new
+          {
+            Kind = FieldKind.Username,
+            View = new
+            {
+              Title = "Usuário",
+              Required = true
+            }
+          },
+          Password = new
+          {
+            Kind = FieldKind.Password,
+            View = new
+            {
+              Title = "Senha",
+              Required = true
+            }
+          }
+        },
+        Links = new object[]
+        {
+          new
+          {
+            Rel = Rel.Self,
+            Href = Href.To(httpContext, GetType(), Name.Action())
+          },
+          new
+          {
+            Rel = Rel.Action,
+            Href = Href.To(httpContext, GetType(), nameof(AuthenticateAsync))
+          },
+        }
+      };
+    }
     public async Task<object> AuthenticateAsync(Credential credential, Options options)
     {
       try

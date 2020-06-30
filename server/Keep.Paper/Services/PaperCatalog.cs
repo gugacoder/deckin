@@ -5,6 +5,7 @@ using Keep.Paper.Api;
 using Keep.Paper.Papers;
 using Keep.Tools;
 using Keep.Tools.Collections;
+using Keep.Tools.Reflection;
 
 namespace Keep.Paper.Services
 {
@@ -20,6 +21,16 @@ namespace Keep.Paper.Services
     {
       this.paperTypes = ExposedTypes.GetTypes<IPaper>().ToArray();
       this.specialTypes = new HashMap<Type>();
+
+      var homePaper =
+        this.paperTypes.FirstOrDefault(x => x._HasAttribute<HomePaperAttribute>())
+        ?? typeof(HomePaper);
+      var loginPaper =
+        this.paperTypes.FirstOrDefault(x => x._HasAttribute<LoginPaperAttribute>())
+        ?? typeof(LoginPaper);
+
+      SetType(Home, homePaper);
+      SetType(Login, loginPaper);
     }
 
     public Type GetType(string specialName) => specialTypes[specialName];
@@ -43,8 +54,10 @@ namespace Keep.Paper.Services
         => paperTypes.Where(x => Name.Catalog(x).Equals(catalogName))
               .Select(Name.Paper).OrderBy();
 
-    public IEnumerable<Type> EnumerateTypes(string catalogName)
-        => paperTypes.Where(x => Name.Catalog(x).Equals(catalogName))
-              .OrderBy(Name.Paper);
+    public IEnumerable<Type> EnumerateTypes(string catalogName = null) => (
+        from paper in paperTypes
+        where (catalogName == null) || Name.Catalog(paper).Equals(catalogName)
+        select paper
+        ).OrderBy(Name.Paper);
   }
 }

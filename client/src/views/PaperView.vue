@@ -10,9 +10,12 @@
     )
       v-app-bar-nav-icon
 
-      v-toolbar-title
-        span.font-weight-bold Paper
-        span.font-weight-thin Alfa
+      router-link.title(
+        to="/"
+      )
+        v-toolbar-title
+          span.font-weight-bold Paper
+          span.font-weight-thin Alfa
 
       v-spacer
 
@@ -125,6 +128,16 @@
             small(v-else) ( Waiting for data... )
 
 </template>
+
+<style scoped>
+.title {
+  text-decoration: none;
+  color: darkslategray;
+}
+.title:hover {
+  color: slategray;
+}
+</style>
 
 <script>
 import Vue from 'vue'

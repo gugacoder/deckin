@@ -17,6 +17,6 @@ namespace Keep.Paper.Services
 
     IEnumerable<string> EnumerateCatalogs();
     IEnumerable<string> EnumeratePapers(string catalogName);
-    IEnumerable<Type> EnumerateTypes(string catalogName);
+    IEnumerable<Type> EnumerateTypes(string catalogName = null);
   }
 }

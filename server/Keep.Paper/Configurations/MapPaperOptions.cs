@@ -9,12 +9,6 @@ namespace Keep.Paper.Configurations
     internal Type HomePaper { get; private set; }
     internal Type LoginPaper { get; private set; }
 
-    public MapPaperOptions()
-    {
-      this.HomePaper = typeof(HomePaper);
-      this.LoginPaper = typeof(LoginPaper);
-    }
-
     public MapPaperOptions AddHomePaper<T>()
       where T : IPaper
     {

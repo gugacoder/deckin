@@ -3,6 +3,7 @@
     class="data-paper"
   )
     v-card(
+      flat
       class="mx-auto"
     )
       v-card-title
