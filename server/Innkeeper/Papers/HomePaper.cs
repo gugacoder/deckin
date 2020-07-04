@@ -12,8 +12,6 @@ namespace Innkeeper.Papers
   {
     public object Index()
     {
-      var self = Href.To(HttpContext, GetType(), nameof(Index));
-      Debug.WriteLine(self);
       return new
       {
         Kind = Kind.Data,

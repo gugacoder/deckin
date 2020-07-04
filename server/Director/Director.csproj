@@ -18,9 +18,10 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Connectors\" />
-    <Folder Include="Security\" />
+    <Folder Include="Controladores\" />
+    <Folder Include="Conectores\" />
+    <Folder Include="Adaptadores\" />
+    <Folder Include="Models.Mlogic.Integracao\" />
   </ItemGroup>
   
   <ItemGroup>

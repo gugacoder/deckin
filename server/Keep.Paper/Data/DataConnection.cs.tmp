@@ -1,0 +1,53 @@
+﻿using System;
+using System.Data;
+using System.Data.Common;
+
+namespace Keep.Paper.Data
+{
+  public class DataConnection : DbConnection
+  {
+    public DataConnection(DbConnection undelyingConnection)
+    {
+      UndelyingConnection = undelyingConnection;
+    }
+
+    public DbConnection UndelyingConnection { get; }
+
+    public override string ConnectionString
+    {
+      get => UndelyingConnection.ConnectionString;
+      set => UndelyingConnection.ConnectionString = value;
+    }
+
+    public override string Database
+      => UndelyingConnection.Database;
+
+    public override string DataSource
+      => UndelyingConnection.DataSource;
+
+    public override string ServerVersion
+      => UndelyingConnection.ServerVersion;
+
+    public override ConnectionState State
+      => UndelyingConnection.State;
+
+    public override void ChangeDatabase(string databaseName)
+      => UndelyingConnection.ChangeDatabase(databaseName);
+
+    public override void Close()
+      => UndelyingConnection.Close();
+
+    public override void Open()
+      => UndelyingConnection.Open();
+
+    protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel)
+      => UndelyingConnection.BeginTransaction(isolationLevel);
+
+    protected override DbCommand CreateDbCommand()
+    {
+      var cm = UndelyingConnection.CreateCommand();
+      cm.CommandTimeout = this.ConnectionTimeout << 1;
+      return cm;
+    }
+  }
+}

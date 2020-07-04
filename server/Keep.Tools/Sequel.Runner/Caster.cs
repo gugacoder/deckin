@@ -19,8 +19,9 @@ namespace Keep.Tools.Sequel.Runner
 
     public static object CastTo(IDataReader reader, Type type, int? column = null)
     {
-      var isValueType = (column != null) &&
-          (type.IsValueType || type == typeof(string) || Is.Nullable(type));
+      var isValueType = type.IsValueType
+        || type == typeof(string)
+        || Is.Nullable(type);
       return isValueType
           ? CastToValue(reader, type, column ?? 0)
           : CastToGraph(reader, type);
@@ -34,7 +35,7 @@ namespace Keep.Tools.Sequel.Runner
     }
 
     private static object CastToGraph(IDataReader reader, Type type)
-    { 
+    {
       var instance = Activator.CreateInstance(type);
 
       for (var i = 0; i < reader.FieldCount; i++)

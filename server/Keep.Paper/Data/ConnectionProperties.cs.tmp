@@ -1,0 +1,180 @@
+﻿using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using Keep.Tools;
+using Keep.Tools.Collections;
+
+namespace Keep.Paper.Data
+{
+  public class ConnectionProperties : HashMap<string>
+  {
+    public const string SqlServer = "System.Data.SqlClient";
+    public const string PostgreSql = "Npgsql";
+    public const string SqlServerCe35 = "System.Data.SqlServerCe.3.5";
+    public const string SqlServerCe40 = "System.Data.SqlServerCe.4.0";
+    public const string MySql = "MySql.Data.MySqlClient";
+    public const string SqlLite = "System.Data.SQLite";
+
+    public string Name
+    {
+      get => Get();
+      set => Set(value);
+    }
+
+    public string Provider
+    {
+      get => Get();
+      set => Set(value);
+    }
+
+    public string Server
+    {
+      get => Get();
+      set => Set(value);
+    }
+
+    public int Port
+    {
+      get => Change.To(Get(), 0);
+      set => Set(Change.To<string>(value));
+    }
+
+    public string Database
+    {
+      get => Get();
+      set => Set(value);
+    }
+
+    public string User
+    {
+      get => Get();
+      set => Set(value);
+    }
+
+    public string Password
+    {
+      get => Get();
+      set => Set(value);
+    }
+
+    private string Get([CallerMemberName] string key = null)
+      => this[key];
+
+    private void Set(string value, [CallerMemberName] string key = null)
+      => this[key] = value;
+
+    public override string ToString()
+    {
+      var args = Enumerable.Empty<string>();
+
+      switch (Provider?.ToLower() ?? "")
+      {
+        case "":
+        case SqlServer:
+          {
+            args = args.Append(
+              $"Connect Timeout=60"
+            );
+
+            if (Port > 0)
+            {
+              args = args.Append($"Data Source={Server}:{Port}");
+            }
+            else
+            {
+              args = args.Append($"Data Source={Server}");
+            }
+
+            if (!string.IsNullOrEmpty(Database))
+            {
+              args = args.Append($"Default Catalog={Database}");
+            }
+
+            if (!string.IsNullOrEmpty(User))
+            {
+              args = args.Append($"User ID={User}");
+              args = args.Append($"Password={Password}");
+            }
+            else
+            {
+              args = args.Append($"Integrated Security=True");
+            }
+
+            break;
+          }
+
+        case PostgreSql:
+          {
+            args = args.Append(
+              $"Connect Timeout=60",
+              $"Host={Server}"
+            );
+
+            if (Port > 0)
+            {
+              args = args.Append($"Port={Port}");
+            }
+
+            if (!string.IsNullOrEmpty(Database))
+            {
+              args = args.Append($"Database={Database}");
+            }
+
+            if (!string.IsNullOrEmpty(User))
+            {
+              args = args.Append($"Username={User}");
+              args = args.Append($"Password={Password}");
+            }
+
+            break;
+          }
+
+        case SqlServerCe35:
+        case SqlServerCe40:
+          {
+            args = args.Append(
+              $"Data Source={Server}"
+            );
+            break;
+          }
+
+        case MySql:
+          {
+            args = args.Append(
+              $"Server={Server}"
+            );
+
+            if (Port > 0)
+            {
+              args = args.Append($"Port={Port}");
+            }
+
+            if (!string.IsNullOrEmpty(Database))
+            {
+              args = args.Append($"Database={Database}");
+            }
+
+            if (!string.IsNullOrEmpty(User))
+            {
+              args = args.Append($"Uid={User}");
+              args = args.Append($"Pwd={Password}");
+            }
+
+            break;
+          }
+
+        case SqlLite:
+          {
+            args = args.Append(
+              $"Version=3",
+              $"Data Source={Server}"
+            );
+            break;
+          }
+      }
+
+      var connectionString = string.Join(";", args);
+      return connectionString;
+    }
+  }
+}

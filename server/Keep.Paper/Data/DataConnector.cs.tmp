@@ -1,0 +1,74 @@
+﻿using System;
+using System.Data.Common;
+using System.Data.SqlClient;
+using Keep.Tools.Collections;
+using Keep.Tools.Reflection;
+
+namespace Keep.Paper.Data
+{
+  public class DataConnector : HashMap<ConnectionProperties>
+  {
+    private readonly object @lock = new object();
+
+    public DataConnector()
+    {
+      Reload();
+    }
+
+    public void Reload()
+    {
+      lock (@lock)
+      {
+      }
+    }
+
+    public DbConnection CreateConnection(string name)
+    {
+      var connectionString = GetConnectionProperties(name);
+      return CreateConnection(connectionString);
+    }
+
+    public DbConnection CreateConnection(ConnectionProperties properties)
+    {
+      DbConnection connection = null;
+
+      switch (properties.Provider ?? "")
+      {
+        case "":
+        case ConnectionProperties.SqlServer:
+          {
+            connection = new SqlConnection();
+            break;
+          }
+        case ConnectionProperties.PostgreSql:
+          {
+            var type = Type.GetType("Npgsql.NpgsqlConnection");
+            connection = (DbConnection)Activator.CreateInstance(type);
+            break;
+          }
+
+          // case ConnectionProperties.SqlServerCe35:
+          // case ConnectionProperties.SqlServerCe40:
+          // case ConnectionProperties.MySql:
+          // case ConnectionProperties.SqlLite:
+      }
+
+      connection.ConnectionString = properties.ToString();
+      return connection;
+    }
+
+    public ConnectionProperties GetConnectionProperties(string name)
+    {
+      lock (@lock)
+      {
+      }
+    }
+
+    public void SaveConnectionProperties(ConnectionProperties properties)
+    {
+      lock (@lock)
+      {
+      }
+    }
+  }
+}

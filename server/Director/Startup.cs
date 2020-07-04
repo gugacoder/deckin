@@ -4,7 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Mime;
 using System.Threading.Tasks;
-using Director.Connectors;
+using Director.Conectores;
+using Keep.Paper.Api;
 using Keep.Paper.Configurations;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -30,9 +31,11 @@ namespace Director
       services.AddControllers();
       services.AddPapers();
 
-      services.AddDbContext<DirectorDbContext>(options =>
-          options.UseSqlServer(configuration.GetConnectionString("Director"),
-              sqlServerOptions => sqlServerOptions.CommandTimeout(180)));
+      services.AddTransient(services => new DbDirector(
+          configuration.GetConnectionString("Director")));
+      services.AddTransient(services => new DbPdv(
+          services.GetService<DbDirector>(),
+          configuration.GetConnectionString("Pdv")));
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

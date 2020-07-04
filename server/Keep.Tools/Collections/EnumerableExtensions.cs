@@ -212,18 +212,18 @@ namespace Keep.Tools.Collections
       return enumerable.ThenByDescending(x => x);
     }
 
+    /// <summary>
+    /// Adiciona itens ao fim de um enumerado.
+    /// </summary>
+    public static IEnumerable<T> Append<T>(this IEnumerable<T> enumerable, params T[] items)
+    {
+      return enumerable.Concat(items);
+    }
+
 #if !NETCOREAPP
 
-    ///// <summary>
-    ///// Salta os últimos itens do enumerado.
-    ///// </summary>
-    //public static IEnumerable<T> Append<T>(this IEnumerable<T> enumerable, T instance)
-    //{
-    //  return enumerable.Concat(new[] { instance });
-    //}
-
     /// <summary>
-    /// Adiciona um item ao fim de um enumerado.
+    /// Salta os últimos itens do enumerado.
     /// </summary>
     /// <param name="count">Quantidade de itens saltados no fim do enumerado</param>
     public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> enumerable, int count)

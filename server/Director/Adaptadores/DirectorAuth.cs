@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Director.Connectors;
-using Director.Models;
+using Director.Modelos;
 using Keep.Paper.Api;
 using Keep.Paper.Domain;
 using Keep.Tools;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Director.Security
+namespace Director.Adaptadores
 {
   [Expose]
   public class DirectorAuth : IAuth
@@ -23,7 +22,7 @@ namespace Director.Security
     {
       try
       {
-        var model = ActivatorUtilities.CreateInstance<LoginModel>(serviceProvider);
+        var model = ActivatorUtilities.CreateInstance<ModeloDeLogin>(serviceProvider);
         var ret = await model.AutenticarAsync(credential);
         return ret;
       }

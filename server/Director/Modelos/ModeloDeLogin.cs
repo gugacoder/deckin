@@ -2,7 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using Dapper;
-using Director.Connectors;
+using Director.Conectores;
 using Keep.Paper.Domain;
 using Keep.Paper.Helpers;
 using Keep.Paper.Services;
@@ -13,14 +13,14 @@ using Keep.Tools.Sequel.Runner;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
 
-namespace Director.Models
+namespace Director.Modelos
 {
-  public class LoginModel
+  public class ModeloDeLogin
   {
-    private readonly DirectorDbContext dbDirector;
+    private readonly DbDirector dbDirector;
     private readonly IJwtSettings jwtSettings;
 
-    public LoginModel(DirectorDbContext dbDirector, IJwtSettings jwtSettings)
+    public ModeloDeLogin(DbDirector dbDirector, IJwtSettings jwtSettings)
     {
       this.dbDirector = dbDirector;
       this.jwtSettings = jwtSettings;
@@ -30,7 +30,7 @@ namespace Director.Models
     {
       try
       {
-        using var cn = dbDirector.Database.GetDbConnection();
+        using var cn = dbDirector.GetConexao();
 
         var info = await
           @"select TBusuario.DFid_usuario
