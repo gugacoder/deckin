@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Keep.Tools
 {
@@ -25,9 +27,20 @@ namespace Keep.Tools
             yield return item;
           }
         }
+        else if (entry is string @string)
+        {
+          yield return @string;
+        }
+        else if (entry is IEnumerable enumerable)
+        {
+          foreach (var item in enumerable.Cast<object>())
+          {
+            yield return item?.ToString() ?? "";
+          }
+        }
         else
         {
-          yield return entry.ToString();
+          yield return entry?.ToString() ?? "";
         }
       }
     }

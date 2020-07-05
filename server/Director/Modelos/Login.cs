@@ -15,12 +15,12 @@ using Microsoft.Net.Http.Headers;
 
 namespace Director.Modelos
 {
-  public class ModeloDeLogin
+  public class Login
   {
     private readonly DbDirector dbDirector;
     private readonly IJwtSettings jwtSettings;
 
-    public ModeloDeLogin(DbDirector dbDirector, IJwtSettings jwtSettings)
+    public Login(DbDirector dbDirector, IJwtSettings jwtSettings)
     {
       this.dbDirector = dbDirector;
       this.jwtSettings = jwtSettings;

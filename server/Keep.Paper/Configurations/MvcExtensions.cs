@@ -2,7 +2,9 @@
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Keep.Paper.Api;
+using Keep.Paper.Jobs;
 using Keep.Paper.Papers;
 using Keep.Paper.Services;
 using Keep.Tools.Reflection;
@@ -45,10 +47,11 @@ namespace Keep.Paper.Configurations
 
     public static void AddPapers(this IServiceCollection services)
     {
-      services.AddHttpContextAccessor();
+      services.AddSingleton(typeof(IAudit<>), typeof(Audit<>));
       services.AddSingleton<IJwtSettings, JwtSettings>();
       services.AddSingleton<IAuthCatalog, AuthCatalog>();
       services.AddSingleton<IPaperCatalog, PaperCatalog>();
+      services.AddSingleton<IJobScheduler, JobScheduler>();
       services.AddControllers().AddJsonOptions(options =>
       {
         var jsonOptions = options.JsonSerializerOptions;
@@ -75,6 +78,9 @@ namespace Keep.Paper.Configurations
       }
 
       endpoints.MapControllers();
+
+      var jobScheduler = endpoints.ServiceProvider.GetService<IJobScheduler>();
+      Task.Factory.StartNew(async () => await jobScheduler.RunAsync(default));
     }
   }
 }

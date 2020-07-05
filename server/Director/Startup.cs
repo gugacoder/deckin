@@ -31,11 +31,10 @@ namespace Director
       services.AddControllers();
       services.AddPapers();
 
-      services.AddTransient(services => new DbDirector(
-          configuration.GetConnectionString("Director")));
-      services.AddTransient(services => new DbPdv(
-          services.GetService<DbDirector>(),
-          configuration.GetConnectionString("Pdv")));
+      services.AddTransient(services =>
+          new DbDirector(configuration.GetConnectionString("Director")));
+      services.AddTransient(services =>
+          new DbPdv(configuration.GetConnectionString("Pdv")));
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

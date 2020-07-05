@@ -237,6 +237,7 @@ namespace Keep.Tools
       {
         return null;
       }
+
       if (targetType.IsAssignableFrom(sourceType))
       {
         return value;
@@ -266,6 +267,14 @@ namespace Keep.Tools
 
       if (targetType == typeof(string))
       {
+        if (value is string)
+          return (string)value;
+
+        if (value is bool boolean)
+        {
+          return boolean ? "true" : "false";
+        }
+
         if (value is DateTime dateAndTime)
         {
           if (dateAndTime.Hour == 0
@@ -280,21 +289,20 @@ namespace Keep.Tools
             return dateAndTime.ToString("yyyy-MM-ddTHH:mm:ss");
           }
         }
-        if (value is bool boolean)
+
+        if (Is.Collection(value))
         {
-          return boolean ? "true" : "false";
+          var items = ((IEnumerable)value).Cast<object>();
+          var text = string.Join(", ", items);
+          return text;
         }
-        else
+
+        if (value._HasMethod("ToString", typeof(IFormatProvider)))
         {
-          if (value._HasMethod("ToString", typeof(IFormatProvider)))
-          {
-            return value._Call("ToString", CultureInfo.InvariantCulture);
-          }
-          else
-          {
-            return value.ToString();
-          }
+          return value._Call("ToString", CultureInfo.InvariantCulture);
         }
+
+        return value.ToString();
       }
 
       if (targetType == typeof(Guid))

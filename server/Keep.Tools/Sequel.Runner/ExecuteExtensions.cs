@@ -26,7 +26,8 @@ namespace Keep.Tools.Sequel.Runner
       [CallerFilePath] string callerFile = null,
       [CallerLineNumber] int callerLine = 0)
     {
-      try {
+      try
+      {
         Execute(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
       }
@@ -121,7 +122,7 @@ namespace Keep.Tools.Sequel.Runner
     /// </summary>
     /// <param name="sql">A SQL a ser peparada.</param>
     /// <returns>O comando preparado para execuções repetidas.</returns>
-    public static Ret<IDbCommand> TryCreateCommand(this SqlBuilder sqlBuilder,
+    public static Ret<DbCommand> TryCreateCommand(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -147,7 +148,7 @@ namespace Keep.Tools.Sequel.Runner
     /// </summary>
     /// <param name="sql">A SQL a ser peparada.</param>
     /// <returns>O comando preparado para execuções repetidas.</returns>
-    public static IDbCommand CreateCommand(this SqlBuilder sqlBuilder,
+    public static DbCommand CreateCommand(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,

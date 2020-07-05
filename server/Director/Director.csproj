@@ -21,7 +21,12 @@
     <Folder Include="Controladores\" />
     <Folder Include="Conectores\" />
     <Folder Include="Adaptadores\" />
-    <Folder Include="Models.Mlogic.Integracao\" />
+    <Folder Include="Modelos.Mlogic.Integracao\" />
+    <Folder Include="Assets\" />
+    <Folder Include="Assets\Scripts\" />
+    <Folder Include="Assets\Scripts\Director\" />
+    <Folder Include="Assets\Scripts\Pdv\" />
+    <Folder Include="Tarefas\" />
   </ItemGroup>
   
   <ItemGroup>

@@ -12,9 +12,46 @@ namespace Keep.Tools.Sequel.Runner
 {
   public static class ReadExtensionsAsync
   {
+    #region Read (Records)
+
+    public static async Task<IReaderAsync<Record>> ReadAsync(this SqlBuilder sqlBuilder,
+      DbConnection cn, DbTransaction tx = null,
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      ConnectionContext ctx = null;
+      try
+      {
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        ctx = await ConnectionContext.CreateAsync(cn);
+        var cm = ctx.CreateCommand(sql, tx);
+        var result = await TransformReaderAsync<object>.CreateAsync(
+          () => cm,
+          reader => new Record(reader)
+        );
+
+        result.Disposed += (o, e) => cm.TryDispose();
+        result.Disposed += (o, e) => ctx.TryDispose();
+
+        return result;
+      }
+      catch
+      {
+        ctx?.TryDispose();
+        throw;
+      }
+    }
+
+    #endregion
+
     #region Read (Type)
 
-    public static async Task<IReaderAsync<T>>ReadAsync<T>(this SqlBuilder sqlBuilder,
+    public static async Task<IReaderAsync<T>> ReadAsync<T>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -81,7 +118,7 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static async Task<Ret<IReaderAsync<T>>>TryReadAsync<T>(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<IReaderAsync<T>>> TryReadAsync<T>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -100,7 +137,7 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static async Task<Ret<IReaderAsync<object>>>TryReadAsync(this SqlBuilder sqlBuilder, Type type,
+    public static async Task<Ret<IReaderAsync<object>>> TryReadAsync(this SqlBuilder sqlBuilder, Type type,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -123,7 +160,7 @@ namespace Keep.Tools.Sequel.Runner
 
     #region Read (Tuple)
 
-    public static async Task<IReaderAsync<Tuple<T1,T2>>>
+    public static async Task<IReaderAsync<Tuple<T1, T2>>>
       ReadAsync<T1, T2>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
@@ -160,7 +197,7 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static async Task<IReaderAsync<Tuple<T1,T2, T3>>>
+    public static async Task<IReaderAsync<Tuple<T1, T2, T3>>>
       ReadAsync<T1, T2, T3>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
@@ -198,7 +235,7 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static async Task<IReaderAsync<Tuple<T1,T2, T3, T4>>>
+    public static async Task<IReaderAsync<Tuple<T1, T2, T3, T4>>>
       ReadAsync<T1, T2, T3, T4>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
@@ -237,7 +274,7 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static async Task<IReaderAsync<Tuple<T1,T2, T3, T4, T5>>>
+    public static async Task<IReaderAsync<Tuple<T1, T2, T3, T4, T5>>>
       ReadAsync<T1, T2, T3, T4, T5>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
@@ -277,7 +314,7 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static async Task<IReaderAsync<Tuple<T1,T2, T3, T4, T5, T6>>>
+    public static async Task<IReaderAsync<Tuple<T1, T2, T3, T4, T5, T6>>>
       ReadAsync<T1, T2, T3, T4, T5, T6>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
@@ -318,7 +355,7 @@ namespace Keep.Tools.Sequel.Runner
       }
     }
 
-    public static async Task<IReaderAsync<Tuple<T1,T2, T3, T4, T5, T6, T7>>>
+    public static async Task<IReaderAsync<Tuple<T1, T2, T3, T4, T5, T6, T7>>>
       ReadAsync<T1, T2, T3, T4, T5, T6, T7>(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,

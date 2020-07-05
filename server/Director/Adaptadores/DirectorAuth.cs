@@ -22,7 +22,7 @@ namespace Director.Adaptadores
     {
       try
       {
-        var model = ActivatorUtilities.CreateInstance<ModeloDeLogin>(serviceProvider);
+        var model = ActivatorUtilities.CreateInstance<Login>(serviceProvider);
         var ret = await model.AutenticarAsync(credential);
         return ret;
       }

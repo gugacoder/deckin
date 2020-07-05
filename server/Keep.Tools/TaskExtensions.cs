@@ -7,17 +7,17 @@ namespace Keep.Tools
 {
   public static class TaskExtensions
   {
-    public static void RunAsync(this Task task)
+    public static void NoAwait(this Task task)
     {
       // Nada a fazer. A tarefa será executada em paralelo.
     }
 
-    public static T RunSync<T>(this Task<T> task)
+    public static T Await<T>(this Task<T> task)
     {
       return task.GetAwaiter().GetResult();
     }
 
-    public static void RunSync(this Task task)
+    public static void Await(this Task task)
     {
       task.GetAwaiter().GetResult();
     }

@@ -43,9 +43,9 @@ namespace Keep.Tools.Sequel
       [CallerLineNumber] int callerLine = 0)
     {
       var context = Parameters ?? new HashMap();
-      
+
       var initialArgs = context.Where(x => Value.IsValidSequelValue(x.Value));
-      
+
       var target = new Sql
       {
         Text = Template,
@@ -114,6 +114,10 @@ namespace Keep.Tools.Sequel
       if (context?.Any() != true)
         return;
 
+      var isStandardTemplate = target.Text.Contains("@{");
+      if (!isStandardTemplate)
+        return;
+
       var parameterNames =
         from name in context.Keys
         orderby name.Length descending, name
@@ -121,11 +125,13 @@ namespace Keep.Tools.Sequel
 
       foreach (var parameterName in parameterNames)
       {
-        var parameterValue = context[parameterName];
-        var value = CreateSqlCompatibleValue(parameterValue);
-        var key = "@{" + parameterName + "}";
-        var keyValue = value.ToString();
-        target.Text = target.Text.Replace(key, keyValue);
+        var key = $"@{{{parameterName}}}";
+        if (target.Text.Contains(key))
+        {
+          var parameterValue = context[parameterName];
+          var value = Change.To<string>(parameterValue);
+          target.Text = target.Text.Replace(key, value);
+        }
       }
     }
 
@@ -466,7 +472,7 @@ namespace Keep.Tools.Sequel
 
       var extendedParameters =
         ExtractKnownExtendedParameters(target.Text).ToArray();
-      
+
       var names =
         from name in extendedParameters
         orderby name.Length descending, name
@@ -477,7 +483,7 @@ namespace Keep.Tools.Sequel
         var value = context?.Get(name);
         var criteria = CreateCriteria(
           target, context, name, value, dialect, keyGen);
-        
+
         target.Text = ReplaceMatches(target.Text, name, criteria);
       }
 
@@ -586,7 +592,7 @@ namespace Keep.Tools.Sequel
 
                 var index = match2.Groups[1].Index;
                 var count = match2.Groups[1].Length;
-                
+
                 var keyName = nestGen.DeriveName(key);
                 var keyValue = bag[key];
 

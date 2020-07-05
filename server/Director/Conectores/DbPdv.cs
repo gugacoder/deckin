@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using Keep.Paper.Api;
+using Keep.Tools;
+using Keep.Tools.Collections;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
 
@@ -10,45 +13,36 @@ namespace Director.Conectores
 {
   public class DbPdv
   {
-    private readonly DbDirector dbDirector;
-    private readonly string templateDeStringDeConexao;
+    private readonly string stringDeConexao;
+    private readonly string template;
 
-    public DbPdv(DbDirector dbDirector, string templateDeStringDeConexao)
+    public DbPdv(string stringDeConexao)
     {
-      this.dbDirector = dbDirector;
-      this.templateDeStringDeConexao = templateDeStringDeConexao;
+      this.stringDeConexao = stringDeConexao;
+      this.template = CriarTemplate(stringDeConexao);
     }
 
-    public string[] GetIps()
+    private string CriarTemplate(string stringDeConexao)
     {
-      using var cn = dbDirector.GetConexao();
-      cn.Open();
-      var pdvs =
-        @"select distinct DFendereco_rede
-            from mlogic.vw_pdv
-           where DFativo = 1"
-          .AsSql()
-          .Select<string>(cn);
-      return pdvs;
+      var entradas =
+        from parametro in stringDeConexao.Split(";")
+        let partes = parametro.Split('=')
+        let chave = partes.First()
+        let valorBase = string.Join("=", partes.Skip(1))
+        let valor = chave.EqualsAnyIgnoreCase("server", "data source", "host")
+          ? "{servidor}" : valorBase
+        select $"{chave}={valor}";
+
+      var template = string.Join(";", entradas);
+      return template;
     }
 
-    public async Task<string[]> GetIpsAsync()
+    public DbConnection GetConexao(string servidor = null)
     {
-      using var cn = dbDirector.GetConexao();
-      await cn.OpenAsync();
-      var pdvs = await
-        @"select distinct DFendereco_rede
-            from mlogic.vw_pdv
-           where DFativo = 1"
-          .AsSql()
-          .SelectAsync<string>(cn);
-      return pdvs;
-    }
+      var configuracao = string.IsNullOrEmpty(servidor)
+        ? this.stringDeConexao : this.template.Replace("{servidor}", servidor);
 
-    public DbConnection GetConexao(string ip)
-    {
-      var stringDeConexao = this.templateDeStringDeConexao.Replace("{ip}", ip);
-      return new Npgsql.NpgsqlConnection(stringDeConexao);
+      return new Npgsql.NpgsqlConnection(configuracao);
     }
   }
 }
