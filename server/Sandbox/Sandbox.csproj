@@ -18,20 +18,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="Controladores\" />
-    <Folder Include="Conectores\" />
-    <Folder Include="Adaptadores\" />
-    <Folder Include="Modelos.Mlogic.Integracao\" />
-    <Folder Include="Assets\" />
-    <Folder Include="Assets\Scripts\" />
-    <Folder Include="Assets\Scripts\Director\" />
-    <Folder Include="Assets\Scripts\Pdv\" />
-    <Folder Include="Tarefas\" />
-    <Folder Include="Tarefas.Mlogic.Integracao\" />
-    <Folder Include="Dominio.Mlogic.Integracao\" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <ProjectReference Include="..\Keep.Paper\Keep.Paper.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
       <ReferenceSourceTarget>ProjectReference</ReferenceSourceTarget>

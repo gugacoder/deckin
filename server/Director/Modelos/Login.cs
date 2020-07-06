@@ -30,7 +30,7 @@ namespace Director.Modelos
     {
       try
       {
-        using var cn = dbDirector.GetConexao();
+        using var cn = dbDirector.CriarConexao();
 
         var info = await
           @"select TBusuario.DFid_usuario

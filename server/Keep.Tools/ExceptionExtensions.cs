@@ -18,12 +18,16 @@ namespace Keep.Tools
       }
     }
 
-    public static void Debug(this Exception exception)
+    public static void Debug(this Exception exception, string message = null)
     {
       try
       {
         var pilha = GetStackTrace(exception);
-        System.Diagnostics.Debug.WriteLine(pilha);
+        if (!string.IsNullOrEmpty(message))
+        {
+          pilha = $"{message}\n{pilha}";
+        }
+        System.Diagnostics.Debug.WriteLine($"[EXCEPTION] {pilha}");
       }
       catch (Exception ex)
       {

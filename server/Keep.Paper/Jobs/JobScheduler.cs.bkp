@@ -12,15 +12,19 @@ namespace Keep.Paper.Jobs
 {
   internal class JobScheduler : IJobScheduler
   {
-    private readonly PriorityQueue<Timer, DateTime> queue;
+    private const int MaxRunningJobs = 100;
+
+    private volatile int counter;
     private readonly IAudit<JobScheduler> audit;
+
+    private readonly List<Timer> scheduledJobs = new List<Timer>();
+    private readonly List<Timer> executingJobs = new List<Timer>();
 
     public JobScheduler(IServiceProvider serviceProvider,
       IAudit<JobScheduler> audit)
     {
-      this.queue = new PriorityQueue<Timer, DateTime>(x => x.Due);
-      this.audit = audit;
       LoadExposedJobs(serviceProvider);
+      this.audit = audit;
     }
 
     private void LoadExposedJobs(IServiceProvider provider)
@@ -57,37 +61,53 @@ namespace Keep.Paper.Jobs
     public Timer Add(IJob job, NextRun nextRun)
     {
       var timer = new Timer(job, nextRun);
-      queue.Add(timer);
+      scheduledJobs.Add(timer);
       return timer;
     }
 
-    public Timer[] Find(Func<IJob, bool> criteria)
+    public Timer Get(IJob job)
     {
-      return queue.Find(x => criteria.Invoke(x.Job));
+      return scheduledJobs.FirstOrDefault(x => x.Job == job);
+    }
+
+    public Timer Find(Func<IJob, bool> criteria)
+    {
+      return scheduledJobs
+        .Where(timer => criteria.Invoke(timer.Job))
+        .FirstOrDefault();
     }
 
     public Timer[] GetAll()
     {
-      return queue.ToArray();
+      return scheduledJobs.ToArray();
+    }
+
+    public Timer[] FindAll(Func<IJob, bool> criteria)
+    {
+      return scheduledJobs
+        .Where(timer => criteria.Invoke(timer.Job))
+        .ToArray();
     }
 
     public async Task RunAsync(CancellationToken stopToken)
     {
-      try
+      while (!stopToken.IsCancellationRequested)
       {
-        while (!stopToken.IsCancellationRequested)
+        var timeLimit = DateTime.Now;
+        var expiredTimers = (
+          from timer in scheduledJobs
+          where timer.Due.CompareTo(timeLimit) <= 0
+          select timer
+          ).Take(MaxRunningJobs - counter).ToArray();
+
+        foreach (var timer in expiredTimers)
         {
-          var notAfter = DateTime.Now;
-          while (queue.TryRemoveFirst(out Timer timer, notAfter))
-          {
-            RunTaskAsync(timer, stopToken).NoAwait();
-          }
-          await Task.Delay(100);
+          scheduledJobs.Remove(timer);
+          executingJobs.Add(timer);
+          RunTaskAsync(timer, stopToken).NoAwait();
         }
-      }
-      catch (Exception ex)
-      {
-        audit.LogDanger(Join.Lines(ex));
+
+        await Task.Delay(100);
       }
     }
 
@@ -95,14 +115,17 @@ namespace Keep.Paper.Jobs
     {
       try
       {
+        counter++;
         await Task.Run(() => timer.Job.Run(this, stopToken));
       }
       finally
       {
         if (timer.SetNextRun())
         {
-          queue.Add(timer);
+          executingJobs.Remove(timer);
+          scheduledJobs.Add(timer);
         }
+        counter--;
       }
     }
   }

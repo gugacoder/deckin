@@ -48,6 +48,7 @@ namespace Keep.Paper.Configurations
     public static void AddPapers(this IServiceCollection services)
     {
       services.AddSingleton(typeof(IAudit<>), typeof(Audit<>));
+      services.AddSingleton<IAudit, Audit<object>>();
       services.AddSingleton<IJwtSettings, JwtSettings>();
       services.AddSingleton<IAuthCatalog, AuthCatalog>();
       services.AddSingleton<IPaperCatalog, PaperCatalog>();

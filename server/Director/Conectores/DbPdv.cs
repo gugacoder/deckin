@@ -37,7 +37,7 @@ namespace Director.Conectores
       return template;
     }
 
-    public DbConnection GetConexao(string servidor = null)
+    public DbConnection CriarConexao(string servidor = null)
     {
       var configuracao = string.IsNullOrEmpty(servidor)
         ? this.stringDeConexao : this.template.Replace("{servidor}", servidor);

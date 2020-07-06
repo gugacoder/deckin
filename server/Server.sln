@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keep.Tools", "Keep.Tools\Ke
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keep.Paper", "Keep.Paper\Keep.Paper.csproj", "{5585C66E-A8F9-44F5-A87C-F1C6AE5D58A7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sandbox", "Sandbox\Sandbox.csproj", "{F3070085-E053-4F82-8794-374448A556B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,5 +74,17 @@ Global
 		{5585C66E-A8F9-44F5-A87C-F1C6AE5D58A7}.Release|x64.Build.0 = Release|Any CPU
 		{5585C66E-A8F9-44F5-A87C-F1C6AE5D58A7}.Release|x86.ActiveCfg = Release|Any CPU
 		{5585C66E-A8F9-44F5-A87C-F1C6AE5D58A7}.Release|x86.Build.0 = Release|Any CPU
+		{F3070085-E053-4F82-8794-374448A556B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3070085-E053-4F82-8794-374448A556B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3070085-E053-4F82-8794-374448A556B8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F3070085-E053-4F82-8794-374448A556B8}.Debug|x64.Build.0 = Debug|Any CPU
+		{F3070085-E053-4F82-8794-374448A556B8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F3070085-E053-4F82-8794-374448A556B8}.Debug|x86.Build.0 = Debug|Any CPU
+		{F3070085-E053-4F82-8794-374448A556B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3070085-E053-4F82-8794-374448A556B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3070085-E053-4F82-8794-374448A556B8}.Release|x64.ActiveCfg = Release|Any CPU
+		{F3070085-E053-4F82-8794-374448A556B8}.Release|x64.Build.0 = Release|Any CPU
+		{F3070085-E053-4F82-8794-374448A556B8}.Release|x86.ActiveCfg = Release|Any CPU
+		{F3070085-E053-4F82-8794-374448A556B8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

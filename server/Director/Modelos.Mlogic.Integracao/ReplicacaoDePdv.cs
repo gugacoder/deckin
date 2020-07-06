@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Director.Adaptadores;
 using Director.Conectores;
+using Director.Dominio.Mlogic.Integracao;
 using Keep.Paper.Api;
 using Keep.Tools;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
-using static Director.Adaptadores.DirectorAudit;
 
 namespace Director.Modelos.Mlogic.Integracao
 {
@@ -17,95 +18,136 @@ namespace Director.Modelos.Mlogic.Integracao
   {
     private readonly DbDirector dbDirector;
     private readonly DbPdv dbPdv;
-    private readonly IAudit<ReplicacaoDePdv> audit;
+    private readonly IAudit audit;
 
-    public ReplicacaoDePdv(DbDirector dbDirector, DbPdv dbPdv,
-      IAudit<ReplicacaoDePdv> audit)
+    public ReplicacaoDePdv(DbDirector dbDirector, DbPdv dbPdv, IAudit audit)
     {
       this.dbDirector = dbDirector;
       this.dbPdv = dbPdv;
       this.audit = audit;
     }
 
-    public async Task ReplicarPdvsAsync()
+    #region Parâmetros
+
+    public async Task<ParametrosDeReplicacaoDePdv> ObterParametrosAsync(
+      CancellationToken stopToken)
     {
       try
       {
-        string[] ips;
+        audit.Log(
+          "Obtendo os parâmetros do sistema a partir da base do Director...",
+          GetType());
 
-        using (var cnDirector = dbDirector.GetConexao())
-        {
-          await cnDirector.OpenAsync();
+        using var cnDirector = dbDirector.CriarConexao();
+        await cnDirector.OpenAsync(stopToken);
 
-          ips = await
-            @"select distinct DFendereco_rede
-                from mlogic.vw_pdv
-               where DFativo = 1"
-              .AsSql()
-              .SelectAsync<string>(cnDirector);
-        }
+        var parametros = await
+         $@"select (select DFvalor
+                     from mlogic.TBsis_config
+                     where DFchave = 'replicacao.ativado'
+                   ) as DFreplicacao
+                 , (select DFvalor
+                     from mlogic.TBsis_config
+                     where DFchave = 'replicacao.historico.ativado'
+                   ) as DFhistorico
+                 , (select DFvalor
+                     from mlogic.TBsis_config
+                     where DFchave = 'replicacao.historico.dias'
+                   ) as DFdias"
+            .AsSql()
+            .SelectOneAsync(cnDirector,
+              (bool replicacao, bool historico, int dias) =>
+              {
+                var parametros = new ParametrosDeReplicacaoDePdv();
+                parametros.Ativado = replicacao;
+                parametros.Historico.Ativado = historico;
+                parametros.Historico.Dias = dias;
+                return parametros;
+              },
+              stopToken: stopToken);
 
-        audit.LogTrace("Iniciando replicação dos PDVs...");
+        audit.Log(
+          Join.Lines(
+            "Obtenção dos parâmetros do sistema a partir da base do Director concluída.",
+            Json.ToJson(parametros, new Json.Settings { Indent = true })),
+          GetType());
 
-        var tarefas = ips.Select(ip => ReplicarPdvAsync(ip)).ToArray();
-        await Task.WhenAll(tarefas);
-
-        audit.LogSuccess("Replicação dos PDVs concluída.");
+        return parametros;
       }
       catch (Exception ex)
       {
-        audit.LogDanger(Join.Lines(
-          "Replicação dos PDVs concluída com falhas.",
-          ex
-        ));
+        audit.LogDanger(
+          Join.Lines(
+            "Obtenção dos parâmetros do sistema a partir da base do Director concluída com falhas.",
+            ex),
+          GetType());
+        return new ParametrosDeReplicacaoDePdv();
       }
     }
 
-    private async Task ReplicarPdvAsync(string ip)
+    #endregion
+
+    #region Replicação
+
+    public async Task ReplicarAsync(ParametrosDeReplicacaoDePdv parametros,
+      Pdv pdv, CancellationToken stopToken)
     {
       try
       {
-        audit.LogTrace($"Iniciando replicação do PDV {ip} para o Director...");
+        if (!parametros.Ativado || !pdv.ReplicacaoAtivado)
+          return;
 
-        using var cnDirector = dbDirector.GetConexao();
-        using var cnPdv = dbPdv.GetConexao(ip);
+        audit.LogTrace(
+          $"Iniciando replicação do PDV {pdv.Descricao} para o Director...",
+          GetType());
 
-        await cnDirector.OpenAsync();
-        await cnPdv.OpenAsync();
+        using var cnDirector = dbDirector.CriarConexao();
+        using var cnPdv = dbPdv.CriarConexao(pdv.EnderecoDeRede);
+
+        await cnDirector.OpenAsync(stopToken);
+        await cnPdv.OpenAsync(stopToken);
 
         var dataLimite = await
           @"select now()"
             .AsSql()
-            .SelectOneAsync<DateTime>(cnPdv);
+            .SelectOneAsync<DateTime>(cnPdv, stopToken: stopToken);
 
         var tabelas = await
           @"select tabela
               from integracao.tabelas_replicadas"
             .AsSql()
-            .SelectAsync<string>(cnPdv);
+            .SelectAsync<string>(cnPdv, stopToken: stopToken);
 
         foreach (var tabela in tabelas)
         {
-          await ReplicarTabelaAsync(cnDirector, cnPdv, ip, tabela, dataLimite);
+          await ReplicarTabelaAsync(cnDirector, cnPdv, pdv, tabela, dataLimite,
+            stopToken);
         }
 
-        audit.LogSuccess($"Replicação do PDV {ip} para o Director concluída.");
+        audit.LogSuccess(
+          $"Replicação do PDV {pdv.Descricao} para o Director concluída.",
+          GetType());
       }
       catch (Exception ex)
       {
-        audit.LogDanger(Join.Lines(
-          $"Replicação do PDV {ip} para o Director concluída com falhas.",
-          ex
-        ));
+        audit.LogDanger(
+          Join.Lines(
+            $"Replicação do PDV {pdv.Descricao} para o Director concluída com falhas.",
+            ex),
+          GetType());
       }
     }
 
     private async Task ReplicarTabelaAsync(DbConnection cnDirector,
-      DbConnection cnPdv, string ip, string tabela, DateTime dataLimite)
+      DbConnection cnPdv, Pdv pdv, string tabela, DateTime dataLimite,
+      CancellationToken stopToken
+      )
     {
       try
       {
-        audit.LogTrace($"Iniciando replicação da tabela {tabela} do PDV {ip}...");
+        audit.LogTrace(
+          $"Iniciando replicação da tabela {tabela} do PDV {pdv.Descricao}...",
+          GetType());
 
         while (true)
         {
@@ -113,7 +155,9 @@ namespace Director.Modelos.Mlogic.Integracao
           string[] valores;
           List<object[]> registros;
 
-          audit.LogTrace($"Obtendo registros da tabela {tabela}...");
+          audit.LogTrace(
+            $"Obtendo registros da tabela {tabela}...",
+            GetType());
 
           var reader = await
             @"select *
@@ -123,10 +167,10 @@ namespace Director.Modelos.Mlogic.Integracao
                limit 1000"
               .AsSql()
               .Set(new { tabela, dataLimite })
-              .ReadAsync(cnPdv);
+              .ReadAsync(cnPdv, stopToken: stopToken);
           using (reader)
           {
-            if (!await reader.ReadAsync())
+            if (!await reader.ReadAsync(stopToken))
               break;
 
             campos = (
@@ -156,15 +200,19 @@ namespace Director.Modelos.Mlogic.Integracao
               ).SelectMany(x => x).ToArray();
 
               registros.Add(registro);
-            } while (await reader.ReadAsync());
+            } while (await reader.ReadAsync(stopToken));
           }
 
-          audit.LogTrace($"Replicando {registros.Count} da tabela {tabela}...");
+          audit.LogTrace(
+            $"Replicando {registros.Count} da tabela {tabela}...",
+            GetType());
 
           var contagem = 0;
           foreach (var registro in registros)
           {
-            audit.LogTrace($"Replicando registro {contagem++} de {registros.Count} da tabela {tabela}...");
+            audit.LogTrace(
+              $"Replicando registro {contagem++} de {registros.Count} da tabela {tabela}...",
+              GetType());
 
             // Registro é um vetor contendo nome de campo e seu valor.
             // Cada índice par contém o nome de um campo e cada índice ímpar
@@ -185,9 +233,9 @@ namespace Director.Modelos.Mlogic.Integracao
                   .AsSql()
                   .Set(new { tabela, campos, valores, codRegistro })
                   .Set(registro)
-                  .ExecuteAsync(cnDirector, tx);
+                  .ExecuteAsync(cnDirector, tx, stopToken: stopToken);
 
-              await tx.CommitAsync();
+              await tx.CommitAsync(stopToken);
             }
 
             using (var tx = cnPdv.BeginTransaction())
@@ -198,24 +246,113 @@ namespace Director.Modelos.Mlogic.Integracao
                    where cod_registro = @codRegistro"
                   .AsSql()
                   .Set(new { tabela, codRegistro })
-                  .ExecuteAsync(cnPdv, tx);
+                  .ExecuteAsync(cnPdv, tx, stopToken: stopToken);
 
-              await tx.CommitAsync();
+              await tx.CommitAsync(stopToken);
             }
           }
 
-          audit.LogTrace($"{registros.Count} registros da tabela {tabela} replicados com sucesso.");
+          audit.LogTrace(
+            $"{registros.Count} registros da tabela {tabela} replicados com sucesso.",
+            GetType());
         }
 
-        audit.LogSuccess($"Replicação da tabela {tabela} do PDV {ip} concluída.");
+        audit.LogSuccess(
+          $"Replicação da tabela {tabela} do PDV {pdv.Descricao} concluída.",
+          GetType());
       }
       catch (Exception ex)
       {
-        audit.LogDanger(Join.Lines(
-          $"Replicação da tabela {tabela} do PDV {ip} concluída com falhas.",
-          ex
-        ));
+        audit.LogDanger(
+          Join.Lines(
+            $"Replicação da tabela {tabela} do PDV {pdv.Descricao} concluída com falhas.",
+            ex),
+          GetType());
       }
     }
+
+    #endregion
+
+    #region Limpeza de Histórico
+
+    public async Task ApagarHistoricoAsync(ParametrosDeReplicacaoDePdv parametros,
+      CancellationToken stopToken)
+    {
+      try
+      {
+        if (!parametros.Ativado ||
+            !parametros.Historico.Ativado ||
+            parametros.Historico.Dias <= 0)
+          return;
+
+        audit.LogTrace(
+          $"Iniciando limpeza de replicações antigas...",
+          GetType());
+
+        using var cnDirector = dbDirector.CriarConexao();
+
+        await cnDirector.OpenAsync(stopToken);
+
+        var dataLimite = DateTime.Now.AddDays(-parametros.Historico.Dias);
+
+        var tabelas = await
+          @"select replace(sys.objects.name, 'TBintegracao_', '')
+              from sys.objects
+             inner join sys.schemas
+                     on sys.schemas.schema_id = sys.objects.schema_id
+             where sys.schemas.name = 'mlogic'
+               and sys.objects.name like 'TBintegracao_%'"
+            .AsSql()
+            .SelectAsync<string>(cnDirector, stopToken: stopToken);
+
+        foreach (var tabela in tabelas)
+        {
+          try
+          {
+            audit.LogTrace(
+              $"Iniciando limpeza de replicações da tabela {tabela}...",
+              GetType());
+
+            using (var tx = cnDirector.BeginTransaction())
+            {
+              await
+                @"delete from mlogic.TBintegracao_@{tabela}
+                   where DFdata_integracao < @dataLimite"
+                  .AsSql()
+                  .Set(new { tabela, dataLimite })
+                  .ExecuteAsync(cnDirector, tx, stopToken: stopToken);
+
+              await tx.CommitAsync(stopToken);
+            }
+
+            audit.LogSuccess(
+              $"Limpeza de replicações da tabela {tabela} concluída.",
+              GetType());
+          }
+          catch (Exception ex)
+          {
+            audit.LogDanger(
+              Join.Lines(
+                $"Limpeza de replicações da tabela {tabela} concluída com falhas.",
+                ex),
+              GetType());
+          }
+        }
+
+        audit.LogSuccess(
+            $"Limpeza de replicações antigas concluída.",
+          GetType());
+      }
+      catch (Exception ex)
+      {
+        audit.LogDanger(
+          Join.Lines(
+            $"Limpeza de replicações antigas concluída com falhas.",
+            ex),
+          GetType());
+      }
+    }
+
+    #endregion
   }
 }

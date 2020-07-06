@@ -13,7 +13,7 @@ namespace Director.Conectores
       this.stringDeConexao = stringDeConexao;
     }
 
-    public DbConnection GetConexao()
+    public DbConnection CriarConexao()
     {
       return new SqlConnection(stringDeConexao);
     }

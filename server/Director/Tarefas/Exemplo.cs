@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,12 +13,17 @@ namespace Director.Tarefas
   {
     public void Run(IJobScheduler scheduler, CancellationToken stopToken)
     {
-      Debug.WriteLine("Exemplo...");
+      Debug.WriteLine(DateTime.Now);
     }
 
     public void SetUp(IJobScheduler scheduler)
     {
-      scheduler.Add(this, TimeSpan.FromSeconds(4));
+      scheduler.Add(this, NextRun);
+    }
+
+    private IEnumerable<DateTime> NextRun()
+    {
+      for (int i = 0; i < 5; i++) yield return DateTime.Now.AddSeconds(1);
     }
   }
 }

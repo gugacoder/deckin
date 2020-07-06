@@ -22,6 +22,7 @@ namespace Keep.Tools
 
         if (entry is Exception exception)
         {
+          exception.Debug();
           foreach (var item in exception.GetCauseMessages())
           {
             yield return item;

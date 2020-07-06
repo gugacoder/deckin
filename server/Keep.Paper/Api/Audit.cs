@@ -54,28 +54,17 @@ namespace Keep.Paper.Api
     private void ByPass(Level level, string message, Type source,
       [CallerMemberName] string @event = null)
     {
-      var typeName = typeof(T).FullName.Split(';').First();
-      message = $"{typeName}: {message}";
-
+      var kind = level.ToString().ToUpper();
+      var date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+      var type = typeof(T).FullName.Split(';').First();
+      message = $"[{kind}] {date} {@event} ({type}): {message}";
       if (logger != null)
       {
         logger.Log(level.ToLogLevel(), message);
-        return;
       }
-
-      switch (level)
+      else
       {
-        case Level.Danger:
-          Trace.TraceError(message);
-          break;
-
-        case Level.Warning:
-          Trace.TraceWarning(message);
-          break;
-
-        default:
-          Trace.TraceInformation(message);
-          break;
+        Debug.WriteLine(message);
       }
     }
   }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Keep.Tools.Collections;
 
 namespace Keep.Tools
 {
@@ -20,6 +22,16 @@ namespace Keep.Tools
     public static void Await(this Task task)
     {
       task.GetAwaiter().GetResult();
+    }
+
+    public static T[] Await<T>(this IEnumerable<Task<T>> tasks)
+    {
+      return tasks.Select(task => Await(task)).ToArray();
+    }
+
+    public static void Await(this IEnumerable<Task> tasks)
+    {
+      tasks.ForEach(task => task.Wait());
     }
   }
 }

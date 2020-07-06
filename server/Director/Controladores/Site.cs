@@ -45,10 +45,6 @@ namespace Director.Controladores
     [Route("/Sandbox")]
     public async Task<IActionResult> SandboxAsync()
     {
-      var replicacao = ActivatorUtilities.CreateInstance<ReplicacaoDePdv>(provider);
-
-      await replicacao.ReplicarPdvsAsync();
-
       return Ok();
     }
   }

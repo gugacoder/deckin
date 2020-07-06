@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Collections;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Keep.Tools.Sequel.Runner
 {
@@ -13,11 +14,11 @@ namespace Keep.Tools.Sequel.Runner
 
     object Current { get; }
 
-    Task<bool> ReadAsync();
+    Task<bool> ReadAsync(CancellationToken stopToken);
 
-    Task<bool> NextResultAsync();
+    Task<bool> NextResultAsync(CancellationToken stopToken);
 
-    Task ResetAsync();
+    Task ResetAsync(CancellationToken stopToken);
 
     void Cancel();
 

@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 namespace Keep.Paper.Jobs
 {
-  public class Timer
+  public class Timer : IComparable<Timer>
   {
-    private readonly IEnumerator<DateTime> timeEnumerator;
+    private readonly IEnumerator<DateTime> schedule;
 
     public Timer(IJob job, NextRun nextRun)
     {
       this.Job = job;
-      this.timeEnumerator = nextRun().GetEnumerator();
+      this.schedule = nextRun().GetEnumerator();
       SetNextRun();
     }
 
@@ -20,12 +22,17 @@ namespace Keep.Paper.Jobs
 
     public bool SetNextRun()
     {
-      var ok = timeEnumerator.MoveNext();
+      var ok = schedule.MoveNext();
       if (ok)
       {
-        Due = timeEnumerator.Current;
+        Due = schedule.Current;
       }
       return ok;
+    }
+
+    public int CompareTo(Timer other)
+    {
+      return Due.CompareTo(other.Due);
     }
   }
 }

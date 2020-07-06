@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -34,13 +35,14 @@ namespace Keep.Tools.Sequel.Runner
       return context;
     }
 
-    public static async Task<ConnectionContext> CreateAsync(DbConnection cn)
+    public static async Task<ConnectionContext> CreateAsync(DbConnection cn,
+      CancellationToken stopToken = default)
     {
       var context = new ConnectionContext();
       context.Connection = cn;
       if (context.Connection.State != ConnectionState.Open)
       {
-        await context.Connection.OpenAsync();
+        await context.Connection.OpenAsync(stopToken);
         context.Disposed += async (o, e) => await context.Connection.CloseAsync();
       }
       return context;
@@ -65,7 +67,7 @@ namespace Keep.Tools.Sequel.Runner
       command.CommandText = sql.Text;
       command.CommandTimeout = (cn.ConnectionTimeout << 1);
       command.Transaction = tx;
-      
+
       foreach (var arg in sql.Args)
       {
         var name = arg.Key;
@@ -77,9 +79,9 @@ namespace Keep.Tools.Sequel.Runner
         command.Parameters.Add(parameter);
       }
 
-//#if DEBUG
-//      System.Diagnostics.Debug.WriteLine($"---\n{sql.Beautify()}\n---\n");
-//#endif
+      //#if DEBUG
+      //      System.Diagnostics.Debug.WriteLine($"---\n{sql.Beautify()}\n---\n");
+      //#endif
 
       return command;
     }

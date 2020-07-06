@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Keep.Tools.Sequel.Runner
@@ -25,12 +26,13 @@ namespace Keep.Tools.Sequel.Runner
 
     public static async Task<TransformReaderAsync<E>> CreateAsync<E>(
       Func<DbCommand> factory,
-      Func<DbDataReader, E> transform)
+      Func<DbDataReader, E> transform,
+      CancellationToken stopToken)
     {
       var reader = new TransformReaderAsync<E>();
       reader.factory = factory;
       reader.transform = transform;
-      await reader.ResetAsync();
+      await reader.ResetAsync(stopToken);
       return reader;
     }
 
@@ -51,31 +53,31 @@ namespace Keep.Tools.Sequel.Runner
     public void Cancel() => this.Command?.Cancel();
 
     public IReaderAsync<T> Clone()
-      => TransformReaderAsync<T>.CreateAsync(factory, transform).Result;
+      => TransformReaderAsync<T>.CreateAsync(factory, transform, default).Result;
 
     object ICloneable.Clone()
-      => TransformReaderAsync<object>.CreateAsync(factory, transform).Result;
+      => TransformReaderAsync<object>.CreateAsync(factory, transform, default).Result;
 
-    public async Task<bool> ReadAsync()
+    public async Task<bool> ReadAsync(CancellationToken stopToken)
     {
       if (Reader == null)
         return false;
 
-      var ready = await Reader.ReadAsync();
+      var ready = await Reader.ReadAsync(stopToken);
       this.Current = ready ? transform.Invoke(Reader) : default;
 
       return ready;
     }
 
-    public async Task<bool> NextResultAsync()
+    public async Task<bool> NextResultAsync(CancellationToken stopToken)
     {
       if (Reader == null)
         return false;
 
-      return await Reader.NextResultAsync();
+      return await Reader.NextResultAsync(stopToken);
     }
 
-    public async Task ResetAsync()
+    public async Task ResetAsync(CancellationToken stopToken)
     {
       if (this.Reader != null)
       {
@@ -85,13 +87,13 @@ namespace Keep.Tools.Sequel.Runner
       if (this.Command != null)
       {
         await this.Command.DisposeAsync();
-         this.Command = null;
+        this.Command = null;
       }
 
       this.Command = this.factory?.Invoke();
       if (this.Command != null)
       {
-        this.Reader = await this.Command.ExecuteReaderAsync();
+        this.Reader = await this.Command.ExecuteReaderAsync(stopToken);
       }
     }
 

@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Keep.Tools.Sequel.Runner
@@ -73,6 +74,7 @@ namespace Keep.Tools.Sequel.Runner
     /// <param name="sqlBuilder">A SQL a ser executada.</param>
     public static async Task TryExecuteAsync(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
+      CancellationToken stopToken = default,
       string comment = null,
       [CallerMemberName] string callerName = null,
       [CallerFilePath] string callerFile = null,
@@ -81,7 +83,7 @@ namespace Keep.Tools.Sequel.Runner
       try
       {
         await ExecuteAsync(sqlBuilder, cn, tx,
-          comment, callerName, callerFile, callerLine);
+          stopToken, comment, callerName, callerFile, callerLine);
       }
       catch { /* nada a fazer */ }
     }
@@ -93,6 +95,7 @@ namespace Keep.Tools.Sequel.Runner
     /// <returns>Número de registros afetados pelo comando.</returns>
     public static async Task<int> ExecuteAsync(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
+      CancellationToken stopToken = default,
       string comment = null,
       [CallerMemberName] string callerName = null,
       [CallerFilePath] string callerFile = null,
@@ -106,7 +109,7 @@ namespace Keep.Tools.Sequel.Runner
 
         using (var cm = ctx.CreateCommand(sql, tx))
         {
-          var affectedRows = await cm.ExecuteNonQueryAsync();
+          var affectedRows = await cm.ExecuteNonQueryAsync(stopToken);
           return affectedRows;
         }
       }
