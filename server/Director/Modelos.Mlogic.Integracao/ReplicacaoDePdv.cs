@@ -124,6 +124,24 @@ namespace Director.Modelos.Mlogic.Integracao
             stopToken);
         }
 
+        // Marcando registros como integrados com sucesso
+        //
+        using (var tx = cnDirector.BeginTransaction())
+        {
+          await
+            string.Join(";\n", tabelas.Select(tabela =>
+             $@"update mlogic.TBintegracao_{tabela}
+                   set DFintegrado = 1
+                 where DFintegrado = 0"
+              ))
+              .AsSql()
+              .Echo()
+              .ExecuteAsync(cnDirector, tx, stopToken: stopToken);
+
+          await tx.CommitAsync(stopToken);
+        }
+
+
         audit.LogSuccess(
           $"Replicação do PDV {pdv.Descricao} para o Director concluída.",
           GetType());
@@ -164,7 +182,7 @@ namespace Director.Modelos.Mlogic.Integracao
                 from integracao.@{tabela}
                where integrado = false
                  and data_integracao <= @dataLimite
-               limit 1000"
+               limit 10"
               .AsSql()
               .Set(new { tabela, dataLimite })
               .ReadAsync(cnPdv, stopToken: stopToken);
@@ -176,14 +194,14 @@ namespace Director.Modelos.Mlogic.Integracao
             campos = (
               from indice in Enumerable.Range(0, reader.Current.FieldCount)
               let campo = reader.Current.GetName(indice)
-              where !campo.EqualsAny("id", "integrado", "data_integracao")
+              where !campo.EqualsAny("id")
               select $"DF{campo}"
             ).ToArray();
 
             valores = (
               from indice in Enumerable.Range(0, reader.Current.FieldCount)
               let campo = reader.Current.GetName(indice)
-              where !campo.EqualsAny("id", "integrado", "data_integracao")
+              where !campo.EqualsAny("id")
               select $"@{campo}"
             ).ToArray();
 
@@ -195,7 +213,7 @@ namespace Director.Modelos.Mlogic.Integracao
                 from indice in Enumerable.Range(0, reader.Current.FieldCount)
                 let campo = reader.Current.GetName(indice)
                 let valor = reader.Current.GetValue(indice)
-                where !campo.EqualsAny("id", "integrado", "data_integracao")
+                where !campo.EqualsAny("id")
                 select new[] { campo, valor }
               ).SelectMany(x => x).ToArray();
 
@@ -296,12 +314,8 @@ namespace Director.Modelos.Mlogic.Integracao
         var dataLimite = DateTime.Now.AddDays(-parametros.Historico.Dias);
 
         var tabelas = await
-          @"select replace(sys.objects.name, 'TBintegracao_', '')
-              from sys.objects
-             inner join sys.schemas
-                     on sys.schemas.schema_id = sys.objects.schema_id
-             where sys.schemas.name = 'mlogic'
-               and sys.objects.name like 'TBintegracao_%'"
+          @"select DFtabela
+              from mlogic.vw_tabelas_replicadas"
             .AsSql()
             .SelectAsync<string>(cnDirector, stopToken: stopToken);
 
