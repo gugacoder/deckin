@@ -6,9 +6,9 @@ namespace Keep.Paper.Jobs
 {
   public interface IJobScheduler
   {
-    Timer Add(IJob job, NextRun nextRun);
-    Timer[] Find(Func<IJob, bool> criteria);
-    Timer[] GetAll();
-    Task RunAsync(CancellationToken stopToken);
+    Schedule Add(IJob job, NextRun nextRun);
+    Schedule[] Find(Func<IJob, bool> criteria);
+    Schedule[] GetAll();
+    Task RunTasksAsync(CancellationToken stopToken);
   }
 }

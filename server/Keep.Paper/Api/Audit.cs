@@ -11,60 +11,37 @@ namespace Keep.Paper.Api
 {
   public class Audit<T> : IAudit, IAudit<T>
   {
-    private readonly ILogger logger;
+    private readonly IAuditSettings settings;
 
-    public event AuditHandler WriteLog;
-
-    public Audit(IServiceProvider serviceProvider)
+    public Audit(IAuditSettings auditSettings)
     {
-      this.logger = serviceProvider.GetService<ILogger>();
-      AddLoggers(serviceProvider);
-    }
-
-    private void AddLoggers(IServiceProvider provider)
-    {
-      var types = ExposedTypes.GetTypes<IAudit>();
-      foreach (var type in types)
-      {
-        try
-        {
-          var audit = (IAudit)ActivatorUtilities.CreateInstance(provider, type);
-          WriteLog += audit.Log;
-        }
-        catch (Exception ex)
-        {
-          Log(Level.Danger, Join.Lines(ex));
-        }
-      }
-
+      this.settings = auditSettings;
     }
 
     public void Log(Level level, string message, Type source,
       [CallerMemberName] string @event = null)
     {
-      (WriteLog ?? ByPass).Invoke(level, message, source, @event);
+      Write(level, source, @event, message);
     }
 
     public void Log(Level level, string message,
       [CallerMemberName] string @event = null)
     {
-      (WriteLog ?? ByPass).Invoke(level, message, typeof(T), @event);
+      Write(level, typeof(T), @event, message);
     }
 
-    private void ByPass(Level level, string message, Type source,
-      [CallerMemberName] string @event = null)
+    private void Write(Level level, Type source, string @event, string message)
     {
-      var kind = level.ToString().ToUpper();
-      var date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-      var type = typeof(T).FullName.Split(';').First();
-      message = $"[{kind}] {date} {@event} ({type}): {message}";
-      if (logger != null)
+      foreach (var listener in settings.Listeners)
       {
-        logger.Log(level.ToLogLevel(), message);
-      }
-      else
-      {
-        Debug.WriteLine(message);
+        try
+        {
+          listener.Audit(level, source, @event, message);
+        }
+        catch (Exception ex)
+        {
+          ex.Trace();
+        }
       }
     }
   }

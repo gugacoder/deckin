@@ -5,11 +5,11 @@ using System.Threading;
 
 namespace Keep.Paper.Jobs
 {
-  public class Timer : IComparable<Timer>
+  public class Schedule : IComparable<Schedule>
   {
     private readonly IEnumerator<DateTime> schedule;
 
-    public Timer(IJob job, NextRun nextRun)
+    public Schedule(IJob job, NextRun nextRun)
     {
       this.Job = job;
       this.schedule = nextRun().GetEnumerator();
@@ -30,7 +30,7 @@ namespace Keep.Paper.Jobs
       return ok;
     }
 
-    public int CompareTo(Timer other)
+    public int CompareTo(Schedule other)
     {
       return Due.CompareTo(other.Due);
     }

@@ -6,21 +6,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Director.Adaptadores;
 using Director.Conectores;
-using Director.Dominio.Mlogic.Integracao;
+using Director.Dominio;
 using Keep.Paper.Api;
 using Keep.Tools;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
 
-namespace Director.Modelos.Mlogic.Integracao
+namespace Director.Modelos
 {
-  public class ReplicacaoDePdv
+  public class ModeloDeReplicacaoDePdv
   {
     private readonly DbDirector dbDirector;
     private readonly DbPdv dbPdv;
     private readonly IAudit audit;
 
-    public ReplicacaoDePdv(DbDirector dbDirector, DbPdv dbPdv, IAudit audit)
+    public ModeloDeReplicacaoDePdv(DbDirector dbDirector, DbPdv dbPdv, IAudit audit)
     {
       this.dbDirector = dbDirector;
       this.dbPdv = dbPdv;
@@ -67,7 +67,7 @@ namespace Director.Modelos.Mlogic.Integracao
               stopToken: stopToken);
 
         audit.Log(
-          Join.Lines(
+          To.Text(
             "Obtenção dos parâmetros do sistema a partir da base do Director concluída.",
             Json.ToJson(parametros, new Json.Settings { Indent = true })),
           GetType());
@@ -77,7 +77,7 @@ namespace Director.Modelos.Mlogic.Integracao
       catch (Exception ex)
       {
         audit.LogDanger(
-          Join.Lines(
+          To.Text(
             "Obtenção dos parâmetros do sistema a partir da base do Director concluída com falhas.",
             ex),
           GetType());
@@ -149,7 +149,7 @@ namespace Director.Modelos.Mlogic.Integracao
       catch (Exception ex)
       {
         audit.LogDanger(
-          Join.Lines(
+          To.Text(
             $"Replicação do PDV {pdv.Descricao} para o Director concluída com falhas.",
             ex),
           GetType());
@@ -282,7 +282,7 @@ namespace Director.Modelos.Mlogic.Integracao
       catch (Exception ex)
       {
         audit.LogDanger(
-          Join.Lines(
+          To.Text(
             $"Replicação da tabela {tabela} do PDV {pdv.Descricao} concluída com falhas.",
             ex),
           GetType());
@@ -346,7 +346,7 @@ namespace Director.Modelos.Mlogic.Integracao
           catch (Exception ex)
           {
             audit.LogDanger(
-              Join.Lines(
+              To.Text(
                 $"Limpeza de replicações da tabela {tabela} concluída com falhas.",
                 ex),
               GetType());
@@ -360,7 +360,7 @@ namespace Director.Modelos.Mlogic.Integracao
       catch (Exception ex)
       {
         audit.LogDanger(
-          Join.Lines(
+          To.Text(
             $"Limpeza de replicações antigas concluída com falhas.",
             ex),
           GetType());

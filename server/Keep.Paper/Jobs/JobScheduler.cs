@@ -7,18 +7,19 @@ using Keep.Paper.Api;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Keep.Paper.Jobs
 {
   internal class JobScheduler : IJobScheduler
   {
-    private readonly PriorityQueue<Timer, DateTime> queue;
+    private readonly PriorityQueue<Schedule, DateTime> queue;
     private readonly IAudit<JobScheduler> audit;
 
     public JobScheduler(IServiceProvider serviceProvider,
       IAudit<JobScheduler> audit)
     {
-      this.queue = new PriorityQueue<Timer, DateTime>(x => x.Due);
+      this.queue = new PriorityQueue<Schedule, DateTime>(x => x.Due);
       this.audit = audit;
       LoadExposedJobs(serviceProvider);
     }
@@ -44,64 +45,65 @@ namespace Keep.Paper.Jobs
           }
           catch (Exception ex)
           {
-            audit.LogDanger(Join.Lines(ex));
+            audit.LogDanger(To.Text(ex));
           }
         }
       }
       catch (Exception ex)
       {
-        audit.LogDanger(Join.Lines(ex));
+        audit.LogDanger(To.Text(ex));
       }
     }
 
-    public Timer Add(IJob job, NextRun nextRun)
+    public Schedule Add(IJob job, NextRun nextRun)
     {
-      var timer = new Timer(job, nextRun);
-      queue.Add(timer);
-      return timer;
+      var schedule = new Schedule(job, nextRun);
+      queue.Add(schedule);
+      return schedule;
     }
 
-    public Timer[] Find(Func<IJob, bool> criteria)
+    public Schedule[] Find(Func<IJob, bool> criteria)
     {
       return queue.Find(x => criteria.Invoke(x.Job));
     }
 
-    public Timer[] GetAll()
+    public Schedule[] GetAll()
     {
       return queue.ToArray();
     }
 
-    public async Task RunAsync(CancellationToken stopToken)
+    public async Task RunTasksAsync(CancellationToken stopToken)
     {
       try
       {
         while (!stopToken.IsCancellationRequested)
         {
           var notAfter = DateTime.Now;
-          while (queue.TryRemoveFirst(out Timer timer, notAfter))
+          while (queue.TryRemoveFirst(out Schedule schedule, notAfter))
           {
-            RunTaskAsync(timer, stopToken).NoAwait();
+            RunSingleTaskAsync(schedule, stopToken).NoAwait();
           }
           await Task.Delay(100);
         }
       }
       catch (Exception ex)
       {
-        audit.LogDanger(Join.Lines(ex));
+        audit.LogDanger(To.Text(ex));
       }
     }
 
-    private async Task RunTaskAsync(Timer timer, CancellationToken stopToken)
+    private async Task RunSingleTaskAsync(Schedule schedule,
+      CancellationToken stopToken)
     {
       try
       {
-        await Task.Run(() => timer.Job.Run(this, stopToken));
+        await Task.Run(() => schedule.Job.Run(this, stopToken));
       }
       finally
       {
-        if (timer.SetNextRun())
+        if (schedule.SetNextRun())
         {
-          queue.Add(timer);
+          queue.Add(schedule);
         }
       }
     }

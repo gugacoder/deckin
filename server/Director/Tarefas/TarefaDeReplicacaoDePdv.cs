@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Director.Modelos.Mlogic.Integracao;
+using Director.Modelos;
 using Keep.Paper.Api;
 using Keep.Paper.Jobs;
 using Keep.Tools;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Director.Tarefas.Mlogic.Integracao
+namespace Director.Tarefas
 {
-  [Expose]
+  // [Expose]
   public class TarefaDeReplicacaoDePdv : ICustomJob
   {
     private readonly IServiceProvider provider;
@@ -29,14 +29,14 @@ namespace Director.Tarefas.Mlogic.Integracao
       try
       {
         var replicacao =
-          ActivatorUtilities.CreateInstance<ReplicacaoDePdv>(provider);
+          ActivatorUtilities.CreateInstance<ModeloDeReplicacaoDePdv>(provider);
 
         var parametros = replicacao.ObterParametrosAsync(stopToken).Await();
         if (!parametros.Ativado)
           return;
 
         var localizador =
-          ActivatorUtilities.CreateInstance<LocalizadorDePdv>(provider);
+          ActivatorUtilities.CreateInstance<ModeloDeLocalizacaoDePdv>(provider);
 
         var pdvs = localizador.ObterPdvsAsync(stopToken).Await();
 
@@ -48,7 +48,7 @@ namespace Director.Tarefas.Mlogic.Integracao
       }
       catch (Exception ex)
       {
-        audit.LogDanger(Join.Lines(ex));
+        audit.LogDanger(To.Text(ex));
       }
     }
 

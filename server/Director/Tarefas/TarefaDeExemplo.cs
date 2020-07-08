@@ -3,17 +3,25 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Keep.Paper.Api;
 using Keep.Paper.Jobs;
 using Keep.Tools;
 
 namespace Director.Tarefas
 {
   [Expose]
-  public class Exemplo : ICustomJob
+  public class TarefaDeExemplo : ICustomJob
   {
+    private readonly IAudit<TarefaDeExemplo> audit;
+
+    public TarefaDeExemplo(IAudit<TarefaDeExemplo> audit)
+    {
+      this.audit = audit;
+    }
+
     public void Run(IJobScheduler scheduler, CancellationToken stopToken)
     {
-      Debug.WriteLine(DateTime.Now);
+      audit.Log(To.Text("Contando...", DateTime.Now));
     }
 
     public void SetUp(IJobScheduler scheduler)

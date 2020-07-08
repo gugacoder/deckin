@@ -106,6 +106,32 @@ namespace Keep.Tools.Collections
       OnCommitAdd(store, item.AsSingle(), index);
     }
 
+    public virtual T PeekFirst()
+    {
+      return this[0];
+    }
+
+    public virtual T PeekLast()
+    {
+      return this[Count - 1];
+    }
+
+    public virtual void AddFirst(T item)
+    {
+      if (IsReadOnly)
+        throw new UnmodifiableException("A coleção não pode ser modificada.");
+
+      OnCommitAdd(store, item.AsSingle(), 0);
+    }
+
+    public virtual void AddLast(T item)
+    {
+      if (IsReadOnly)
+        throw new UnmodifiableException("A coleção não pode ser modificada.");
+
+      OnCommitAdd(store, item.AsSingle(), Count);
+    }
+
     public virtual void AddMany(IEnumerable<T> items)
     {
       if (IsReadOnly)
@@ -138,12 +164,34 @@ namespace Keep.Tools.Collections
       return list.Remove(item);
     }
 
-    public virtual void RemoveAt(int index)
+    public virtual T RemoveAt(int index)
     {
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
+      var item = list[index];
       list.RemoveAt(index);
+      return item;
+    }
+
+    public virtual T RemoveFirst()
+    {
+      if (IsReadOnly)
+        throw new UnmodifiableException("A coleção não pode ser modificada.");
+
+      var item = this[0];
+      list.RemoveAt(0);
+      return item;
+    }
+
+    public virtual T RemoveLast()
+    {
+      if (IsReadOnly)
+        throw new UnmodifiableException("A coleção não pode ser modificada.");
+
+      var item = this[Count - 1];
+      list.RemoveAt(Count - 1);
+      return item;
     }
 
     public virtual void RemoveRange(int index, int count)
@@ -246,6 +294,8 @@ namespace Keep.Tools.Collections
     #region Implementação específica de interfaces
 
     void ICollection.CopyTo(Array array, int index) => ((IList)list).CopyTo(array, index);
+
+    void IList<T>.RemoveAt(int index) => RemoveAt(index);
 
     bool IList.IsFixedSize => ((IList)list).IsFixedSize;
 

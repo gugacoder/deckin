@@ -45,14 +45,29 @@ namespace Keep.Paper.Configurations
     //  });
     //}
 
-    public static void AddPapers(this IServiceCollection services)
+    public static void AddPapers(this IServiceCollection services,
+      Action<ServiceOptions> builder = null)
     {
-      services.AddSingleton(typeof(IAudit<>), typeof(Audit<>));
-      services.AddSingleton<IAudit, Audit<object>>();
-      services.AddSingleton<IJwtSettings, JwtSettings>();
-      services.AddSingleton<IAuthCatalog, AuthCatalog>();
+      var options = new ServiceOptions();
+      builder?.Invoke(options);
+
+      services.AddSingleton<IAuditSettings, AuditSettings>(provider =>
+      {
+        var settings = ActivatorUtilities.CreateInstance<AuditSettings>(provider);
+        options?.AuditConfigurators?.Invoke(settings, provider);
+        return settings;
+      });
+
+      services.AddTransient<IAudit, Audit<object>>();
+      services.AddTransient(typeof(IAudit<>), typeof(Audit<>));
+
+      services.AddTransient<IJwtSettings, JwtSettings>();
+      services.AddTransient<IAuthCatalog, AuthCatalog>();
       services.AddSingleton<IPaperCatalog, PaperCatalog>();
       services.AddSingleton<IJobScheduler, JobScheduler>();
+
+      services.AddHostedService<JobSchedulerHostedService>();
+
       services.AddControllers().AddJsonOptions(options =>
       {
         var jsonOptions = options.JsonSerializerOptions;
@@ -79,9 +94,25 @@ namespace Keep.Paper.Configurations
       }
 
       endpoints.MapControllers();
+    }
 
-      var jobScheduler = endpoints.ServiceProvider.GetService<IJobScheduler>();
-      Task.Factory.StartNew(async () => await jobScheduler.RunAsync(default));
+    public class ServiceOptions
+    {
+      internal ServiceOptions()
+      {
+      }
+
+      internal Action<IAuditSettings, IServiceProvider> AuditConfigurators
+      {
+        get;
+        private set;
+      }
+
+      public void ConfigureAudit(
+        Action<IAuditSettings, IServiceProvider> builder)
+      {
+        AuditConfigurators += builder;
+      }
     }
   }
 }

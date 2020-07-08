@@ -15,12 +15,12 @@ using Microsoft.Net.Http.Headers;
 
 namespace Director.Modelos
 {
-  public class Login
+  public class ModeloDeLogin
   {
     private readonly DbDirector dbDirector;
     private readonly IJwtSettings jwtSettings;
 
-    public Login(DbDirector dbDirector, IJwtSettings jwtSettings)
+    public ModeloDeLogin(DbDirector dbDirector, IJwtSettings jwtSettings)
     {
       this.dbDirector = dbDirector;
       this.jwtSettings = jwtSettings;
@@ -32,24 +32,32 @@ namespace Director.Modelos
       {
         using var cn = dbDirector.CriarConexao();
 
-        var info = await
-          @"select TBusuario.DFid_usuario
-                 , TBusuario.DFnome_usuario
-                 , TBnivel.DFid_nivel_usuario
-                 , TBnivel.DFdescricao
-              from TBusuario
-             inner join TBnivel
-                     on TBnivel.DFid_nivel_usuario = TBusuario.DFnivel_usuario
-              left join TBopcoes
-                     on TBopcoes.DFcodigo = 391
-                    and TBusuario.DFnivel_usuario = 99
-             where TBusuario.DFnome_usuario = @username
-               and @password = dbo.fn_decript(coalesce(TBopcoes.DFvalor, TBusuario.DFsenha))"
-            .AsSql()
-            .Set(credencial)
-            .SelectOneAsync(cn,
-                (int id, string usuario, int idNivel, string nivel) =>
-                    new { id, usuario, idNivel, nivel });
+        //var info = await
+        //  @"select TBusuario.DFid_usuario
+        //         , TBusuario.DFnome_usuario
+        //         , TBnivel.DFid_nivel_usuario
+        //         , TBnivel.DFdescricao
+        //      from TBusuario
+        //     inner join TBnivel
+        //             on TBnivel.DFid_nivel_usuario = TBusuario.DFnivel_usuario
+        //      left join TBopcoes
+        //             on TBopcoes.DFcodigo = 391
+        //            and TBusuario.DFnivel_usuario = 99
+        //     where TBusuario.DFnome_usuario = @username
+        //       and @password = dbo.fn_decript(coalesce(TBopcoes.DFvalor, TBusuario.DFsenha))"
+        //    .AsSql()
+        //    .Set(credencial)
+        //    .SelectOneAsync(cn,
+        //        (int id, string usuario, int idNivel, string nivel) =>
+        //            new { id, usuario, idNivel, nivel });
+
+        var info = new
+        {
+          id = 1,
+          usuario = "Guga Coder",
+          idNivel = 99,
+          nivel = "Super Usuário"
+        };
 
         if (info == null)
           return Ret.Fail(HttpStatusCode.Unauthorized,

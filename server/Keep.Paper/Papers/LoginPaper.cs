@@ -16,7 +16,7 @@ namespace Keep.Paper.Papers
 {
   [Expose]
   [AllowAnonymous]
-  public class LoginPaper : IPaper
+  public class LoginPaper : BasePaper
   {
     public const string Title = "Credenciais de Usuário";
 
@@ -25,14 +25,12 @@ namespace Keep.Paper.Papers
       public string RedirectTo { get; set; }
     }
 
-    private readonly HttpContext httpContext;
     private readonly IServiceProvider serviceProvider;
     private readonly IPaperCatalog paperCatalog;
 
-    public LoginPaper(IHttpContextAccessor httpContextAccessor,
-        IServiceProvider serviceProvider, IPaperCatalog paperCatalog)
+    public LoginPaper(IServiceProvider serviceProvider,
+      IPaperCatalog paperCatalog)
     {
-      this.httpContext = httpContextAccessor.HttpContext;
       this.serviceProvider = serviceProvider;
       this.paperCatalog = paperCatalog;
     }
@@ -43,7 +41,7 @@ namespace Keep.Paper.Papers
       if (redirectTo == null)
       {
         var homePaper = paperCatalog.GetType(PaperCatalog.Home);
-        redirectTo = Href.To(httpContext, homePaper, "Index");
+        redirectTo = Href.To(HttpContext, homePaper, "Index");
       }
       return new
       {
@@ -90,12 +88,12 @@ namespace Keep.Paper.Papers
           new
           {
             Rel = Rel.Self,
-            Href = Href.To(httpContext, GetType(), Name.Action())
+            Href = Href.To(HttpContext, GetType(), Name.Action())
           },
           new
           {
             Rel = Rel.Action,
-            Href = Href.To(httpContext, GetType(), nameof(AuthenticateAsync))
+            Href = Href.To(HttpContext, GetType(), nameof(AuthenticateAsync))
           },
         }
       };
@@ -110,7 +108,7 @@ namespace Keep.Paper.Papers
         if (redirectHref == null)
         {
           var homePaper = paperCatalog.GetType(PaperCatalog.Home);
-          redirectHref = Href.To(httpContext, homePaper, "Index");
+          redirectHref = Href.To(HttpContext, homePaper, "Index");
         }
 
         var ret = await model.AuthenticateAsync(credential);
@@ -130,7 +128,7 @@ namespace Keep.Paper.Papers
               new
               {
                 Rel = Rel.Self,
-                Href = Href.To(httpContext, GetType(), Name.Action())
+                Href = Href.To(HttpContext, GetType(), Name.Action())
               }
             }
           };
@@ -149,7 +147,7 @@ namespace Keep.Paper.Papers
             new
             {
               Rel = Rel.Self,
-              Href = Href.To(httpContext, GetType(), Name.Action())
+              Href = Href.To(HttpContext, GetType(), Name.Action())
             },
             new
             {
@@ -178,7 +176,7 @@ namespace Keep.Paper.Papers
             new
             {
               Rel = Rel.Self,
-              Href = Href.To(httpContext, GetType(), Name.Action())
+              Href = Href.To(HttpContext, GetType(), Name.Action())
             }
           }
         };

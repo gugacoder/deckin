@@ -1,11 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <OutputType>Exe</OutputType>
     <Version>0.1.0</Version>
   </PropertyGroup>
-  
   <ItemGroup>
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.6.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.4" />
@@ -16,29 +15,19 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.0.3" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="Controladores\" />
-    <Folder Include="Conectores\" />
-    <Folder Include="Adaptadores\" />
-    <Folder Include="Modelos.Mlogic.Integracao\" />
-    <Folder Include="Assets\" />
-    <Folder Include="Assets\Scripts\" />
-    <Folder Include="Assets\Scripts\Director\" />
-    <Folder Include="Assets\Scripts\Pdv\" />
-    <Folder Include="Tarefas\" />
-    <Folder Include="Tarefas.Mlogic.Integracao\" />
-    <Folder Include="Dominio.Mlogic.Integracao\" />
-  </ItemGroup>
-  
   <ItemGroup>
     <ProjectReference Include="..\Keep.Paper\Keep.Paper.csproj">
-      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+      <GlobalPropertiesToRemove>
+      </GlobalPropertiesToRemove>
       <ReferenceSourceTarget>ProjectReference</ReferenceSourceTarget>
     </ProjectReference>
     <ProjectReference Include="..\Keep.Tools\Keep.Tools.csproj">
-      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+      <GlobalPropertiesToRemove>
+      </GlobalPropertiesToRemove>
       <ReferenceSourceTarget>ProjectReference</ReferenceSourceTarget>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Dados\" />
   </ItemGroup>
 </Project>

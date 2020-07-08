@@ -4,7 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Mime;
 using System.Threading.Tasks;
+using Director.Adaptadores;
 using Director.Conectores;
+using Director.Servicos;
 using Keep.Paper.Api;
 using Keep.Paper.Configurations;
 using Microsoft.AspNetCore.Builder;
@@ -28,13 +30,15 @@ namespace Director
 
     public void ConfigureServices(IServiceCollection services)
     {
-      services.AddControllers();
-      services.AddPapers();
-
       services.AddTransient(services =>
           new DbDirector(configuration.GetConnectionString("Director")));
       services.AddTransient(services =>
           new DbPdv(configuration.GetConnectionString("Pdv")));
+
+      services.AddControllers();
+      services.AddPapers();
+
+      services.AddSingleton<ServicoDeAuditoria>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

@@ -5,9 +5,9 @@ using System.Linq;
 
 namespace Keep.Tools
 {
-  public class Join
+  public class To
   {
-    public static string Lines(params object[] entries)
+    public static string Text(params object[] entries)
     {
       var lines = EnumerateLines(entries);
       return string.Join("\n", lines);

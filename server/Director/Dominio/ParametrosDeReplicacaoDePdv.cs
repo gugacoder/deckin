@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Director.Dominio.Mlogic.Integracao
+namespace Director.Dominio
 {
   public class ParametrosDeReplicacaoDePdv
   {

@@ -9,15 +9,12 @@ using Microsoft.AspNetCore.Http;
 namespace Keep.Paper.Papers
 {
   [Expose]
-  public class HomePaper : IPaper
+  public class HomePaper : BasePaper
   {
-    private readonly HttpContext httpContext;
     private readonly IPaperCatalog paperCatalog;
 
-    public HomePaper(IHttpContextAccessor httpContextAccessor,
-        IPaperCatalog paperCatalog)
+    public HomePaper(IPaperCatalog paperCatalog)
     {
-      this.httpContext = httpContextAccessor.HttpContext;
       this.paperCatalog = paperCatalog;
     }
 
@@ -30,7 +27,7 @@ namespace Keep.Paper.Papers
         select new
         {
           Rel = Rel.Item,
-          Href = Href.To(httpContext, paperType, "Index")
+          Href = Href.To(HttpContext, paperType, "Index")
         }).ToArray();
 
       return new
@@ -46,7 +43,7 @@ namespace Keep.Paper.Papers
         {
           new {
             Rel = Rel.Self,
-            Href = Href.To(httpContext, GetType(), "Index")
+            Href = Href.To(HttpContext, GetType(), "Index")
           }
         }
       };

@@ -9,6 +9,7 @@ namespace Keep.Paper.Api
 
     // Structural Elements
     public const string Data = "data";
+    public const string Table = "table";
     public const string Desktop = "desktop";
     public const string Paper = "paper";
     public const string Field = "field";

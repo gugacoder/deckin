@@ -3,21 +3,21 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Director.Conectores;
-using Director.Dominio.Mlogic.Integracao;
+using Director.Dominio;
 using Keep.Paper.Api;
 using Keep.Tools;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
 
-namespace Director.Modelos.Mlogic.Integracao
+namespace Director.Modelos
 {
-  public class LocalizadorDePdv
+  public class ModeloDeLocalizacaoDePdv
   {
     private readonly DbDirector dbDirector;
     private readonly DbPdv dbPdv;
     private readonly IAudit audit;
 
-    public LocalizadorDePdv(DbDirector dbDirector, DbPdv dbPdv, IAudit audit)
+    public ModeloDeLocalizacaoDePdv(DbDirector dbDirector, DbPdv dbPdv, IAudit audit)
     {
       this.dbDirector = dbDirector;
       this.dbPdv = dbPdv;
@@ -48,7 +48,7 @@ namespace Director.Modelos.Mlogic.Integracao
             .SelectAsync<Pdv>(cnDirector, stopToken: stopToken);
 
         audit.Log(
-          Join.Lines(
+          To.Text(
             "Obtenção dos PDVs a partir da base do Director concluída:",
             pdvs.Length > 0
               ? (object)pdvs.Select(pdv => pdv.EnderecoDeRede)
@@ -60,7 +60,7 @@ namespace Director.Modelos.Mlogic.Integracao
       catch (Exception ex)
       {
         audit.LogDanger(
-          Join.Lines(
+          To.Text(
             "Obtenção dos PDVs a partir da base do Director concluída com falhas.",
             ex),
           GetType());

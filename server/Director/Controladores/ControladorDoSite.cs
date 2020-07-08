@@ -5,7 +5,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Director.Conectores;
 using Director.Modelos;
-using Director.Modelos.Mlogic.Integracao;
 using Keep.Paper.Api;
 using Keep.Paper.Formatters;
 using Keep.Paper.Helpers;
@@ -19,15 +18,15 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Director.Controladores
 {
   [Route("/")]
-  public class Site : Controller
+  public class ControladorDoSite : Controller
   {
     private readonly DbDirector dbDirector;
     private readonly DbPdv dbPdv;
-    private readonly IAudit<Site> audit;
+    private readonly IAudit<ControladorDoSite> audit;
     private readonly IServiceProvider provider;
 
-    public Site(DbDirector dbDirector, DbPdv dbPdv,
-      IAudit<Site> audit, IServiceProvider serviceProvider)
+    public ControladorDoSite(DbDirector dbDirector, DbPdv dbPdv,
+      IAudit<ControladorDoSite> audit, IServiceProvider serviceProvider)
     {
       this.dbDirector = dbDirector;
       this.dbPdv = dbPdv;
