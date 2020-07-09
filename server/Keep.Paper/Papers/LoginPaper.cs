@@ -45,14 +45,16 @@ namespace Keep.Paper.Papers
       }
       return new
       {
-        Kind = Kind.Action,
+        Kind = Kind.Paper,
         Data = new
         {
           redirectTo
         },
         View = new
         {
-          Title
+          Title,
+          Design = Design.Action,
+          Size = Size.ExtraSmall
         },
         Fields = new
         {

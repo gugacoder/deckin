@@ -10,18 +10,13 @@ using Keep.Tools;
 namespace Director.Tarefas
 {
   [Expose]
-  public class TarefaDeExemplo : ICustomJob
+  public class TarefaDeExemplo : IJob
   {
     private readonly IAudit<TarefaDeExemplo> audit;
 
     public TarefaDeExemplo(IAudit<TarefaDeExemplo> audit)
     {
       this.audit = audit;
-    }
-
-    public void Run(IJobScheduler scheduler, CancellationToken stopToken)
-    {
-      audit.Log(To.Text("Contando...", DateTime.Now));
     }
 
     public void SetUp(IJobScheduler scheduler)
@@ -31,7 +26,12 @@ namespace Director.Tarefas
 
     private IEnumerable<DateTime> NextRun()
     {
-      for (int i = 0; i < 5; i++) yield return DateTime.Now.AddSeconds(1);
+      while (true) yield return DateTime.Now.AddSeconds(1);
+    }
+
+    public void Run(CancellationToken stopToken)
+    {
+      audit.Log(To.Text(DateTime.Now));
     }
   }
 }

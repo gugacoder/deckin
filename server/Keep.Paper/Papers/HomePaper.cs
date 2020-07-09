@@ -32,11 +32,11 @@ namespace Keep.Paper.Papers
 
       return new
       {
-        Kind = Kind.Desktop,
+        Kind = Kind.Paper,
         View = new
         {
           Title = "Catálogo",
-          Design = Design.Grid
+          Design = Design.Dashboard
         },
         Embedded = papers,
         Links = new object[]

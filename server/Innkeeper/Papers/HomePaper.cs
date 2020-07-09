@@ -14,7 +14,7 @@ namespace Innkeeper.Papers
     {
       return new
       {
-        Kind = Kind.Data,
+        Kind = Kind.Paper,
         Data = new
         {
           Id = 10,
@@ -22,7 +22,8 @@ namespace Innkeeper.Papers
         },
         View = new
         {
-          Title = "Innkeeper Demo App"
+          Title = "Innkeeper Demo App",
+          Design = Design.Dashboard
         },
         Links = new
         {

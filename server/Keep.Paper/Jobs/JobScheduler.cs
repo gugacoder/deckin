@@ -34,14 +34,8 @@ namespace Keep.Paper.Jobs
           try
           {
             var job = (IJob)ActivatorUtilities.CreateInstance(provider, type);
-            if (job is ICustomJob customJob)
-            {
-              customJob.SetUp(this);
-            }
-            else
-            {
-              this.Add(job, TimeSpan.FromSeconds(1));
-            }
+            job.SetUp(this);
+            this.Add(job, TimeSpan.FromSeconds(1));
           }
           catch (Exception ex)
           {
@@ -97,7 +91,7 @@ namespace Keep.Paper.Jobs
     {
       try
       {
-        await Task.Run(() => schedule.Job.Run(this, stopToken));
+        await Task.Run(() => schedule.Job.Run(stopToken));
       }
       finally
       {

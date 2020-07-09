@@ -11,8 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Director.Tarefas
 {
-  // [Expose]
-  public class TarefaDeReplicacaoDePdv : ICustomJob
+  [Expose]
+  public class TarefaDeReplicacaoDePdv : IJob
   {
     private readonly IServiceProvider provider;
     private readonly IAudit<TarefaDeReplicacaoDePdv> audit;
@@ -24,7 +24,20 @@ namespace Director.Tarefas
       this.audit = audit;
     }
 
-    public void Run(IJobScheduler scheduler, CancellationToken stopToken)
+    public void SetUp(IJobScheduler scheduler)
+    {
+      scheduler.Add(this, CalcularProximaExecucao);
+    }
+
+    private IEnumerable<DateTime> CalcularProximaExecucao()
+    {
+      while (true)
+      {
+        yield return DateTime.Now.AddSeconds(2);
+      }
+    }
+
+    public void Run(CancellationToken stopToken)
     {
       try
       {
@@ -49,19 +62,6 @@ namespace Director.Tarefas
       catch (Exception ex)
       {
         audit.LogDanger(To.Text(ex));
-      }
-    }
-
-    public void SetUp(IJobScheduler scheduler)
-    {
-      scheduler.Add(this, CalcularProximaExecucao);
-    }
-
-    private IEnumerable<DateTime> CalcularProximaExecucao()
-    {
-      while (true)
-      {
-        yield return DateTime.Now.AddSeconds(2);
       }
     }
   }

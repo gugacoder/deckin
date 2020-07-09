@@ -1,4 +1,5 @@
 import lodash from 'lodash'
+import '@/helpers/StringHelper.js'
 
 export const unknownPaper = canonifyPaper({
   kind: 'fault',
@@ -51,7 +52,7 @@ export function canonifyPaper (paper) {
 
   // Kind, contém a identificação dos tipos representados pela entidade.
   //
-  target.kind = source.kind || 'unknown'
+  target.kind = source.kind || 'data'
   
   // Kind, contém a identificação dos tipos representados pela entidade.
   //
@@ -64,10 +65,21 @@ export function canonifyPaper (paper) {
   // Data, contém os dados de usuário associados com a entidade.
   //
   target.data = source.data || {}
+  // Recursivamente convertendo datas...
+  // FIXME: deveria ser recursivo
+  Object.keys(target.data).forEach(key => {
+    let value = target.data[key]
+    if (typeof value === 'string' && value.match(/[0-9/]+T[0-9:]/)) {
+      target.data[key] = new Date(value)
+    }
+  })
 
   // View, contém instruções de rederização do componente.
   //
   target.view = source.view || {}
+  if (target.kind === 'paper') {
+    if (!target.view.design) target.view.design = 'data'
+  }
 
   // Fields, contém definições sobre os campos de dados, contidos em Data.
   //
@@ -78,8 +90,10 @@ export function canonifyPaper (paper) {
   //    foo: {}
   // Se torna:
   //    {
-  //      view: {
-  //        name: 'foo'
+  //      fields: [
+  //        {
+  //          name: 'foo'
+  //        }
   //      }
   //    }
   if (!Array.isArray(target.fields)) {
@@ -96,6 +110,8 @@ export function canonifyPaper (paper) {
     // FIXME: O nome deveria ser checado contra conflito de nome
     field.data = field.data || {}
     field.data.name = field.data.name || `_field${++index}`
+    field.view = field.view || {}
+    field.view.title = field.view.title || field.data.name.toProperCase()
     // Se um valor não é indicado diretamente então criamos uma função
     // de referência para a propriedade de mesmo nome na coleção de dados.
     if (!field.data.value) {
@@ -113,7 +129,7 @@ export function canonifyPaper (paper) {
         }
       })
     }
-    return canonifyPaper(field, target)
+    return canonifyPaper(field)
   })
 
   // Actions, coleção de ações aplicadas em cima da entidade
@@ -125,9 +141,11 @@ export function canonifyPaper (paper) {
   //    foo: {}
   // Se torna:
   //    {
-  //      view: {
-  //        name: 'foo'
-  //      }
+  //      actions: [
+  //        {
+  //          name: 'foo'
+  //        }
+  //      ]
   //    }
   if (!Array.isArray(target.actions)) {
     target.actions = Object.keys(source.actions).map(actionName => {
@@ -143,13 +161,13 @@ export function canonifyPaper (paper) {
     // FIXME: O nome deveria ser checado contra conflito de nome
     action.view = action.view || {}
     action.view.name = action.view.name || `_action${++index}`
-    return canonifyPaper(action, target)
+    return canonifyPaper(action)
   })
 
   // Embedded, coleção de entidades adicionais entregues com a entidade
   //
   target.embedded = (source.embedded || []).map(entity => {
-    return canonifyPaper(entity, target)
+    return canonifyPaper(entity)
   })
 
   // Links, coleção dos links relacionados à entidade.
@@ -161,7 +179,11 @@ export function canonifyPaper (paper) {
   //    foo: {}
   // Se torna:
   //    {
-  //      rel: 'foo'
+  //      links: [
+  //        {
+  //          rel: 'foo'
+  //        }
+  //      ]
   //    }
   if (!Array.isArray(target.links)) {
     target.links = Object.keys(source.links).map(linkName => {
@@ -172,6 +194,31 @@ export function canonifyPaper (paper) {
       let properties = { rel: linkName }
       return lodash.merge({}, properties, link)
     })
+  }
+
+  //
+  // Pós-processamentos
+  //
+
+  // Corrigindo a falta de campos em designs como Grid
+  if (target.kind === 'paper') {
+    if (target.view.design === 'grid' && target.fields.length === 0) {
+      let firstRecord = target.embedded[0]
+      if (firstRecord) {
+        target.fields = Object.keys(firstRecord.data).map(key => {
+          return canonifyPaper({
+            kind: 'header',
+            data: {
+              name: key
+            },
+            view: {
+              title: key.toProperCase(),
+              hidden: key.startsWith('_')
+            }
+          })
+        })
+      }
+    }
   }
 
   return target

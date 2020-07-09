@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -12,50 +13,55 @@ namespace Keep.Tools.Collections
 
     public Map()
     {
-      map = new Dictionary<TKey, TValue>();
+      map = Ignite(new Dictionary<TKey, TValue>());
     }
 
     public Map(int capacity)
     {
-      map = new Dictionary<TKey, TValue>(capacity);
+      map = Ignite(new Dictionary<TKey, TValue>(capacity));
     }
 
     public Map(IDictionary<TKey, TValue> entries)
     {
-      map = new Dictionary<TKey, TValue>(entries);
+      map = Ignite(new Dictionary<TKey, TValue>(entries));
     }
 
     public Map(IEnumerable<KeyValuePair<TKey, TValue>> entries)
     {
-      map = new Dictionary<TKey, TValue>();
-      foreach (var entry in entries)
-      {
-        map[entry.Key] = entry.Value;
-      }
+      map = Ignite(new Dictionary<TKey, TValue>(entries));
     }
 
     public Map(IEqualityComparer<TKey> comparer)
     {
-      map = new Dictionary<TKey, TValue>(comparer);
+      map = Ignite(new Dictionary<TKey, TValue>(comparer));
     }
 
     public Map(IEqualityComparer<TKey> comparer, int capacity)
     {
-      map = new Dictionary<TKey, TValue>(capacity, comparer);
+      map = Ignite(new Dictionary<TKey, TValue>(capacity, comparer));
     }
 
     public Map(IEqualityComparer<TKey> comparer, IDictionary<TKey, TValue> entries)
     {
-      map = new Dictionary<TKey, TValue>(entries, comparer);
+      map = Ignite(new Dictionary<TKey, TValue>(entries, comparer));
     }
 
     public Map(IEqualityComparer<TKey> comparer, IEnumerable<KeyValuePair<TKey, TValue>> entries)
     {
-      map = new Dictionary<TKey, TValue>(comparer);
-      foreach (var entry in entries)
-      {
-        map[entry.Key] = entry.Value;
-      }
+      map = Ignite(new Dictionary<TKey, TValue>(entries, comparer));
+    }
+
+    /// <summary>
+    /// XXX: Resolve um bug no construtor de Dictionary desconhecido em Jul/20.
+    /// -> BUG: A inicialização do dicionário é retardada e pode ainda não ter
+    ///    ocorrida no ato da primeira adição de item.
+    /// -> SAIDA: A solução adotada força a inicialização do dicionário com
+    ///    pelo menos um slot de capacidade.
+    /// </summary>
+    private Dictionary<TKey, TValue> Ignite(Dictionary<TKey, TValue> dictionary)
+    {
+      dictionary.EnsureCapacity(1);
+      return dictionary;
     }
 
     public int Count => map.Count;

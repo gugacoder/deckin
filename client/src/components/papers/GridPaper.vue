@@ -1,77 +1,39 @@
 <template lang="pug"> 
-  v-container(
-    :class="style"
-  )
-    div.action-paper
-      v-card(
-        flat
-        class="mx-auto"
-      )
-        v-card-title
-          | {{ title }}
+  div.grid-paper
+    v-card(
+      flat
+      class="mx-auto"
+    )
+      v-card-title
+        | {{ title }}
 
-        v-card-text
-          v-form(
-            ref="form"
-            v-model="valid"
-            lazy-validation
-            @submit.prevent="submit()"
-          )
-            div(
-              v-for="field in fields"
-              :key="field.name"
-            )
-              //- Instância do Widget
-              component(
-                :is="nameWidget(field)"
-                :field="field"
-                ref="widgets"
-              )
+      v-card-text
 
-            div
-              p {{ message }}
-
-            div
-              v-btn(
-                type="submit"
-                color="primary"
-                class="mr-2"
-                small 
-              )
-                | Confirmar
-
-              v-btn(
-                class="mr-2"
-                @click="cancel()"
-                small
-              )
-                | Cancelar
+        v-data-table(
+          :headers="cols"
+          :items="rows"
+          :disable-pagination="true"
+          :disable-sort="true"
+          :hide-default-footer="true"
+          item-key="uid"
+          dense
+        )
 </template>
-
-<style scoped>
-.xs-port {
-  max-width: 300px;
-}
-.xs-port .v-card__title {
-  display: block;
-}
-</style>
 
 <script>
 import Vue from 'vue'
 import BasePaper from './BasePaper'
 import lodash from 'lodash'
+import moment from 'moment'
 import '@/helpers/StringHelper.js'
 import { unknownPaper } from '@/helpers/PaperHelper.js'
 
 export default {
   extends: BasePaper,
 
-  name: 'action-paper',
+  name: 'grid-paper',
 
   data: () => ({
-    valid: true,
-    message: null
   }),
 
   computed: {
@@ -79,15 +41,30 @@ export default {
       return this.paper.fields
     },
 
-    style () {
-      switch (this.paper.view.size)
-      {
-        case 1: return 'xs-port'
-        case 2: return 'sm-port'
-        case 3: return 'md-port'
-        case 4: return 'lg-port'
-        case 5: return 'xl-port'
-      }
+    cols () {
+      console.log(this.fields)
+      let headers = this.fields.map(field => ({
+        value: field.data.name,
+        text: field.view.title || field.data.name,
+        sortable: false
+      }))
+      return headers
+    },
+
+    rows () {
+      return this.paper.embedded.filter(x => x.kind === 'data').map(x => {
+        let data = Object.assign({}, x.data)
+        Object.keys(data).forEach(key => {
+          let value = data[key]
+          if (value instanceof Date) {
+            data[key] = moment(value).format('DD/MM/YY HH:MM:SS')
+          }
+        })
+        if (!data.uid) {
+          data.uid = data[0]
+        }
+        return data
+      })
     }
   },
 

@@ -34,17 +34,12 @@
           bottom
         )
 
-      v-btn(
-        icon
-        @click="$router.push('/!/Keep.Paper/Home/Index')"
-      )
-        v-icon mdi-magnify
-
-      v-btn(
-        icon
-        @click="$router.push('/!/My/Paper/Index')"
-      )
-        v-icon mdi-magnify
+      //-
+        v-btn(
+          icon
+          @click="$router.push('/!/Keep.Paper/Home/Index')"
+        )
+          v-icon mdi-magnify
 
       v-menu(
         :close-on-click="true"
@@ -82,6 +77,7 @@
 
     v-container(
       id="paper-content"
+      fluid
     )
       //- :type can be either info, success, warning or error
       v-alert(
@@ -207,8 +203,8 @@ export default {
 
     paperComponent () {
       let paper = this.content.paper
-      let kind = (paper ? paper.kind : 'unknown').toHyphenCase()
-      let name = `${kind}-paper`
+      let design = (paper ? paper.view.design : 'unknown').toHyphenCase()
+      let name = `${design}-paper`
       if (!Vue.options.components[name]) {
         name = 'unknown-paper'
       }

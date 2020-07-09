@@ -19,7 +19,7 @@ namespace Director.Formularios
 
     public object Index() => new
     {
-      Kind = Kind.Table,
+      Kind = Kind.Paper,
 
       View = new
       {
@@ -33,14 +33,7 @@ namespace Director.Formularios
         .Take(1000)
         .Select(evento => new
         {
-          Kind = Kind.Data,
-
-          Data = evento,
-
-          Links = new
-          {
-            Self = Href.To(HttpContext, GetType(), nameof(Index), evento.Id)
-          }
+          Data = evento
         }).ToArray(),
 
       Links = new

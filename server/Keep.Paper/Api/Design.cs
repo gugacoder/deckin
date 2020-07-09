@@ -6,6 +6,9 @@ namespace Keep.Paper.Api
     // Collection of Papers
     public const string Dashboard = "dashboard";
 
+    // A Form for Data Input and Validation
+    public const string Action = "action";
+
     // Tables with Columns, Rows and Cells
     public const string Grid = "grid";
 

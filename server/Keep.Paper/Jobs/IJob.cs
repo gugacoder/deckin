@@ -6,6 +6,8 @@ namespace Keep.Paper.Jobs
 {
   public interface IJob
   {
-    void Run(IJobScheduler scheduler, CancellationToken stopToken);
+    void SetUp(IJobScheduler scheduler);
+
+    void Run(CancellationToken stopToken);
   }
 }
