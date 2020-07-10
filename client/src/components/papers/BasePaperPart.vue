@@ -28,6 +28,16 @@ export default {
   },
 
   computed: {
+    parameters () {
+      return {
+        catalogName: this.catalogName,
+        paperName: this.paperName,
+        actionName: this.actionName,
+        actionKeys: this.actionKeys,
+        content: this.content
+      }
+    },
+
     paper () {
       return this.content.paper
     },

@@ -2,78 +2,31 @@
   div(
     class="paper-view"
   )
-    v-app-bar(
+    v-system-bar(
       app
-      dense
-      color="white"
-      elevate-on-scroll
+      color="primary"
+      dark
     )
-      v-app-bar-nav-icon
+      v-icon mdi-cart-outline
 
-      router-link.title(
-        to="/"
+      v-hover(
+        v-slot:default="{ hover }"
       )
-        v-toolbar-title
-          span.font-weight-bold Paper
-          span.font-weight-thin Alfa
+        span.custom-title
+          router-link(
+            to="/"
+          )
+            span.font-weight-bold Mercado
+            span.font-weight-light Logic &nbsp;
+              small.font-weight-light Alfa
 
       v-spacer
 
-      template(
-        v-if="loading"
-      )
-        span(
-          class="text--secondary"
-        )
-          | Carregando dados...
+      v-icon mdi-bell-outline
 
-        v-progress-linear(
-          :indeterminate="true"
-          height="2"
-          absolute
-          bottom
-        )
-
-      //-
-        v-btn(
-          icon
-          @click="$router.push('/!/Keep.Paper/Home/Index')"
-        )
-          v-icon mdi-magnify
-
-      v-menu(
-        :close-on-click="true"
-        :close-on-content-click="true"
-        :offset-x="false"
-        :offset-y="true"
-        v-if="identity"
-        dense
-      )
-        template(
-          v-slot:activator="{ on, attrs }"
-        )
-          v-btn(
-            icon
-            v-bind="attrs"
-            v-on="on"
-          )
-            v-icon mdi-account-circle
-
-        v-list
-          v-list-item(
-            disabled
-          )
-            v-list-item-title {{ identity.subject }}
-
-          v-list-item(
-            @click="logout()"
-          )
-            v-list-item-title Sair do Sistema
-
-      v-btn(
-        icon
-      )
-        v-icon mdi-dots-vertical
+      span {{ currentDate }}
+      
+      v-icon
 
     v-container(
       id="paper-content"
@@ -105,7 +58,6 @@
       template(
         v-if="content.paper"
       )
-      
         component(
           :is="paperComponent"
           v-bind="paperComponentProperties"
@@ -126,20 +78,25 @@
 </template>
 
 <style scoped>
-.title {
+.custom-title a {
+  text-transform: uppercase;
   text-decoration: none;
-  color: darkslategray;
+  color: var(--v-primary-base)
 }
-.title:hover {
-  color: slategray;
+
+.custom-title a:hover {
+  text-transform: uppercase;
+  text-decoration: none;
+  color: lighten( red, 50% );
 }
 </style>
 
 <script>
 import Vue from 'vue'
 import { mapState } from 'vuex'
-import { unknownPaper } from '@/helpers/PaperHelper.js'
-import '@/helpers/StringHelper.js'
+import moment from 'moment'
+import { unknownPaper } from '@/helpers/PaperHelper'
+import '@/helpers/StringHelper'
 
 export default {
   // Strategy: Fetching After Navigation
@@ -180,7 +137,8 @@ export default {
         fault: null
       },
     },
-    loading: false,
+
+    currentDate: null,
   }),
 
   computed: {
@@ -225,6 +183,7 @@ export default {
   created () {
     this.awaitData();
     this.fetchData();
+    this.startTimer();
   },
 
   watch: {
@@ -233,6 +192,14 @@ export default {
   },
 
   methods: {
+    startTimer() {
+      if (!this.currentDate) {
+        setInterval(() => {
+          this.currentDate = moment().format('LLLL')
+        }, 1000)
+      }
+    },
+
     async fetchData () {
       let targetPaper = this.preFetchedPaper
 
@@ -256,14 +223,7 @@ export default {
 
     awaitData () {
       this.content.alert = {}
-      this.loading = !this.content.paper
     },
-
-    logout () {
-      this.identity = null
-      this.$router.push('/')
-      this.$router.go()
-    }
   }
 }
 </script>

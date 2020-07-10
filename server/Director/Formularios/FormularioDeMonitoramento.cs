@@ -3,6 +3,7 @@ using System.Linq;
 using Director.Servicos;
 using Keep.Paper.Api;
 using Keep.Tools;
+using Keep.Tools.Collections;
 
 namespace Director.Formularios
 {
@@ -24,13 +25,15 @@ namespace Director.Formularios
       View = new
       {
         Title = "Monitoramento de Eventos do Sistema",
-        Design = Design.Grid
+        Design = Design.Grid,
+        AutoRefresh = 1 // segundos
       },
 
       Embedded = auditoria
-        .SelectMany(entrada => entrada.Value.Take(100))
+        .SelectMany(item => item.Value)
+        .NotNull()
         .OrderByDescending(evento => evento.Data)
-        .Take(1000)
+        .Take(40)
         .Select(evento => new
         {
           Data = evento

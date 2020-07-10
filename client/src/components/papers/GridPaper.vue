@@ -1,49 +1,88 @@
 <template lang="pug"> 
   div.grid-paper
-    v-card(
-      flat
-      class="mx-auto"
+    the-paper-header(
+      v-bind="parameters"
     )
-      v-card-title
-        | {{ title }}
+      v-btn(
+        icon
+        :color="autoRefresh ? 'white' : 'accent'"
+        @click="autoRefresh = !autoRefresh"
+      )
+        v-icon {{ autoRefresh ? 'mdi-refresh-circle' : 'mdi-refresh' }}
 
-      v-card-text
-
-        v-data-table(
-          :headers="cols"
-          :items="rows"
-          :disable-pagination="true"
-          :disable-sort="true"
-          :hide-default-footer="true"
-          item-key="uid"
-          dense
-        )
+    v-data-table(
+      :headers="cols"
+      :items="rows"
+      :disable-pagination="true"
+      :disable-sort="true"
+      :hide-default-footer="true"
+      item-key="uid"
+      dense
+    )
+      template(
+        v-slot:item="{ item, headers }"
+      )
+        tr
+          td.text-start(
+            v-for="header in headers"
+            :key="`${item.key}-${header.value}`"
+            nowrap
+          )
+            | {{ item[header.value] }}
 </template>
 
 <script>
 import Vue from 'vue'
-import BasePaper from './BasePaper'
+import BasePaperPart from './BasePaperPart'
 import lodash from 'lodash'
 import moment from 'moment'
-import '@/helpers/StringHelper.js'
-import { unknownPaper } from '@/helpers/PaperHelper.js'
+import '@/helpers/StringHelper'
+import { unknownPaper } from '@/helpers/PaperHelper'
+import ThePaperHeader from './parts/ThePaperHeader'
 
 export default {
-  extends: BasePaper,
+  extends: BasePaperPart,
 
   name: 'grid-paper',
 
+  components: {
+    'the-paper-header': ThePaperHeader,
+  },
+
   data: () => ({
+    timer: null,
+    autoRefresh: false,
   }),
 
+  created () {
+    this.onRouteCreated();
+  },
+
+  watch: {
+    '$route': 'onRouteChanged',
+    'content.paper': 'onPaperChanged',
+  },
+
   computed: {
+    href () {
+      return this.$browser.href(this)
+    },
+
+    autoRefreshSeconds () {
+      let seconds = this.paper.view.autoRefresh
+      if (!seconds)
+        return null
+      if (!Number.isInteger(seconds))
+        seconds = 2
+      return seconds
+    },
+
     fields () {
       return this.paper.fields
     },
 
     cols () {
-      console.log(this.fields)
-      let headers = this.fields.map(field => ({
+      let headers = this.fields.filter(x => !x.hidden).map(field => ({
         value: field.data.name,
         text: field.view.title || field.data.name,
         sortable: false
@@ -57,11 +96,11 @@ export default {
         Object.keys(data).forEach(key => {
           let value = data[key]
           if (value instanceof Date) {
-            data[key] = moment(value).format('DD/MM/YY HH:MM:SS')
+            data[key] = moment(value).format('DD/MM/YY hh:mm:ss')
           }
         })
-        if (!data.uid) {
-          data.uid = data[0]
+        if (!data.key) {
+          data.key = this.paper.embedded.indexOf(x)
         }
         return data
       })
@@ -69,6 +108,46 @@ export default {
   },
 
   methods: {
+    onRouteCreated () {
+      this.startAutoRefreshData()
+      this.autoRefresh = this.paper.view.autoRefresh
+    },
+
+    onRouteChanged () {
+      this.autoRefresh = this.paper.view.autoRefresh
+    },
+
+    onPaperChanged () {
+    },
+
+    startAutoRefreshData() {
+      if (!this.timer) {
+        this.timer = () => {
+          let milliseconds = (this.autoRefreshSeconds || 2) * 1000
+          setTimeout(() => {
+            if (this.autoRefresh) {
+              this.refreshData().then(() => this.timer())
+            } else {
+              this.timer()
+            }
+          }, milliseconds)
+        }
+        this.timer()
+      }
+    },
+
+    async refreshData() {
+      let href = this.href
+      let data = this.$route.query
+
+      let paper = await this.$browser.request(href, data) || unknownPaper
+
+      let self = paper.getLink('self') || { href: this.href }
+      let path = this.$browser.routeFor(self.href)
+      if (path === this.$route.path) {
+        this.content.paper = paper
+      }
+    },
 
     nameWidget (field) {
       let pascalName = field.kind.toHyphenCase()

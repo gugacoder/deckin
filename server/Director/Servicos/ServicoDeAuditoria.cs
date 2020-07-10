@@ -23,7 +23,7 @@ namespace Director.Servicos
 
     public class Evento
     {
-      private long idGenerator;
+      private static long idGenerator;
 
       public Evento()
       {
@@ -42,11 +42,11 @@ namespace Director.Servicos
     {
       protected override void OnCommitAdd(ItemStore store, IEnumerable<Evento> items, int index = -1)
       {
-        while (Count >= MaxRecordPerEvent)
+        base.OnCommitAdd(store, items, index);
+        while (Count > MaxRecordPerEvent)
         {
           base.RemoveFirst();
         }
-        base.OnCommitAdd(store, items, index);
       }
     }
   }

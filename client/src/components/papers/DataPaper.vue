@@ -38,42 +38,14 @@
 </template>
 
 <script>
+import BasePaperPart from './BasePaperPart'
+
 export default {
+  extends: BasePaperPart,
+
   name: 'data-paper',
 
-  props: {
-    catalogName: {
-      type: String,
-      required: true
-    },
-    paperName: {
-      type: String,
-      required: true
-    },
-    actionName: {
-      type: String,
-      required: true
-    },
-    actionKeys: {
-      type: String,
-      required: false
-    },
-    content: {
-      type: Object,
-      required: true
-    }
-  },
-
   computed: {
-    paper () {
-      console.log('content', this.content)
-      return this.content.paper
-    },
-
-    title () {
-      return (this.paper ? this.paper.view.title : null) || 'Unnamed'
-    },
-
     fields () {
       if (!this.paper) return []
 

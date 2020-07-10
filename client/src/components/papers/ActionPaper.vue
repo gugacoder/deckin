@@ -2,72 +2,71 @@
   v-container(
     :class="style"
   )
-    div.action-paper
-      v-card(
-        flat
-        class="mx-auto"
+    the-paper-header(
+      app
+      v-bind="parameters"
+    )
+
+    v-form(
+      ref="form"
+      v-model="valid"
+      lazy-validation
+      @submit.prevent="submit()"
+    )
+      div(
+        v-for="field in fields"
+        :key="field.name"
       )
-        v-card-title
-          | {{ title }}
+        //- Instância do Widget
+        component(
+          :is="nameWidget(field)"
+          :field="field"
+          ref="widgets"
+        )
 
-        v-card-text
-          v-form(
-            ref="form"
-            v-model="valid"
-            lazy-validation
-            @submit.prevent="submit()"
-          )
-            div(
-              v-for="field in fields"
-              :key="field.name"
-            )
-              //- Instância do Widget
-              component(
-                :is="nameWidget(field)"
-                :field="field"
-                ref="widgets"
-              )
+      div
+        p {{ message }}
 
-            div
-              p {{ message }}
+      div
+        v-btn(
+          type="submit"
+          color="primary"
+          class="mr-2"
+        )
+          | Confirmar
 
-            div
-              v-btn(
-                type="submit"
-                color="primary"
-                class="mr-2"
-                small 
-              )
-                | Confirmar
-
-              v-btn(
-                class="mr-2"
-                @click="cancel()"
-                small
-              )
-                | Cancelar
+        v-btn(
+          class="mr-2"
+          @click="cancel()"
+        )
+          | Cancelar
 </template>
 
 <style scoped>
-.xs-port {
+.xs-size {
   max-width: 300px;
 }
-.xs-port .v-card__title {
+.xs-size .v-card__title {
   display: block;
 }
 </style>
 
 <script>
 import Vue from 'vue'
-import BasePaper from './BasePaper'
 import lodash from 'lodash'
-import '@/helpers/StringHelper.js'
-import { unknownPaper } from '@/helpers/PaperHelper.js'
+import BasePaperPart from './BasePaperPart'
+import ThePaperHeader from './parts/ThePaperHeader'
+import { unknownPaper } from '@/helpers/PaperHelper'
+import '@/helpers/StringHelper'
 
 export default {
-  extends: BasePaper,
+  extends: BasePaperPart,
 
   name: 'action-paper',
+
+  components: {
+    'the-paper-header': ThePaperHeader,
+  },
 
   data: () => ({
     valid: true,
@@ -80,14 +79,7 @@ export default {
     },
 
     style () {
-      switch (this.paper.view.size)
-      {
-        case 1: return 'xs-port'
-        case 2: return 'sm-port'
-        case 3: return 'md-port'
-        case 4: return 'lg-port'
-        case 5: return 'xl-port'
-      }
+      return this.paper.view.size
     }
   },
 

@@ -2,16 +2,17 @@
   div.desktop-paper
     v-btn(
       v-for="item in items"
+      :key="item.uid"
     )
       | {{ item.view.title }}
 
 </template>
 
 <script>
-import BasePaper from './BasePaper.vue'
+import BasePaperPart from './BasePaperPart'
 
 export default {
-  extends: BasePaper,
+  extends: BasePaperPart,
   
   name: 'desktop-paper',
 

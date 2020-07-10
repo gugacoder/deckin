@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 namespace Keep.Paper.Api
 {
-  public enum Size
+  public class Size
   {
-    Default,
-    ExtraSmall, // xs
-    Small,      // sm
-    Medium,     // md
-    Large,      // lg
-    ExtraLarge, // xl
+    public const string ExtraSmall = "xs-size";
+    public const string Small = "sm-size";
+    public const string Medium = "md-size";
+    public const string Large = "lg-size";
+    public const string ExtraLarge = "xl-size";
   }
 }
