@@ -4,8 +4,7 @@
   )
     v-system-bar(
       app
-      color="primary"
-      dark
+      color="white"
     )
       v-icon mdi-cart-outline
 
@@ -22,10 +21,10 @@
 
       v-spacer
 
-      v-icon mdi-bell-outline
+      v-icon mdi-alarm
 
       span {{ currentDate }}
-      
+
       v-icon
 
     v-container(
@@ -74,14 +73,13 @@
           v-expansion-panel-content
             pre(v-if="content.paper") {{ content.paper }}
             small(v-else) ( Waiting for data... )
-
 </template>
 
 <style scoped>
 .custom-title a {
   text-transform: uppercase;
   text-decoration: none;
-  color: var(--v-primary-base)
+  color: var(--v-secondary-base)
 }
 
 .custom-title a:hover {

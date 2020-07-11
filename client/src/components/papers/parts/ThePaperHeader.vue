@@ -4,14 +4,18 @@
       app
       dense
       elevate-on-scroll
-      color="primary"
-      dark
+      color="white"
     )
       slot(
         name="left"
       )
 
-      | {{ title }}
+      v-btn(
+        rounded
+        text
+        @click="$emit('click')"
+      )
+        | {{ title }}
 
       v-spacer
 

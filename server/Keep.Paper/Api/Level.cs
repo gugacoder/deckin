@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace Keep.Paper.Api
 {
+  [JsonConverter(typeof(JsonStringEnumConverter))]
   public enum Level
   {
     Trace,        // Cinza

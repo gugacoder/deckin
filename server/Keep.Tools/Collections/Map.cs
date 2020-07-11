@@ -10,6 +10,7 @@ namespace Keep.Tools.Collections
   public class Map<TKey, TValue> : IMap<TKey, TValue>
   {
     private readonly Dictionary<TKey, TValue> map;
+    private readonly object @lock = new object();
 
     public Map()
     {
@@ -106,52 +107,72 @@ namespace Keep.Tools.Collections
       OnClear(map);
     }
 
+    public TResult[] Find<TResult>(
+      Func<IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable<TResult>> search)
+    {
+      lock (@lock) return search.Invoke(map).ToArray();
+    }
+
+    public virtual void ForEach(Action<KeyValuePair<TKey, TValue>> action)
+    {
+      lock (@lock) map.ForEach(action);
+    }
+
     protected virtual void OnAdd(Dictionary<TKey, TValue> store, TKey key, TValue value)
     {
-      store[key] = value;
+      lock (@lock) store[key] = value;
     }
 
     protected virtual bool OnRemove(Dictionary<TKey, TValue> store, TKey key)
     {
-      return store.Remove(key);
+      lock (@lock) return store.Remove(key);
     }
 
     protected virtual void OnClear(Dictionary<TKey, TValue> store)
     {
-      store.Clear();
+      lock (@lock) store.Clear();
     }
 
     public bool Contains(KeyValuePair<TKey, TValue> item)
     {
-      return ((IDictionary<TKey, TValue>)map).Contains(item);
+      lock (@lock) return ((IDictionary<TKey, TValue>)map).Contains(item);
     }
 
     public bool ContainsKey(TKey key)
     {
-      return map.ContainsKey(key);
+      lock (@lock) return map.ContainsKey(key);
     }
 
     public void CopyToDictionary(IDictionary target)
     {
-      foreach (var entry in this)
+      lock (@lock)
       {
-        target[entry.Key] = entry.Value;
+        foreach (var entry in this)
+        {
+          target[entry.Key] = entry.Value;
+        }
       }
     }
 
     public void CopyTo<TTargetKey, TTargetValue>(IDictionary<TTargetKey, TTargetValue> target)
     {
-      foreach (var entry in this)
+      lock (@lock)
       {
-        var key = Change.To<TTargetKey>(entry.Key);
-        var value = Change.To<TTargetValue>(entry.Value);
-        target[key] = value;
+        foreach (var entry in this)
+        {
+          var key = Change.To<TTargetKey>(entry.Key);
+          var value = Change.To<TTargetValue>(entry.Value);
+          target[key] = value;
+        }
       }
     }
 
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
     {
-      ((IDictionary<TKey, TValue>)map).CopyTo(array, arrayIndex);
+      lock (@lock)
+      {
+        ((IDictionary<TKey, TValue>)map).CopyTo(array, arrayIndex);
+      }
     }
 
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()

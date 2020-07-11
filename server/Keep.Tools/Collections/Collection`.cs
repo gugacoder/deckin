@@ -23,6 +23,7 @@ namespace Keep.Tools.Collections
   {
     private readonly List<T> list;
     private readonly ItemStore store;
+    private readonly object @lock = new object();
 
     public Collection()
     {
@@ -84,9 +85,11 @@ namespace Keep.Tools.Collections
       {
         if (IsReadOnly)
           throw new UnmodifiableException("A coleção não pode ser modificada.");
-
-        list.RemoveAt(index);
-        OnCommitAdd(store, value.AsSingle(), index);
+        lock (@lock)
+        {
+          list.RemoveAt(index);
+          OnCommitAdd(store, value.AsSingle(), index);
+        }
       }
     }
 
@@ -95,7 +98,7 @@ namespace Keep.Tools.Collections
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
-      OnCommitAdd(store, item.AsSingle());
+      lock (@lock) OnCommitAdd(store, item.AsSingle());
     }
 
     public virtual void AddAt(int index, T item)
@@ -103,7 +106,7 @@ namespace Keep.Tools.Collections
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
-      OnCommitAdd(store, item.AsSingle(), index);
+      lock (@lock) OnCommitAdd(store, item.AsSingle(), index);
     }
 
     public virtual T PeekFirst()
@@ -121,7 +124,7 @@ namespace Keep.Tools.Collections
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
-      OnCommitAdd(store, item.AsSingle(), 0);
+      lock (@lock) OnCommitAdd(store, item.AsSingle(), 0);
     }
 
     public virtual void AddLast(T item)
@@ -129,7 +132,7 @@ namespace Keep.Tools.Collections
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
-      OnCommitAdd(store, item.AsSingle(), Count);
+      lock (@lock) OnCommitAdd(store, item.AsSingle(), Count);
     }
 
     public virtual void AddMany(IEnumerable<T> items)
@@ -137,7 +140,7 @@ namespace Keep.Tools.Collections
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
-      OnCommitAdd(store, items);
+      lock (@lock) OnCommitAdd(store, items);
     }
 
     public virtual void AddMany(params T[] items)
@@ -145,7 +148,7 @@ namespace Keep.Tools.Collections
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
-      OnCommitAdd(store, items);
+      lock (@lock) OnCommitAdd(store, items);
     }
 
     public virtual void Clear()
@@ -153,7 +156,7 @@ namespace Keep.Tools.Collections
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
-      list.Clear();
+      lock (@lock) list.Clear();
     }
 
     public virtual bool Remove(T item)
@@ -161,7 +164,7 @@ namespace Keep.Tools.Collections
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
-      return list.Remove(item);
+      lock (@lock) return list.Remove(item);
     }
 
     public virtual T RemoveAt(int index)
@@ -169,9 +172,12 @@ namespace Keep.Tools.Collections
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
-      var item = list[index];
-      list.RemoveAt(index);
-      return item;
+      lock (@lock)
+      {
+        var item = list[index];
+        list.RemoveAt(index);
+        return item;
+      }
     }
 
     public virtual T RemoveFirst()
@@ -179,9 +185,12 @@ namespace Keep.Tools.Collections
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
-      var item = this[0];
-      list.RemoveAt(0);
-      return item;
+      lock (@lock)
+      {
+        var item = this[0];
+        list.RemoveAt(0);
+        return item;
+      }
     }
 
     public virtual T RemoveLast()
@@ -189,9 +198,12 @@ namespace Keep.Tools.Collections
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
-      var item = this[Count - 1];
-      list.RemoveAt(Count - 1);
-      return item;
+      lock (@lock)
+      {
+        var item = this[Count - 1];
+        list.RemoveAt(Count - 1);
+        return item;
+      }
     }
 
     public virtual void RemoveRange(int index, int count)
@@ -199,8 +211,11 @@ namespace Keep.Tools.Collections
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
-      var item = list[index];
-      list.RemoveRange(index, count);
+      lock (@lock)
+      {
+        var item = list[index];
+        list.RemoveRange(index, count);
+      }
     }
 
     public virtual void RemoveMany(IEnumerable<T> items)
@@ -208,9 +223,12 @@ namespace Keep.Tools.Collections
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
-      foreach (var item in items)
+      lock (@lock)
       {
-        list.Remove(item);
+        foreach (var item in items)
+        {
+          list.Remove(item);
+        }
       }
     }
 
@@ -219,7 +237,18 @@ namespace Keep.Tools.Collections
       if (IsReadOnly)
         throw new UnmodifiableException("A coleção não pode ser modificada.");
 
-      list.RemoveAll(match);
+      lock (@lock) list.RemoveAll(match);
+    }
+
+    public virtual TResult[] Find<TResult>(
+      Func<IEnumerable<T>, IEnumerable<TResult>> search)
+    {
+      lock (@lock) return search.Invoke(this).ToArray();
+    }
+
+    public virtual void ForEach(Action<T> action)
+    {
+      lock (@lock) list.ForEach(action);
     }
 
     #endregion
@@ -232,12 +261,12 @@ namespace Keep.Tools.Collections
 
     public virtual bool Contains(T item)
     {
-      return list.Contains(item);
+      lock (@lock) return list.Contains(item);
     }
 
     public virtual void CopyTo(T[] array, int arrayIndex)
     {
-      list.CopyTo(array, arrayIndex);
+      lock (@lock) list.CopyTo(array, arrayIndex);
     }
 
     public virtual IEnumerator<T> GetEnumerator()
@@ -247,12 +276,7 @@ namespace Keep.Tools.Collections
 
     public virtual int IndexOf(T item)
     {
-      return list.IndexOf(item);
-    }
-
-    public virtual void ForEach(Action<T> action)
-    {
-      list.ForEach(action);
+      lock (@lock) return list.IndexOf(item);
     }
 
     #endregion

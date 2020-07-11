@@ -31,7 +31,11 @@ namespace Director.Tarefas
 
     public void Run(CancellationToken stopToken)
     {
-      audit.Log(To.Text(DateTime.Now));
+      var levels = Enum.GetValues(typeof(Level));
+      var choice = new Random().Next(levels.Length);
+      var level = (Level)levels.GetValue(choice);
+      audit.Log(level, To.Text($"Exemplo de evento {level}..."),
+        nameof(TarefaDeExemplo));
     }
   }
 }

@@ -277,10 +277,19 @@ namespace Keep.Paper.Controllers
           var parameterInfo = enumerator.Current;
           var parameterType = enumerator.Current.ParameterType;
 
-          JObject current = form;
-          if (payload.ContainsKey(parameterInfo.Name))
+          JObject current;
+
+          if (parameterType == typeof(Pagination))
           {
-            current = current[parameterInfo.Name] as JObject ?? new JObject();
+            current = payload["pagination"] as JObject ?? new JObject();
+          }
+          else
+          {
+            current = form;
+            if (payload.ContainsKey(parameterInfo.Name))
+            {
+              current = current[parameterInfo.Name] as JObject ?? new JObject();
+            }
           }
 
           var ret = TryCreateParameter(current, parameterType);
