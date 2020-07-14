@@ -85,6 +85,47 @@ namespace Director.Formularios
           }
         },
 
+        Actions = new
+        {
+          Filter = new
+          {
+            Data = new
+            {
+              Data = new
+              {
+                Min = DateTime.Today.AddDays(-1),
+                Max = DateTime.Today
+              },
+              Origem = "",
+              Evento = "",
+              Mensagem = "",
+            },
+            Fields = new
+            {
+              Data = new
+              {
+                Kind = FieldKind.Date,
+                View = new
+                {
+                  Range = true,
+                }
+              },
+              Origem = new
+              {
+                Kind = FieldKind.Text
+              },
+              Evento = new
+              {
+                Kind = FieldKind.Text
+              },
+              Mensagem = new
+              {
+                Kind = FieldKind.Text
+              }
+            }
+          }
+        },
+
         Embedded = auditoria.Find(mapa => mapa
           .SelectMany(item => item.Value.Find(eventos => eventos
             .NotNull()

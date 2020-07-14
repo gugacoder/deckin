@@ -5,6 +5,7 @@
     v-system-bar(
       app
       color="white"
+      v-if="true"
     )
       v-icon mdi-cart-outline
 

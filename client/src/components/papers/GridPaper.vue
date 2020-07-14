@@ -3,7 +3,23 @@
     the-paper-header(
       v-bind="parameters"
       @click="refreshData(true)"
+      :clipped="true"
     )
+      //-
+        //- Botão de ocultação do menu
+        template(
+          slot="left"
+        )
+          v-btn.v-btn.custom-menu-button(
+            icon
+            @click.stop="toggleMainMenuUp()"
+          )
+            v-icon(
+              :color="menu.minified ? 'primary lighten-2' : null"
+            )
+              | mdi-menu
+
+      //- Paginação
       v-menu(
         v-if="pagination.enabled"
         :close-on-click="true"
@@ -11,31 +27,38 @@
         :offset-x="false"
         :offset-y="true"
       )
+        //- Botão de páginação
         template(
           v-slot:activator="{ on, attrs }"
         )
-          v-btn.primary--text(
+          v-btn(
             v-bind="attrs"
             v-on="on"
             rounded
             depressed
             large
-            color="white"
+            color="primary"
           )
-            template(
+            span(
               v-if="pagination.pageSize > 0"
             )
-              span.font-weight-thin Exibindo até &nbsp;
-                span.font-weight-medium {{ pagination.pageSize }} &nbsp;
-                  span.font-weight-thin registros
-            
-            template(
-              v-if="!(pagination.pageSize > 0)"
+              span.font-weight-thin
+                small Exibindo até &nbsp;
+                span.font-weight-medium
+                  big {{ pagination.pageSize }} &nbsp;
+                  span.font-weight-thin
+                    small registros
+            span(
+              v-else
             )
-              span.font-weight-thin Exibindo &nbsp;
-                span.font-weight-medium todos &nbsp;
-                  span.font-weight-thin os registros
+              span.font-weight-thin
+                small Exibindo &nbsp;
+                span.font-weight-medium
+                  big todos &nbsp;
+                  span.font-weight-thin
+                    small os registros
 
+        //- Submenu de paginação
         v-list
           v-list-item(
             v-for="size in pagination.pageSizes"
@@ -44,36 +67,96 @@
           )
             v-list-item-action
               v-icon(
-                :color="pagination.pageSize === size ? 'primary' : ''"
+                :color="pagination.pageSize === 0 ? 'primary' : ''"
               )
                 | {{ pagination.pageSize === size ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}
             v-list-item-content
-              span.font-weight-thin Exibir até &nbsp;
-                span.font-weight-medium {{ size }} &nbsp;
-                  span.font-weight-thin registros
-
-          v-divider
-
-          v-list-item(
-            @click="setPageSize(0)"
-          )
-            v-list-item-action
-              v-icon(
-                :color="pagination.pageSize === 0 ? 'primary' : ''"
+              span(
+                v-if="size > 0"
               )
-                | {{ pagination.pageSize === 0 ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}
-            v-list-item-title
-              span.font-weight-thin Exibir &nbsp;
-                span.font-weight-medium todos &nbsp;
-                  span.font-weight-thin os registros
+                span.font-weight-thin Exibir até &nbsp;
+                  span.font-weight-medium {{ size }} &nbsp;
+                    span.font-weight-thin registros
+              span(
+                v-else
+              )
+                span.font-weight-thin Exibir &nbsp;
+                  span.font-weight-medium todos &nbsp;
+                    span.font-weight-thin os registros      
       
+      //- Autorefresh
       v-btn(
-        icon
-        :color="!!autoRefresh.timer ? 'primary' : 'dark'"
+        rounded
+        depressed
+        large
+        color="primary"
         @click="setAutoRefresh(!autoRefresh.timer)"
       )
-        v-icon {{ !!autoRefresh.timer ? 'mdi-refresh-circle' : 'mdi-refresh' }}
+        v-icon(
+          :color="!!autoRefresh.timer ? '' : 'primary lighten-2'"
+        )
+          | mdi-history
+        
+        span(
+          v-show="!!autoRefresh.timer"
+        )
+          span.font-weight-medium
+            big {{ autoRefresh.seconds }}
+            span.font-weight-thin
+              small s
 
+    //- Barra lateral
+    v-navigation-drawer(
+      v-if="menu.enabled"
+      :mini-variant="menu.minified"
+      app
+      clipped
+      permanent
+      :width="menu.expanded ? 600 : 300"
+    )
+      v-list-item.px-2(
+        fixed
+      )
+        v-list-item-icon
+          v-btn(
+            icon
+            @click.stop="setMenuMinified(!menu.minified)"
+          )
+            v-icon {{ menu.current.icon }}
+
+          v-btn(
+            v-if="menu.parents.length"
+            icon
+            @click="navigateMenuUp()"
+          )
+            v-icon mdi-arrow-left-circle-outline
+
+        v-list-item-title {{ menu.current.title }}
+
+        v-btn(
+          icon
+          @click.stop="menu.expanded = !menu.expanded"
+        )
+          v-icon {{ menu.expanded ? 'mdi-chevron-left' : 'mdi-chevron-right' }}
+
+      v-divider
+
+      v-list(
+        dense
+      )
+        v-list-item(
+          v-for="submenu in menu.current.submenus.filter(m => m.enabled)"
+          :key="submenu.title"
+          link
+          @click="navigateMenuDown(submenu)"
+        )
+          v-list-item-icon
+            v-icon {{ submenu.icon }}
+
+          v-list-item-content
+            v-list-item-title {{ submenu.title }}
+
+    //- Tabela de dados
     v-data-table(
       :headers="cols"
       :items="rows"
@@ -125,6 +208,11 @@
 </template>
 
 <style scoped>
+
+.custom-menu-button {
+  margin-left: -14px;
+}
+
 .custom-style-trace {
   color: gray;
 }
@@ -172,16 +260,45 @@ export default {
 
   data: () => ({
     uid: Date.now(),
+    lastRequestId: 0,
     busy: false,
+
+    menu: {
+      enabled: true,
+      minified: false,
+      expanded: false,
+
+      parents: [],
+      current: null,
+
+      mainMenu: {
+        name: 'root',
+        title: 'Menu',
+        icon: 'mdi-menu',
+        enabled: true,
+        submenus: [
+          {
+            name: 'filter',
+            title: 'Filtro',
+            icon: 'mdi-filter',
+            enabled: true,
+            submenus: [],
+          },
+        ],
+      },
+    },
+    
     autoRefresh: {
       enabled: false,
       seconds: 0,
       timer: null,
     },
+
     pagination: {
       enabled: false,
       pageSize: 0,
       pageSizes: [
+        0,
         10,
         20,
         50,
@@ -190,7 +307,7 @@ export default {
         500,
         1000,
         2000,
-        5000
+        5000,
       ]
     },
   }),
@@ -202,6 +319,10 @@ export default {
 
     fields () {
       return this.paper.fields
+    },
+
+    filter () {
+      return this.paper.actions.filter(a => a.view.name === 'filter')
     },
 
     cols () {
@@ -274,6 +395,14 @@ export default {
         let size = this.pagination.pageSizes.filter(size => page.limit == size)[0]
         this.pagination.pageSize = size || 0
       }
+
+      // Filtragem
+      let filterMenu = this.menu.mainMenu.submenus.filter(m => m.name === 'filter')[0]
+      let filterAction = this.paper.actions.filter(a => a.view.name === 'filter')[0]
+      filterMenu.enabled = !!filterAction
+      if (!this.menu.current) {
+        this.menu.current = this.menu.mainMenu
+      }
     },
 
     setAutoRefresh(enabled) {
@@ -306,10 +435,12 @@ export default {
 
     async refreshData(force) {
       try {
-        if (this.busy)
+        if (this.busy && !force)
           return
-        this.busy = true
 
+        this.busy = true
+        
+        let requestId = this.lastRequestId = ((this.lastRequestId + 1) % 100)
         let href = this.href
 
         let data = lodash.merge({}, this.$route.query)
@@ -330,7 +461,9 @@ export default {
         let path = this.$browser.routeFor(self.href)
         if (path === this.$route.path) {
           if (force || this.autoRefresh.enabled) {
-            this.content.paper = paper
+            if (requestId === this.lastRequestId) {
+              this.content.paper = paper
+            }
           }
         }
 
@@ -408,10 +541,34 @@ export default {
         field = this.fields[0]
         this.message = message
       }
-
       let widget = this.$refs.widgets[0]
       widget && widget.focus()
     },
+
+    navigateTopMenu () {
+      while (this.menu.parents.length) {
+        this.menu.current = this.menu.parents.pop()
+      }
+    },
+
+    navigateMenuUp () {
+      if (this.menu.parents.length) {
+        this.menu.current = this.menu.parents.pop()
+      }
+    },
+
+    navigateMenuDown (menu) {
+      this.menu.parents.push(this.menu.current)
+      this.menu.current = menu
+      this.menu.minified = false
+    },
+
+    setMenuMinified (minified) {
+      this.menu.minified = minified
+      if (minified) {
+        this.navigateTopMenu()
+      }
+    }
   }
 }
 </script>

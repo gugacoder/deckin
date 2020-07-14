@@ -2,9 +2,9 @@
   div.the-paper-header
     v-app-bar(
       app
-      dense
-      elevate-on-scroll
-      color="white"
+      color="primary"
+      dark
+      clipped-left
     )
       slot(
         name="left"

@@ -2,7 +2,7 @@
   v-footer(
     app
     fixed
-    elevation="3"
+    elevation="4"
     color="white"
   )
     small.font-weight-thin © 2020 KeepCoding™
