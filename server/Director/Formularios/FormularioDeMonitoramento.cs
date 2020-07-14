@@ -5,26 +5,41 @@ using Director.Servicos;
 using Keep.Paper.Api;
 using Keep.Tools;
 using Keep.Tools.Collections;
+using Microsoft.AspNetCore.Authorization;
 using static Director.Servicos.ServicoDeAuditoria;
 
 namespace Director.Formularios
 {
   [Expose]
   [HomePaper]
+  //[AllowAnonymous]
   public class FormularioDeMonitoramento : BasePaper
   {
     private const int MaxLimit = 10000;
     private readonly ServicoDeAuditoria auditoria;
+
+    public class Filtro
+    {
+      public Var<DateTime?> Data { get; set; } = new Var<DateTime?>(
+        new Range<DateTime?>(
+          DateTime.Today.AddDays(-1),
+          DateTime.Today
+        ));
+
+      public Var<string> Origem { get; set; }
+
+      public Var<string> Evento { get; set; }
+
+      public Var<string> Mensagem { get; set; }
+    }
 
     public FormularioDeMonitoramento(ServicoDeAuditoria auditoria)
     {
       this.auditoria = auditoria;
     }
 
-    public object Index(Pagination pagination)
+    public object Index(Filtro filtro, Pagination pagination)
     {
-      Thread.Sleep(1000);
-
       int limit = (pagination?.Limit == null)
         ? (int)PageLimit.UpTo50
         : (int)pagination.Limit;
@@ -89,17 +104,7 @@ namespace Director.Formularios
         {
           Filter = new
           {
-            Data = new
-            {
-              Data = new
-              {
-                Min = DateTime.Today.AddDays(-1),
-                Max = DateTime.Today
-              },
-              Origem = "",
-              Evento = "",
-              Mensagem = "",
-            },
+            Data = filtro,
             Fields = new
             {
               Data = new

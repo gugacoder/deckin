@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 using Keep.Tools.Reflection;
 
 namespace Keep.Tools
@@ -33,12 +34,15 @@ namespace Keep.Tools
     }
 
     [Ignore]
+    [JsonIgnore]
     public bool IsMinSet => Min != null;
 
     [Ignore]
+    [JsonIgnore]
     public bool IsMaxSet => Max != null;
 
     [Ignore]
+    [JsonIgnore]
     public Type RawType { get; }
 
     public object Min

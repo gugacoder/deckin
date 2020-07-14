@@ -9,7 +9,7 @@ using Keep.Tools;
 
 namespace Director.Tarefas
 {
-  [Expose]
+  //[Expose]
   public class TarefaDeExemplo : IJob
   {
     private readonly IAudit<TarefaDeExemplo> audit;

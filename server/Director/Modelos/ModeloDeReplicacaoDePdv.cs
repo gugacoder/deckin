@@ -194,14 +194,14 @@ namespace Director.Modelos
             campos = (
               from indice in Enumerable.Range(0, reader.Current.FieldCount)
               let campo = reader.Current.GetName(indice)
-              where !campo.EqualsAny("id")
+              where !campo.EqualsAny("id", "data_integracao")
               select $"DF{campo}"
             ).ToArray();
 
             valores = (
               from indice in Enumerable.Range(0, reader.Current.FieldCount)
               let campo = reader.Current.GetName(indice)
-              where !campo.EqualsAny("id")
+              where !campo.EqualsAny("id", "data_integracao")
               select $"@{campo}"
             ).ToArray();
 
@@ -213,7 +213,7 @@ namespace Director.Modelos
                 from indice in Enumerable.Range(0, reader.Current.FieldCount)
                 let campo = reader.Current.GetName(indice)
                 let valor = reader.Current.GetValue(indice)
-                where !campo.EqualsAny("id")
+                where !campo.EqualsAny("id", "data_integracao")
                 select new[] { campo, valor }
               ).SelectMany(x => x).ToArray();
 
@@ -241,9 +241,9 @@ namespace Director.Modelos
             {
               await
                 @"insert into mlogic.TBintegracao_@{tabela}
-                    (@{campos})
+                    (@{campos}, DFdata_integracao)
                   select
-                    @{valores}
+                    @{valores}, current_timestamp
                   where not exists (
                     select 1 from mlogic.TBintegracao_@{tabela}
                     where DFcod_registro = @codRegistro

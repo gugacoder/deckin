@@ -105,14 +105,14 @@
             span.font-weight-thin
               small s
 
-    //- Barra lateral
+    //- Barra Lateral de Funções
     v-navigation-drawer(
-      v-if="menu.enabled"
-      :mini-variant="menu.minified"
+      v-if="filter.action"
+      :mini-variant="filter.minified"
       app
       clipped
       permanent
-      :width="menu.expanded ? 600 : 300"
+      :width="filter.expanded ? 600 : 300"
     )
       v-list-item.px-2(
         fixed
@@ -120,41 +120,35 @@
         v-list-item-icon
           v-btn(
             icon
-            @click.stop="setMenuMinified(!menu.minified)"
+            @click.stop="filter.minified = !filter.minified"
           )
-            v-icon {{ menu.current.icon }}
+            v-icon mdi-filter
 
-          v-btn(
-            v-if="menu.parents.length"
-            icon
-            @click="navigateMenuUp()"
-          )
-            v-icon mdi-arrow-left-circle-outline
-
-        v-list-item-title {{ menu.current.title }}
+        v-list-item-title {{ filter.action.view.title || '^Filtro^' }}
 
         v-btn(
           icon
-          @click.stop="menu.expanded = !menu.expanded"
+          @click.stop="filter.expanded = !filter.expanded"
         )
-          v-icon {{ menu.expanded ? 'mdi-chevron-left' : 'mdi-chevron-right' }}
+          v-icon {{ filter.expanded ? 'mdi-chevron-left' : 'mdi-chevron-right' }}
 
       v-divider
 
-      v-list(
-        dense
-      )
-        v-list-item(
-          v-for="submenu in menu.current.submenus.filter(m => m.enabled)"
-          :key="submenu.title"
-          link
-          @click="navigateMenuDown(submenu)"
+      //-
+        v-list(
+          dense
         )
-          v-list-item-icon
-            v-icon {{ submenu.icon }}
+          v-list-item(
+            v-for="submenu in menu.current.submenus.filter(m => m.enabled)"
+            :key="submenu.title"
+            link
+            @click="navigateMenuDown(submenu)"
+          )
+            v-list-item-icon
+              v-icon {{ submenu.icon }}
 
-          v-list-item-content
-            v-list-item-title {{ submenu.title }}
+            v-list-item-content
+              v-list-item-title {{ submenu.title }}
 
     //- Tabela de dados
     v-data-table(
@@ -263,31 +257,12 @@ export default {
     lastRequestId: 0,
     busy: false,
 
-    menu: {
-      enabled: true,
+    filter: {
+      action: null,
       minified: false,
       expanded: false,
-
-      parents: [],
-      current: null,
-
-      mainMenu: {
-        name: 'root',
-        title: 'Menu',
-        icon: 'mdi-menu',
-        enabled: true,
-        submenus: [
-          {
-            name: 'filter',
-            title: 'Filtro',
-            icon: 'mdi-filter',
-            enabled: true,
-            submenus: [],
-          },
-        ],
-      },
     },
-    
+
     autoRefresh: {
       enabled: false,
       seconds: 0,
@@ -544,31 +519,6 @@ export default {
       let widget = this.$refs.widgets[0]
       widget && widget.focus()
     },
-
-    navigateTopMenu () {
-      while (this.menu.parents.length) {
-        this.menu.current = this.menu.parents.pop()
-      }
-    },
-
-    navigateMenuUp () {
-      if (this.menu.parents.length) {
-        this.menu.current = this.menu.parents.pop()
-      }
-    },
-
-    navigateMenuDown (menu) {
-      this.menu.parents.push(this.menu.current)
-      this.menu.current = menu
-      this.menu.minified = false
-    },
-
-    setMenuMinified (minified) {
-      this.menu.minified = minified
-      if (minified) {
-        this.navigateTopMenu()
-      }
-    }
   }
 }
 </script>

@@ -2,7 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
 using System.Text;
+using System.Text.Json.Serialization;
 using Keep.Tools.Reflection;
 
 namespace Keep.Tools
@@ -33,23 +36,30 @@ namespace Keep.Tools
     }
 
     [Ignore]
+    [JsonIgnore]
     public Type RawType { get; }
 
     [Ignore]
+    [JsonIgnore]
     public VarKind Kind { get; set; }
 
     [Ignore]
+    [JsonIgnore]
     public bool IsNull => Kind == VarKind.Null;
 
     [Ignore]
+    [JsonIgnore]
     public bool IsValue => Kind == VarKind.Value;
 
     [Ignore]
+    [JsonIgnore]
     public bool IsArray => Kind == VarKind.Array;
 
     [Ignore]
+    [JsonIgnore]
     public bool IsRange => Kind == VarKind.Range;
 
+    [JsonPropertyName("value")]
     public object RawValue
     {
       get => _rawValue;
@@ -120,6 +130,7 @@ namespace Keep.Tools
     }
 
     [Ignore]
+    [JsonIgnore]
     public object Value
     {
       get => IsValue ? RawValue : Default.Of(RawType);
@@ -127,6 +138,7 @@ namespace Keep.Tools
     }
 
     [Ignore]
+    [JsonIgnore]
     public IList Array
     {
       get => IsArray ? (IList)RawValue : null;
@@ -134,6 +146,7 @@ namespace Keep.Tools
     }
 
     [Ignore]
+    [JsonIgnore]
     public Range Range
     {
       get => IsRange ? (Range)RawValue : null;
@@ -162,7 +175,7 @@ namespace Keep.Tools
       return new Var(value);
     }
 
-    public static explicit operator object[] (Var value)
+    public static explicit operator object[](Var value)
     {
       return value.Array as object[] ?? value.Array?.Cast<object>().ToArray();
     }

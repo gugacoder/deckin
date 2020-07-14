@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Keep.Tools
 {
@@ -21,12 +22,14 @@ namespace Keep.Tools
     {
     }
 
+    [JsonIgnore]
     public new T Min
     {
       get => (T)base.Min;
       set => base.Min = value;
     }
 
+    [JsonIgnore]
     public new T Max
     {
       get => (T)base.Max;

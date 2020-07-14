@@ -2,7 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace Keep.Tools
 {
@@ -34,18 +37,24 @@ namespace Keep.Tools
     {
     }
 
+    [Ignore]
+    [JsonIgnore]
     public new T Value
     {
       get => (T)base.Value;
       set => base.Value = value;
     }
 
+    [Ignore]
+    [JsonIgnore]
     public new IList<T> Array
     {
       get => (IList<T>)base.Array;
       set => base.Array = (IList)value;
     }
 
+    [Ignore]
+    [JsonIgnore]
     public new Range<T> Range
     {
       get => (Range<T>)base.Range;
@@ -77,7 +86,7 @@ namespace Keep.Tools
       return value.Value;
     }
 
-    public static implicit operator T[] (Var<T> value)
+    public static implicit operator T[](Var<T> value)
     {
       return value.Array as T[] ?? value.Array?.ToArray();
     }
