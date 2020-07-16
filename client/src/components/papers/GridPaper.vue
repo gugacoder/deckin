@@ -112,43 +112,33 @@
       app
       clipped
       permanent
-      :width="filter.expanded ? 600 : 300"
+      :width="filter.expanded ? 590 : 300"
     )
-      v-list-item.px-2(
-        fixed
-      )
-        v-list-item-icon
+      v-list.pa-0
+        v-list-item.px-2.pt-1(
+          dense
+        )
+          v-list-item-icon.mt-2px
+            v-btn(
+              icon
+              @click.stop="filter.minified = !filter.minified"
+            )
+              v-icon mdi-filter
+
+          v-list-item-title.subtitle-1 {{ filter.action.view.title || 'Filtro' }}
+
           v-btn(
             icon
-            @click.stop="filter.minified = !filter.minified"
+            @click.stop="filter.expanded = !filter.expanded"
           )
-            v-icon mdi-filter
-
-        v-list-item-title {{ filter.action.view.title || '^Filtro^' }}
-
-        v-btn(
-          icon
-          @click.stop="filter.expanded = !filter.expanded"
-        )
-          v-icon {{ filter.expanded ? 'mdi-chevron-left' : 'mdi-chevron-right' }}
+            v-icon {{ filter.expanded ? 'mdi-chevron-left' : 'mdi-chevron-right' }}
 
       v-divider
 
-      //-
-        v-list(
-          dense
-        )
-          v-list-item(
-            v-for="submenu in menu.current.submenus.filter(m => m.enabled)"
-            :key="submenu.title"
-            link
-            @click="navigateMenuDown(submenu)"
-          )
-            v-list-item-icon
-              v-icon {{ submenu.icon }}
-
-            v-list-item-content
-              v-list-item-title {{ submenu.title }}
+      action-slice(
+        v-show="!filter.minified"
+        v-bind="filterProperties"
+      )
 
     //- Tabela de dados
     v-data-table(
@@ -202,6 +192,9 @@
 </template>
 
 <style scoped>
+.mt-2px {
+  margin-top: 2px;
+}
 
 .custom-menu-button {
   margin-left: -14px;
@@ -296,8 +289,10 @@ export default {
       return this.paper.fields
     },
 
-    filter () {
-      return this.paper.actions.filter(a => a.view.name === 'filter')
+    filterProperties () {
+      return Object.assign({}, this.parameters, {
+        action: this.filter.action
+      })
     },
 
     cols () {
@@ -337,11 +332,11 @@ export default {
   },
 
   watch: {
-    'content.paper': 'loadPaperDefaults',
+    'content.paper': 'onPaperChanged',
   },
 
   created () {
-    this.loadPaperDefaults()
+    this.onPaperChanged()
     this.setTimers()
   },
 
@@ -350,7 +345,7 @@ export default {
   },
 
   methods: {
-    loadPaperDefaults() {
+    onPaperChanged() {
 
       // Auto refresh
       //
@@ -372,12 +367,7 @@ export default {
       }
 
       // Filtragem
-      let filterMenu = this.menu.mainMenu.submenus.filter(m => m.name === 'filter')[0]
-      let filterAction = this.paper.actions.filter(a => a.view.name === 'filter')[0]
-      filterMenu.enabled = !!filterAction
-      if (!this.menu.current) {
-        this.menu.current = this.menu.mainMenu
-      }
+      this.filter.action = this.paper.actions.filter(a => a.view.name === 'filter')[0]
     },
 
     setAutoRefresh(enabled) {

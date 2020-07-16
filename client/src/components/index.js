@@ -10,7 +10,7 @@ const filepaths = require.context(
   // Varrer sub-pastas?
   true,
   // Padrão de nome dos arquivos de componentes: *Paper.vue e *Widget.vue
-  /[\w-]+(Paper|Widget)\.vue$/
+  /[\w-]+(Paper|Slice|Widget)\.vue$/
 )
 
 filepaths.keys().forEach((filepath) => {
@@ -22,7 +22,7 @@ filepaths.keys().forEach((filepath) => {
     .replace(/\.\w+$/, '')
     // Hifenizando "foo-bar"
     .toHyphenCase()
-    
+  
   // Registrando o componente globalmente...
   Vue.component(targetName, sourceCode.default || sourceCode)
 })
