@@ -16,9 +16,10 @@ namespace Director.Dominio.mlogic
     public int DFid_pdv { get; set; }
     public string DFdescricao { get; set; }
     public string DFip { get; set; }
-    public bool DFativado { get; set; }
+    public string DFbanco_dados { get; set; }
+    public DateTime? DFdesativado { get; set; }
+    public DateTime? DFreplicacao_desativado { get; set; }
     public int DFatualizacao { get; set; }
-    public bool DFreplicacao_ativado { get; set; }
 
     #region Métodos de apoio
 

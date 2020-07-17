@@ -24,12 +24,12 @@ namespace Keep.Tools
       task.GetAwaiter().GetResult();
     }
 
-    public static T[] Await<T>(this IEnumerable<Task<T>> tasks)
+    public static T[] AwaitAll<T>(this IEnumerable<Task<T>> tasks)
     {
       return tasks.Select(task => Await(task)).ToArray();
     }
 
-    public static void Await(this IEnumerable<Task> tasks)
+    public static void AwaitAll(this IEnumerable<Task> tasks)
     {
       tasks.ForEach(task => task.Wait());
     }

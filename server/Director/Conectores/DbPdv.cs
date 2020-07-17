@@ -13,11 +13,13 @@ namespace Director.Conectores
 {
   public class DbPdv
   {
+    private readonly IAudit<DbPdv> audit;
     private readonly string stringDeConexao;
     private readonly string template;
 
     public DbPdv(string stringDeConexao)
     {
+      this.audit = audit;
       this.stringDeConexao = stringDeConexao;
       this.template = CriarTemplate(stringDeConexao);
     }

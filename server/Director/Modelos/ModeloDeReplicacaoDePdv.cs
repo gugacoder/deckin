@@ -117,20 +117,37 @@ namespace Director.Modelos
           "Obtendo informações de conectividade dos PDVs a partir da base do Director...",
           GetType());
 
-        using var cnDirector = dbDirector.CriarConexao();
-        await cnDirector.OpenAsync(stopToken);
+        // Cada operação está sendo feita com sua própria conexão com o DBdirector.
+        // Isto porque o DBdirector pode precisar consultar as bases do
+        // Concentrador ou PDVs diretamente, via OLE DB, o que pode demorar.
+        // Para evitar uma demora exagerada as consultas estão sendo feitas em
+        // paralelo.
 
-        var empresas = await TBempresa.ObterAsync(cnDirector, stopToken);
-        var empresasAtivas = empresas.Where(e => e.DFdata_inativacao == null);
+        TBempresa[] empresasAtivas;
 
-        foreach (var empresa in empresasAtivas)
+        using (var cnDirector = dbDirector.CriarConexao())
+        {
+          await cnDirector.OpenAsync(stopToken);
+
+          var empresas = await TBempresa.ObterAsync(cnDirector, stopToken);
+
+          empresasAtivas = empresas
+            .Where(e => e.DFdata_inativacao == null).ToArray();
+        }
+
+        var tarefas = empresasAtivas.Select(async empresa =>
         {
           try
           {
+            using var cnDirector = dbDirector.CriarConexao();
+
+            await cnDirector.OpenAsync(stopToken);
+
             var pdvs = await sp_obter_pdvs.ObterAsync(cnDirector,
               empresa.DFcod_empresa, stopToken);
 
-            listDePdvAtivo.AddRange(pdvs.Where(pdv => pdv.DFativado));
+            listDePdvAtivo.AddRange(pdvs.Where(pdv =>
+              pdv.DFdesativado == null && pdv.DFreplicacao_desativado == null));
           }
           catch (Exception ex)
           {
@@ -140,12 +157,13 @@ namespace Director.Modelos
                 ex),
               GetType());
           }
-        }
+        });
+
+        await Task.WhenAll(tarefas);
 
         audit.Log(
           "Obtenção de informações de conectividade dos PDVs a partir da base do Director concluída.",
           GetType());
-
       }
       catch (Exception ex)
       {
@@ -155,6 +173,7 @@ namespace Director.Modelos
             ex),
           GetType());
       }
+
       return listDePdvAtivo.ToArray();
     }
 
@@ -163,7 +182,7 @@ namespace Director.Modelos
     {
       try
       {
-        if (!parametros.Ativado || !pdv.DFreplicacao_ativado)
+        if (!parametros.Ativado || pdv.DFreplicacao_desativado != null)
           return;
 
         audit.LogTrace(
@@ -171,7 +190,7 @@ namespace Director.Modelos
           GetType());
 
         using var cnDirector = dbDirector.CriarConexao();
-        using var cnPdv = dbPdv.CriarConexao(pdv.DFip);
+        using var cnPdv = dbPdv.CriarConexao(pdv.DFip, banco: pdv.DFbanco_dados);
 
         await cnDirector.OpenAsync(stopToken);
         await cnPdv.OpenAsync(stopToken);
