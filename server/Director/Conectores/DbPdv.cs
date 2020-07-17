@@ -29,20 +29,48 @@ namespace Director.Conectores
         let partes = parametro.Split('=')
         let chave = partes.First()
         let valorBase = string.Join("=", partes.Skip(1))
-        let valor = chave.EqualsAnyIgnoreCase("server", "data source", "host")
-          ? "{servidor}" : valorBase
+        let valor = CriarValorDeTemplate(chave, valorBase)
         select $"{chave}={valor}";
 
       var template = string.Join(";", entradas);
       return template;
     }
 
-    public DbConnection CriarConexao(string servidor = null)
+    private string CriarValorDeTemplate(string chave, string valorBase)
     {
-      var configuracao = string.IsNullOrEmpty(servidor)
-        ? this.stringDeConexao : this.template.Replace("{servidor}", servidor);
+      switch (chave.ToLower())
+      {
+        case "server":
+        case "data source":
+        case "host":
+          return "{servidor}";
 
-      return new Npgsql.NpgsqlConnection(configuracao);
+        case "port":
+          return "{porta}";
+
+        case "database":
+        case "default catalog":
+          return "{banco}";
+
+        default:
+          return valorBase;
+      }
+    }
+
+    public DbConnection CriarConexao()
+    {
+      return new Npgsql.NpgsqlConnection(this.stringDeConexao);
+    }
+
+    public DbConnection CriarConexao(string servidor, int porta = 5432,
+      string banco = "DBpdv")
+    {
+      var stringDeConexao = this.template
+        .Replace("{servidor}", servidor)
+        .Replace("{porta}", porta.ToString())
+        .Replace("{banco}", banco);
+
+      return new Npgsql.NpgsqlConnection(stringDeConexao);
     }
   }
 }

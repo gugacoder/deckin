@@ -6,7 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Director.Adaptadores;
 using Director.Conectores;
-using Director.Dominio;
+using Director.Dominio.dbo;
+using Director.Dominio.mlogic;
 using Keep.Paper.Api;
 using Keep.Tools;
 using Keep.Tools.Sequel;
@@ -27,7 +28,7 @@ namespace Director.Modelos
       this.audit = audit;
     }
 
-    #region Parâmetros
+    #region Parametrização
 
     public async Task<ParametrosDeReplicacaoDePdv> ObterParametrosAsync(
       CancellationToken stopToken)
@@ -87,22 +88,90 @@ namespace Director.Modelos
 
     #endregion
 
-    #region Replicação
+    #region Replicação de dados
 
-    public async Task ReplicarAsync(ParametrosDeReplicacaoDePdv parametros,
-      Pdv pdv, CancellationToken stopToken)
+    public async Task ReplicarPdvsAsync(ParametrosDeReplicacaoDePdv parametros,
+      CancellationToken stopToken)
     {
+      if (!parametros.Ativado)
+        return;
+
+      var pdvs = await ObterPdvsAtivosAsync(stopToken);
+      var tarefas = pdvs.Select(
+        pdv =>
+        {
+          return ReplicarAsync(parametros, pdv, stopToken);
+        }
+      ).ToArray();
+
+      await Task.WhenAll(tarefas);
+    }
+
+    private async Task<sp_obter_pdvs[]> ObterPdvsAtivosAsync(
+      CancellationToken stopToken)
+    {
+      var listDePdvAtivo = new List<sp_obter_pdvs>();
       try
       {
-        if (!parametros.Ativado || !pdv.ReplicacaoAtivado)
-          return;
-
-        audit.LogTrace(
-          $"Iniciando replicação do PDV {pdv.Descricao} para o Director...",
+        audit.Log(
+          "Obtendo informações de conectividade dos PDVs a partir da base do Director...",
           GetType());
 
         using var cnDirector = dbDirector.CriarConexao();
-        using var cnPdv = dbPdv.CriarConexao(pdv.EnderecoDeRede);
+        await cnDirector.OpenAsync(stopToken);
+
+        var empresas = await TBempresa.ObterAsync(cnDirector, stopToken);
+        var empresasAtivas = empresas.Where(e => e.DFdata_inativacao == null);
+
+        foreach (var empresa in empresasAtivas)
+        {
+          try
+          {
+            var pdvs = await sp_obter_pdvs.ObterAsync(cnDirector,
+              empresa.DFcod_empresa, stopToken);
+
+            listDePdvAtivo.AddRange(pdvs.Where(pdv => pdv.DFativado));
+          }
+          catch (Exception ex)
+          {
+            audit.LogDanger(
+              To.Text(
+                $"Falhou a tentativa de obter informações sobre os PDVs da empresa: {empresa.DFcod_empresa}",
+                ex),
+              GetType());
+          }
+        }
+
+        audit.Log(
+          "Obtenção de informações de conectividade dos PDVs a partir da base do Director concluída.",
+          GetType());
+
+      }
+      catch (Exception ex)
+      {
+        audit.LogDanger(
+          To.Text(
+            "Obtenção de informações de conectividade dos PDVs a partir da base do Director concluída com falhas.",
+            ex),
+          GetType());
+      }
+      return listDePdvAtivo.ToArray();
+    }
+
+    private async Task ReplicarAsync(ParametrosDeReplicacaoDePdv parametros,
+      sp_obter_pdvs pdv, CancellationToken stopToken)
+    {
+      try
+      {
+        if (!parametros.Ativado || !pdv.DFreplicacao_ativado)
+          return;
+
+        audit.LogTrace(
+          $"Iniciando replicação do PDV {pdv.DFdescricao} para o Director...",
+          GetType());
+
+        using var cnDirector = dbDirector.CriarConexao();
+        using var cnPdv = dbPdv.CriarConexao(pdv.DFip);
 
         await cnDirector.OpenAsync(stopToken);
         await cnPdv.OpenAsync(stopToken);
@@ -143,28 +212,28 @@ namespace Director.Modelos
 
 
         audit.LogSuccess(
-          $"Replicação do PDV {pdv.Descricao} para o Director concluída.",
+          $"Replicação do PDV {pdv.DFdescricao} para o Director concluída.",
           GetType());
       }
       catch (Exception ex)
       {
         audit.LogDanger(
           To.Text(
-            $"Replicação do PDV {pdv.Descricao} para o Director concluída com falhas.",
+            $"Replicação do PDV {pdv.DFdescricao} para o Director concluída com falhas.",
             ex),
           GetType());
       }
     }
 
     private async Task ReplicarTabelaAsync(DbConnection cnDirector,
-      DbConnection cnPdv, Pdv pdv, string tabela, DateTime dataLimite,
+      DbConnection cnPdv, sp_obter_pdvs pdv, string tabela, DateTime dataLimite,
       CancellationToken stopToken
       )
     {
       try
       {
         audit.LogTrace(
-          $"Iniciando replicação da tabela {tabela} do PDV {pdv.Descricao}...",
+          $"Iniciando replicação da tabela {tabela} do PDV {pdv.DFdescricao}...",
           GetType());
 
         while (true)
@@ -276,14 +345,14 @@ namespace Director.Modelos
         }
 
         audit.LogSuccess(
-          $"Replicação da tabela {tabela} do PDV {pdv.Descricao} concluída.",
+          $"Replicação da tabela {tabela} do PDV {pdv.DFdescricao} concluída.",
           GetType());
       }
       catch (Exception ex)
       {
         audit.LogDanger(
           To.Text(
-            $"Replicação da tabela {tabela} do PDV {pdv.Descricao} concluída com falhas.",
+            $"Replicação da tabela {tabela} do PDV {pdv.DFdescricao} concluída com falhas.",
             ex),
           GetType());
       }
@@ -291,7 +360,7 @@ namespace Director.Modelos
 
     #endregion
 
-    #region Limpeza de Histórico
+    #region Limpeza de dados
 
     public async Task ApagarHistoricoAsync(ParametrosDeReplicacaoDePdv parametros,
       CancellationToken stopToken)

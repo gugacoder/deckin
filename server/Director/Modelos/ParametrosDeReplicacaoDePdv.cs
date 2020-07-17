@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Director.Dominio
+namespace Director.Modelos
 {
   public class ParametrosDeReplicacaoDePdv
   {

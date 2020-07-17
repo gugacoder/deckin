@@ -41,22 +41,11 @@ namespace Director.Tarefas
     {
       try
       {
-        var replicacao =
-          ActivatorUtilities.CreateInstance<ModeloDeReplicacaoDePdv>(provider);
+        var replicacao = ActivatorUtilities.
+          CreateInstance<ModeloDeReplicacaoDePdv>(provider);
 
         var parametros = replicacao.ObterParametrosAsync(stopToken).Await();
-        if (!parametros.Ativado)
-          return;
-
-        var localizador =
-          ActivatorUtilities.CreateInstance<ModeloDeLocalizacaoDePdv>(provider);
-
-        var pdvs = localizador.ObterPdvsAsync(stopToken).Await();
-
-        pdvs.Select(pdv =>
-          replicacao.ReplicarAsync(parametros, pdv, stopToken)
-          ).Await();
-
+        replicacao.ReplicarPdvsAsync(parametros, stopToken).Await();
         replicacao.ApagarHistoricoAsync(parametros, stopToken).Await();
       }
       catch (Exception ex)
