@@ -11,8 +11,12 @@
 </template>
 
 <script>
+import WidgetBase from './-WidgetBase.vue'
+
 export default {
-  name: 'password-widget',
+  extends: WidgetBase,
+  
+  name: 'invalid-widget',
 
   props: [
     'field'

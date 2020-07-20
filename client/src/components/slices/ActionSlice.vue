@@ -36,7 +36,11 @@ $base-margin: 12px;
 </style>
 
 <script>
+import SliceBase from './-SliceBase.vue'
+
 export default {
+  extends: SliceBase,
+
   name: 'action-slice',
 
   props: {

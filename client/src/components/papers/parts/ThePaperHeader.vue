@@ -73,11 +73,11 @@
 <script>
 //import Vue from 'vue'
 import { mapState } from 'vuex'
-import BasePaperPart from '../BasePaperPart'
+import PaperBase from '../-PaperBase.vue'
 import '@/helpers/StringHelper'
 
 export default {
-  extends: BasePaperPart,
+  extends: PaperBase,
 
   name: 'the-paper-header',
 

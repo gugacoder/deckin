@@ -6,7 +6,11 @@
 </template>
 
 <script>
+import WidgetBase from './-WidgetBase.vue'
+
 export default {
+  extends: WidgetBase,
+  
   name: 'skeleton-widget',
 
   props: {

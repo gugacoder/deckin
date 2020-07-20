@@ -54,13 +54,13 @@
 <script>
 import Vue from 'vue'
 import lodash from 'lodash'
-import BasePaperPart from './BasePaperPart'
-import ThePaperHeader from './parts/ThePaperHeader'
-import { unknownPaper } from '@/helpers/PaperHelper'
-import '@/helpers/StringHelper'
+import PaperBase from './-PaperBase.vue'
+import ThePaperHeader from './parts/ThePaperHeader.vue'
+import { unknownPaper } from '@/helpers/PaperHelper.js'
+import '@/helpers/StringHelper.js'
 
 export default {
-  extends: BasePaperPart,
+  extends: PaperBase,
 
   name: 'action-paper',
 

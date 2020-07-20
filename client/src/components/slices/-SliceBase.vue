@@ -1,9 +1,9 @@
 <template lang="pug">
-  div It works!
+  div
 </template>
 
 <script>
+
 export default {
-  name: 'sandbox'
 }
 </script>

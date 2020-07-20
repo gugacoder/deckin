@@ -227,16 +227,16 @@
 
 <script>
 import Vue from 'vue'
-import BasePaperPart from './BasePaperPart'
 import lodash from 'lodash'
 import moment from 'moment'
-import '@/helpers/StringHelper'
-import { unknownPaper } from '@/helpers/PaperHelper'
-import ThePaperHeader from './parts/ThePaperHeader'
-import ThePaperFooter from './parts/ThePaperFooter'
+import PaperBase from './-PaperBase.vue'
+import '@/helpers/StringHelper.js'
+import { unknownPaper } from '@/helpers/PaperHelper.js'
+import ThePaperHeader from './parts/ThePaperHeader.vue'
+import ThePaperFooter from './parts/ThePaperFooter.vue'
 
 export default {
-  extends: BasePaperPart,
+  extends: PaperBase,
 
   name: 'grid-paper',
 
