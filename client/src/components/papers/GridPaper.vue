@@ -108,11 +108,11 @@
     //- Barra Lateral de Funções
     v-navigation-drawer(
       v-if="filter.action"
-      :mini-variant="filter.minified"
-      width="auto"
       app
       clipped
       permanent
+      :mini-variant="filter.minified"
+      :width="filter.expanded ? 590 : 300"
     )
       v-list.pa-0
         v-list-item.px-2.pt-1(
@@ -186,7 +186,6 @@
       action-slice(
         v-show="!filter.minified"
         v-bind="filterSlice"
-        :extent="filter.expanded ? 'lg-extent' : 'sm-extent'"
         @submit="refreshData(true)"
       )
         template(
