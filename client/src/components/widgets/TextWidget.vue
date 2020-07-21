@@ -1,6 +1,5 @@
 <template lang="pug">
-  v-text-field.username-widget(
-    autocomplete="username"
+  v-text-field.text-widget(
     v-show="!hidden"
     v-model="value"
     :class="`extent-${extent}`"
@@ -19,12 +18,12 @@ import WidgetBase from './-WidgetBase.vue'
 export default {
   extends: WidgetBase,
   
-  name: 'username-widget',
+  name: 'text-widget',
 
   methods: {
     focus () {
       this.$refs.widget.focus()
-    }
+    },
   }
 }
 </script>

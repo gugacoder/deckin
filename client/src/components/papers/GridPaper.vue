@@ -20,112 +20,137 @@
               | mdi-menu
 
       //- Paginação
-      v-menu(
-        v-if="pagination.enabled"
-        :close-on-click="true"
-        :close-on-content-click="true"
-        :offset-x="false"
-        :offset-y="true"
-      )
-        //- Botão de páginação
-        template(
-          v-slot:activator="{ on, attrs }"
+        v-menu(
+          v-if="pagination.enabled"
+          :close-on-click="true"
+          :close-on-content-click="true"
+          :offset-x="false"
+          :offset-y="true"
         )
-          v-btn(
-            v-bind="attrs"
-            v-on="on"
-            rounded
-            depressed
-            large
-            color="primary"
+          //- Botão de paginação
+          template(
+            v-slot:activator="{ on, attrs }"
           )
-            span(
-              v-if="pagination.pageSize > 0"
+            v-btn(
+              v-bind="attrs"
+              v-on="on"
+              rounded
+              depressed
+              large
+              color="primary"
             )
-              span.font-weight-thin
-                small Exibindo até &nbsp;
-                span.font-weight-medium
-                  big {{ pagination.pageSize }} &nbsp;
-                  span.font-weight-thin
-                    small registros
-            span(
-              v-else
-            )
-              span.font-weight-thin
-                small Exibindo &nbsp;
-                span.font-weight-medium
-                  big todos &nbsp;
-                  span.font-weight-thin
-                    small os registros
-
-        //- Submenu de paginação
-        v-list
-          v-list-item(
-            v-for="size in pagination.pageSizes"
-            :key="size"
-            @click="setPageSize(size)"
-          )
-            v-list-item-action
-              v-icon(
-                :color="pagination.pageSize === 0 ? 'primary' : ''"
-              )
-                | {{ pagination.pageSize === size ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}
-            v-list-item-content
               span(
-                v-if="size > 0"
+                v-if="pagination.pageSize > 0"
               )
-                span.font-weight-thin Exibir até &nbsp;
-                  span.font-weight-medium {{ size }} &nbsp;
-                    span.font-weight-thin registros
+                span.font-weight-thin
+                  small Exibindo até &nbsp;
+                  span.font-weight-medium
+                    big {{ pagination.pageSize }} &nbsp;
+                    span.font-weight-thin
+                      small registros
               span(
                 v-else
               )
-                span.font-weight-thin Exibir &nbsp;
-                  span.font-weight-medium todos &nbsp;
-                    span.font-weight-thin os registros      
+                span.font-weight-thin
+                  small Exibindo &nbsp;
+                  span.font-weight-medium
+                    big todos &nbsp;
+                    span.font-weight-thin
+                      small os registros
+
+          //- Submenu de paginação
+          v-list
+            v-list-item(
+              v-for="size in pagination.pageSizes"
+              :key="size"
+              @click="setPageSize(size)"
+            )
+              v-list-item-action
+                v-icon(
+                  :color="pagination.pageSize === 0 ? 'primary' : ''"
+                )
+                  | {{ pagination.pageSize === size ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}
+              v-list-item-content
+                span(
+                  v-if="size > 0"
+                )
+                  span.font-weight-thin Exibir até &nbsp;
+                    span.font-weight-medium {{ size }} &nbsp;
+                      span.font-weight-thin registros
+                span(
+                  v-else
+                )
+                  span.font-weight-thin Exibir &nbsp;
+                    span.font-weight-medium todos &nbsp;
+                      span.font-weight-thin os registros
       
       //- Autorefresh
-      v-btn(
-        rounded
-        depressed
-        large
-        color="primary"
-        @click="setAutoRefresh(!autoRefresh.timer)"
-      )
-        v-icon(
-          :color="!!autoRefresh.timer ? '' : 'primary lighten-2'"
+        v-btn(
+          rounded
+          depressed
+          large
+          color="primary"
+          @click="setAutoRefresh(!autoRefresh.timer)"
         )
-          | mdi-history
-        
-        span(
-          v-show="!!autoRefresh.timer"
-        )
-          span.font-weight-medium
-            big {{ autoRefresh.seconds }}
-            span.font-weight-thin
-              small s
+          v-icon.flip(
+            :color="!!autoRefresh.timer ? '' : 'primary lighten-2'"
+          )
+            | mdi-history
+          
+          span(
+            v-show="!!autoRefresh.timer"
+          )
+            span.font-weight-medium
+              big {{ autoRefresh.seconds }}
+              span.font-weight-thin
+                small s
 
     //- Barra Lateral de Funções
     v-navigation-drawer(
       v-if="filter.action"
       :mini-variant="filter.minified"
+      width="auto"
       app
       clipped
       permanent
-      :width="filter.expanded ? 590 : 300"
     )
       v-list.pa-0
         v-list-item.px-2.pt-1(
           dense
         )
-          v-list-item-icon.mt-2px
+          v-list-item-icon.mt-2px.mr-4
             v-btn(
               icon
               @click.stop="filter.minified = !filter.minified"
             )
               v-icon mdi-filter
 
-          v-list-item-title.subtitle-1 {{ filter.action.view.title || 'Filtro' }}
+          v-list-item-title.subtitle-1.stretch
+            | FILTRO
+
+          v-btn.mr-1.pl-0.pr-0(
+            small
+            :text="!autoRefresh.timer"
+            :color="!!autoRefresh.timer ? 'primary' : ''"
+            @click="setAutoRefresh(!autoRefresh.timer)"
+          )
+            v-icon.flip(
+              :color="!!autoRefresh.timer ? '' : 'secondary lighten-2'"
+            )
+              | mdi-history
+            
+            span.font-weight-medium
+              big {{ autoRefresh.seconds }}
+              span.font-weight-thin
+                small s
+
+          v-btn(
+            small
+            color="primary"
+            :disabled="!!autoRefresh.timer"
+            @click="refreshData(true)"
+          )
+            | Aplicar
 
           v-btn(
             icon
@@ -133,12 +158,41 @@
           )
             v-icon {{ filter.expanded ? 'mdi-chevron-left' : 'mdi-chevron-right' }}
 
-      v-divider
+        v-list-item.px-2.pt-1(
+          dense
+          v-show="filter.minified"
+        )
+          v-list-item-icon.mt-2px.mr-4
+            v-btn(
+              icon
+              color="primary"
+              :disabled="!!autoRefresh.timer"
+              @click="refreshData(true)"
+            )
+              v-icon mdi-refresh
+
+        v-list-item.px-2.pt-1(
+          dense
+          v-show="filter.minified"
+        )
+          v-list-item-icon.mt-2px.mr-4
+            v-btn(
+              icon
+              :color="autoRefresh.timer ? 'primary' : ''"
+              @click="setAutoRefresh(!autoRefresh.timer)"
+            )
+              v-icon.flip mdi-history
 
       action-slice(
         v-show="!filter.minified"
-        v-bind="filterProperties"
+        v-bind="filterSlice"
+        :extent="filter.expanded ? 'lg-extent' : 'sm-extent'"
+        @submit="refreshData(true)"
       )
+        template(
+          v-slot:actionBar
+        )
+          div
 
     //- Tabela de dados
     v-data-table(
@@ -166,15 +220,55 @@
     the-paper-footer(
       v-bind="parameters"
     )
-      v-btn(
-        rounded
-        depressed
-        small
-        color="white"
-        @click="refreshData(true)"
+      //- Paginação
+      v-menu(
+        v-if="pagination.enabled"
+        :close-on-click="true"
+        :close-on-content-click="true"
+        :offset-x="false"
+        :offset-y="true"
       )
-        span {{ rows.length }} &nbsp;
-          span.font-weight-light {{ rows.length === 1 ? 'registro' : 'registros' }}
+        //- Botão de paginação
+        template(
+          v-slot:activator="{ on, attrs }"
+        )
+          v-btn(
+            v-bind="attrs"
+            v-on="on"
+            depressed
+            rounded
+            small
+            color="white"
+          )
+            span
+              big {{ rows.length }} &nbsp;
+              span.font-weight-light {{ rows.length === 1 ? 'registro' : 'registros' }}
+
+        //- Submenu de paginação
+        v-list
+          v-list-item(
+            v-for="size in pagination.pageSizes"
+            :key="size"
+            @click="setPageSize(size)"
+          )
+            v-list-item-action
+              v-icon(
+                :color="pagination.pageSize === 0 ? 'primary' : ''"
+              )
+                | {{ pagination.pageSize === size ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}
+            v-list-item-content
+              span(
+                v-if="size > 0"
+              )
+                span.font-weight-thin Exibir até &nbsp;
+                  span.font-weight-medium {{ size }} &nbsp;
+                    span.font-weight-thin registros
+              span(
+                v-else
+              )
+                span.font-weight-thin Exibir &nbsp;
+                  span.font-weight-medium todos &nbsp;
+                    span.font-weight-thin os registros
 
       v-btn(
         icon
@@ -192,6 +286,15 @@
 </template>
 
 <style scoped>
+.flip {
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+
+.stretch {
+  width: 100%;
+}
+
 .mt-2px {
   margin-top: 2px;
 }
@@ -289,10 +392,11 @@ export default {
       return this.paper.fields
     },
 
-    filterProperties () {
-      return Object.assign({}, this.parameters, {
-        action: this.filter.action
-      })
+    filterSlice () {
+      return {
+        paper: this.paper,
+        actionName: 'filter'
+      }
     },
 
     cols () {

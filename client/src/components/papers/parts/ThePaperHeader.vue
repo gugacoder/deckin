@@ -5,6 +5,7 @@
       color="primary"
       dark
       clipped-left
+      clipped-right
     )
       slot(
         name="left"
@@ -13,6 +14,7 @@
       v-btn(
         rounded
         text
+        large
         @click="$emit('click')"
       )
         | {{ title }}

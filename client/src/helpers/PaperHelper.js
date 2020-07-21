@@ -81,6 +81,32 @@ export function canonifyPaper (paper) {
     if (!target.view.design) target.view.design = 'data'
   }
 
+  // Links, coleção dos links relacionados à entidade.
+  //
+  target.links = source.links || []
+  // Caso Fields seja representado como um objeto o convertemos para
+  // vetor definindo seu nome para uma propriedade de dados.
+  // Isto:
+  //    foo: {}
+  // Se torna:
+  //    {
+  //      links: [
+  //        {
+  //          rel: 'foo'
+  //        }
+  //      ]
+  //    }
+  if (!Array.isArray(target.links)) {
+    target.links = Object.keys(source.links).map(linkName => {
+      let link = source.links[linkName]
+      if (typeof link === 'string') {
+        link = { href: link }
+      }
+      let properties = { rel: linkName }
+      return lodash.merge({}, properties, link)
+    })
+  }
+
   // Fields, contém definições sobre os campos de dados, contidos em Data.
   //
   target.fields = source.fields || []
@@ -109,8 +135,8 @@ export function canonifyPaper (paper) {
     field.kind = field.kind || 'info'
     // FIXME: O nome deveria ser checado contra conflito de nome
     field.data = field.data || {}
-    field.data.name = field.data.name || `_field${++index}`
     field.view = field.view || {}
+    field.view.name = field.data.name || `_field${++index}`
     field.view.title = field.view.title || field.data.name.toProperCase()
     // Se um valor não é indicado diretamente então criamos uma função
     // de referência para a propriedade de mesmo nome na coleção de dados.
@@ -148,9 +174,15 @@ export function canonifyPaper (paper) {
   //      ]
   //    }
   if (!Array.isArray(target.actions)) {
-    target.actions = Object.keys(source.actions).map(actionName => {
-      let action = source.actions[actionName]
-      let properties = { view: { name: actionName } }
+    target.actions = Object.keys(source.actions).map(name => {
+      let action = source.actions[name]
+      let title = (action.view || {}).title
+      let properties = {
+        view: {
+          name,
+          title
+        }
+      }
       return lodash.merge({}, properties, action)
     })
   }
@@ -161,7 +193,34 @@ export function canonifyPaper (paper) {
     // FIXME: O nome deveria ser checado contra conflito de nome
     action.view = action.view || {}
     action.view.name = action.view.name || `_action${++index}`
-    return canonifyPaper(action)
+    
+    action = canonifyPaper(action)
+
+    if (action.view.name === 'filter') {
+      if (!action.view.title) {
+        action.view.title = 'Filtro'
+      }
+
+      let link = action.links.filter(link => link.rel === 'action')[0]
+      if (!link) {
+        link = action.links.filter(link => link.rel === 'self')[0]
+            || target.links.filter(link => link.rel === 'action')[0]
+            || target.links.filter(link => link.rel === 'self')[0];
+          
+        action.links.push(link)
+      }
+
+      if (!link.title) {
+        link.title = "Filtrar"
+      }
+
+    } else {
+      if (!action.view.title) {
+        action.view.title = name.toProperCase()
+      }
+    }
+
+    return action
   })
 
   // Embedded, coleção de entidades adicionais entregues com a entidade
@@ -169,32 +228,6 @@ export function canonifyPaper (paper) {
   target.embedded = (source.embedded || []).map(entity => {
     return canonifyPaper(entity)
   })
-
-  // Links, coleção dos links relacionados à entidade.
-  //
-  target.links = source.links || []
-  // Caso Fields seja representado como um objeto o convertemos para
-  // vetor definindo seu nome para uma propriedade de dados.
-  // Isto:
-  //    foo: {}
-  // Se torna:
-  //    {
-  //      links: [
-  //        {
-  //          rel: 'foo'
-  //        }
-  //      ]
-  //    }
-  if (!Array.isArray(target.links)) {
-    target.links = Object.keys(source.links).map(linkName => {
-      let link = source.links[linkName]
-      if (typeof link === 'string') {
-        link = { href: link }
-      }
-      let properties = { rel: linkName }
-      return lodash.merge({}, properties, link)
-    })
-  }
 
   //
   // Pós-processamentos

@@ -1,9 +1,10 @@
 <template lang="pug">
-  v-text-field(
+  v-text-field.password-widget(
     type="password"
     autocomplete="current-password"
     v-show="!hidden"
     v-model="value"
+    :class="`extent-${extent}`"
     :label="title"
     :rules="rules"
     :required="required"
@@ -19,50 +20,5 @@ export default {
   extends: WidgetBase,
   
   name: 'password-widget',
-
-  props: [
-    'field'
-  ],
-
-  computed: {
-    name () {
-      return this.field.data.name
-    },
-
-    value: {
-      get () {
-        return this.field.data.value
-      },
-      set (value) {
-        this.field.data.value = value
-      }
-    },
-
-    kind () {
-      return this.field.kind
-    },
-
-    title () {
-      return this.field.view.title
-    },
-
-    required () {
-      return this.field.view.required
-    },
-
-    hint () {
-      return this.field.view.hint
-    },
-
-    hidden () {
-      return !!this.field.view.hidden
-    },
-
-    rules () {
-      return [
-        (v) => !this.required || !!v || 'Requerido'
-      ]
-    }
-  }
 }
 </script>

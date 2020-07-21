@@ -1,29 +1,38 @@
 <template lang="pug">
-  div.action-slice.flex-container.pl-4.pt-4
-    div.stretch(
-      v-for="field in fields"
-      :key="field.view.name"
-      :class="`extent-1`"
+  div.action-slice.ml-4.mt-4
+    v-form.flex-container(
+      ref="form"
+      v-model="valid"
+      lazy-validation
+      :class="extent || paperExtent"
+      @submit.prevent="emitOrSubmit"
     )
-      password-widget.stretch(
-        :field="field"
+      div
+        p {{ message }}
+
+      component.stretch(
+        v-for="field in fields"
+        :key="field.view.name"
+        v-bind="createWidget(field)"
       )
+
+      slot(
+        name="actionBar"
+      )
+        v-btn.mr-2(
+          type="submit"
+          color="primary"
+        )
+          | {{ linkTitle }}
+
+        v-btn.mr-2(
+          v-if="$listeners.cancel"
+          @click="$emit('cancel')"
+        )
+          | Cancelar
 </template>
 
 <style scoped lang="scss">
-$base-width: 130px;
-$base-margin: 12px;
-
-@for $i from 1 to 5 {
-  .extent-#{$i} {
-    min-width: $base-width;
-    max-width: ($base-width * $i) + ($base-margin * ($i - 1));
-    margin: 0;
-    margin-bottom: $base-margin;
-    margin-right: $base-margin;
-  }
-}
-
 .flex-container {
   display: inline-flex;
   flex-wrap: wrap;
@@ -33,92 +42,177 @@ $base-margin: 12px;
 .stretch {
   width: 100%;
 }
+
+.button-row {
+}
+
+.xs-extent {
+  width: 155px;
+}
+
+.sm-extent {
+  width: 300px;
+}
+
+.md-extent {
+  width: 445px;
+}
+
+.lg-extent {
+  width: 590px;
+}
+
+.xl-extent {
+  width: 745px;
+}
+
+.xs-extent .v-card__title,
+.sm-extent .v-card__title,
+.md-extent .v-card__title,
+.lg-extent .v-card__title,
+.xl-extent .v-card__title {
+  display: block;
+}
 </style>
 
 <script>
+import Vue from 'vue'
+import lodash from 'lodash'
 import SliceBase from './-SliceBase.vue'
+import { unknownPaper } from '@/helpers/PaperHelper.js'
+import '@/helpers/StringHelper.js'
 
 export default {
   extends: SliceBase,
 
   name: 'action-slice',
-
+  
   props: {
-    catalogName: {
-      type: String,
-      required: true
-    },
-    paperName: {
-      type: String,
-      required: true
-    },
     actionName: {
       type: String,
-      required: true
+      // Quando não informado o próprio Paper é considerado a ação
+      required: false,
     },
-    actionKeys: {
+    extent: {
       type: String,
       required: false
-    },
-    // content deve ser:
-    // {
-    //   paper: { ... }
-    // }
-    content: {
-      type: Object,
-      required: true
-    },
-    // action deve ser um paper:
-    // {
-    //   kind: 'action',
-    //   ...
-    // }
-    action: {
-      type: Object,
-      required: true
     }
   },
 
   data: () => ({
-    extents: [ 1, 1, 1, 1, 1, 4, 2, 3, 1, 3 ]
+    valid: true,
+    message: null
   }),
 
   computed: {
-    parameters () {
-      return {
-        catalogName: this.catalogName,
-        paperName: this.paperName,
-        actionName: this.actionName,
-        actionKeys: this.actionKeys,
-        content: this.content
+    action () {
+      if (this.actionName === null) {
+        return this.paper
+      } else {
+        let actions = this.paper.actions
+        let action = actions.filter(action => action.view.name === this.actionName)[0]
+        return action
       }
     },
 
-    paper () {
-      return this.content.paper
+    title () {
+      return this.action.view.title
     },
 
-    title () {
-      return this.paper.view.title
+    link () {
+      let links = this.action.links
+      let link = links.filter(link => link.rel === 'action')[0]
+      if (!link) {
+        link = links.filter(link => link.rel === 'self')[0]
+      }
+      return link || {}
     },
-    
-    alert () {
-      return this.content.alert
+
+    linkTitle () {
+      return this.link.title || `Executar ${this.title}`
     },
 
     fields () {
-      return this.paper.fields.filter(field => !field.view.hidden)
+      return this.action.fields.filter(field => !field.view.hidden)
+    },
+
+    paperExtent () {
+      return this.action.view.extent
     }
   },
 
   methods: {
-    setPaper (value) {
-      this.content.paper = value
+    createWidget (field) {
+      let name = `${field.kind.toHyphenCase()}-widget`
+      if (!Vue.options.components[name]) {
+        name = 'invalid-widget'
+      }
+      return {
+        is: name,
+        paper: this.action,
+        fieldName: field.view.name
+      }
     },
 
-    setAlert (value) {
-      this.content.alert = value
-    }
+    emitOrSubmit () {
+      if (this.$listeners.submit) {
+        this.$emit('submit')
+      } else {
+        this.submit()
+      }
+    },
+
+    async submit () {
+      let ok
+
+      this.message = null
+
+      ok = this.$refs.form.validate()
+      if (!ok) return
+
+      let payload = {
+        form: { ...this.paper.data },
+        data: []
+      }
+      
+      let link = this.paper.getLink('action')
+          || this.paper.getLink('self')
+          || { href: this.$browser.href(this) }
+
+      let { href, data } = link
+      lodash.merge(payload.form, data)
+
+      let paper = await this.$browser.request(href, payload) || unknownPaper
+
+      let paperLink = paper.getLink('self')
+          || this.paper.getLink('self')
+          || { href: this.$browser.href(this) }
+      let path = this.$browser.routeFor(paperLink.href)
+      if (path !== this.$route.path) {
+        this.$router.push(path)
+      }
+
+      if (paper.kind === 'validation') {
+        // TODO: Falta exibir a validação na interface...
+        return
+      }
+
+      this.$emit('paperReceived', paper)
+    },
+
+    showValidation (message, fieldName) {
+      let field = this.fields.filter(x => x.name === fieldName).shift()
+      if (field) {
+        field.fault = message
+        field.rules = [ ( ) => !field.fault || field.fault ]
+      } else {
+        field = this.fields[0]
+        this.message = message
+      }
+
+      let widget = this.$refs.widgets[0]
+      widget && widget.focus()
+    },
   }
 }
 </script>

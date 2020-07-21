@@ -5,5 +5,23 @@
 <script>
 
 export default {
+  props: {
+    paper: {
+      type: Object,   // Paper
+      required: true
+    },
+  },
+
+  computed: {
+    parameters () {
+      return {
+        paper: this.paper
+      }
+    },
+
+    title () {
+      return this.paper.view.title
+    },
+  },
 }
 </script>

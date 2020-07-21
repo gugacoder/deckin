@@ -59,8 +59,7 @@
         v-if="content.paper"
       )
         component(
-          :is="paperComponent"
-          v-bind="paperComponentProperties"
+          v-bind="paperComponent"
         )
 
       br
@@ -161,15 +160,14 @@ export default {
     paperComponent () {
       let paper = this.content.paper
       let design = (paper ? paper.view.design : 'unknown').toHyphenCase()
+      
       let name = `${design}-paper`
       if (!Vue.options.components[name]) {
         name = 'unknown-paper'
       }
-      return name;
-    },
 
-    paperComponentProperties () {
       return {
+        is: name,
         catalogName: this.catalogName,
         paperName: this.paperName,
         actionName: this.actionName,

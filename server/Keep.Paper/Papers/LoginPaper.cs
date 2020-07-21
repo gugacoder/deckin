@@ -54,7 +54,7 @@ namespace Keep.Paper.Papers
         {
           Title,
           Design = Design.Action,
-          Size = Size.ExtraSmall
+          Extent = Extent.Small
         },
         Fields = new
         {
@@ -95,6 +95,7 @@ namespace Keep.Paper.Papers
           new
           {
             Rel = Rel.Action,
+            Title = "Autenticar",
             Href = Href.To(HttpContext, GetType(), nameof(AuthenticateAsync))
           },
         }

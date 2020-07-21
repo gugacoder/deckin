@@ -21,6 +21,16 @@ export default {
       type: String,
       required: false
     },
+    // content deve ser:
+    // {
+    //   paper: ENTITY,   // Requerido
+    //   alert: {
+    //     type: ...,
+    //     message: ...,
+    //     detail: ...,
+    //     fault: ...
+    //   }
+    // }
     content: {
       type: Object,
       required: true

@@ -2,6 +2,7 @@
   v-skeleton-loader.skeleton-widget(
     type="list-item"
     class="mx-auto"
+    :class="`extent-${extent}`"
   )
 </template>
 
