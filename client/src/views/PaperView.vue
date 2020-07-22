@@ -32,22 +32,22 @@
       id="paper-content"
       fluid
     )
+
       //- :type can be either info, success, warning or error
       v-alert(
+        v-model="content.alert.valid"
         v-show="content.alert.message"
-        :type="content.alert.type"
+        :type="content.alert.type || 'info'"
         dense
-        text
         dismissible
-        border="left"
-        elevation="1"
+        text
         transition="fade-transition"
       )
         span(
           class="font-weight-medium"
         )
           | {{ content.alert.message }}
-        
+      
         br
 
         span(
@@ -129,6 +129,7 @@ export default {
     content: {
       paper: null,
       alert: {
+        valid: true,
         type: null,
         message: null,
         detail: null,

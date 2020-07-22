@@ -84,26 +84,30 @@
                     span.font-weight-medium todos &nbsp;
                       span.font-weight-thin os registros
       
+      //- Refresh
+      v-btn(
+        icon
+        :disabled="!!autoRefresh.timer"
+        @click="refreshData(true)"
+      )
+        v-icon mdi-refresh
+
       //- Autorefresh
-        v-btn(
-          rounded
-          depressed
-          large
-          color="primary"
-          @click="setAutoRefresh(!autoRefresh.timer)"
-        )
-          v-icon.flip(
-            :color="!!autoRefresh.timer ? '' : 'primary lighten-2'"
-          )
-            | mdi-history
-          
-          span(
-            v-show="!!autoRefresh.timer"
-          )
-            span.font-weight-medium
-              big {{ autoRefresh.seconds }}
-              span.font-weight-thin
-                small s
+      v-btn(
+        rounded
+        large
+        depressed
+        :color="!!autoRefresh.timer ? 'primary lighten-1' : 'primary'"
+        @click="setAutoRefresh(!autoRefresh.timer)"
+      )
+        v-icon.flip
+          | mdi-history
+        
+        span
+          span.font-weight-medium
+            big {{ autoRefresh.seconds }}
+            span.font-weight-thin
+              small s
 
     //- Barra Lateral de Funções
     v-navigation-drawer(
@@ -128,28 +132,14 @@
           v-list-item-title.subtitle-1.stretch
             | FILTRO
 
-          v-btn.mr-1.pl-0.pr-0(
-            small
-            :text="!autoRefresh.timer"
-            :color="!!autoRefresh.timer ? 'primary' : ''"
-            @click="setAutoRefresh(!autoRefresh.timer)"
-          )
-            v-icon.flip(
-              :color="!!autoRefresh.timer ? '' : 'secondary lighten-2'"
-            )
-              | mdi-history
-            
-            span.font-weight-medium
-              big {{ autoRefresh.seconds }}
-              span.font-weight-thin
-                small s
-
           v-btn(
             small
             color="primary"
             :disabled="!!autoRefresh.timer"
-            @click="refreshData(true)"
+            @click="applyFilter"
           )
+            v-icon mdi-refresh
+
             | Aplicar
 
           v-btn(
@@ -158,32 +148,8 @@
           )
             v-icon {{ filter.expanded ? 'mdi-chevron-left' : 'mdi-chevron-right' }}
 
-        v-list-item.px-2.pt-1(
-          dense
-          v-show="filter.minified"
-        )
-          v-list-item-icon.mt-2px.mr-4
-            v-btn(
-              icon
-              color="primary"
-              :disabled="!!autoRefresh.timer"
-              @click="refreshData(true)"
-            )
-              v-icon mdi-refresh
-
-        v-list-item.px-2.pt-1(
-          dense
-          v-show="filter.minified"
-        )
-          v-list-item-icon.mt-2px.mr-4
-            v-btn(
-              icon
-              :color="autoRefresh.timer ? 'primary' : ''"
-              @click="setAutoRefresh(!autoRefresh.timer)"
-            )
-              v-icon.flip mdi-history
-
       action-slice(
+        ref="filterSlice"
         v-show="!filter.minified"
         v-bind="filterSlice"
         @submit="refreshData(true)"
@@ -329,7 +295,6 @@
 
 <script>
 import Vue from 'vue'
-import lodash from 'lodash'
 import moment from 'moment'
 import PaperBase from './-PaperBase.vue'
 import '@/helpers/StringHelper.js'
@@ -471,6 +436,7 @@ export default {
 
       // Filtragem
       this.filter.action = this.paper.actions.filter(a => a.view.name === 'filter')[0]
+      this.updateFilter()
     },
 
     setAutoRefresh(enabled) {
@@ -501,36 +467,41 @@ export default {
       }
     },
 
+    applyFilter () {
+      this.$refs.filterSlice.submit()
+    },
+
     async refreshData(force) {
       try {
         if (this.busy && !force)
           return
-
+          
         this.busy = true
         
         let requestId = this.lastRequestId = ((this.lastRequestId + 1) % 100)
         let href = this.href
 
-        let data = lodash.merge({}, this.$route.query)
+        let payload = {}
 
-        if (this.pagination.enabled) {
-          let opts = {
-            pagination: {
-              offset: 0,
-              limit: this.pagination.pageSize
-            }
-          }
-          data = lodash.merge(data, opts)
+        if (this.filter.action) {
+          payload.form = this.filter.action.data
         }
 
-        let paper = await this.$browser.request(href, data) || unknownPaper
+        if (this.pagination.enabled) {
+          payload.pagination = {
+            offset: 0,
+            limit: this.pagination.pageSize
+          }
+        }
+        
+        let paper = await this.$browser.request(href, payload) || unknownPaper
 
         let self = paper.getLink('self') || { href: this.href }
         let path = this.$browser.routeFor(self.href)
         if (path === this.$route.path) {
           if (force || this.autoRefresh.enabled) {
             if (requestId === this.lastRequestId) {
-              this.content.paper = paper
+              this.updateData(paper)
             }
           }
         }
@@ -539,6 +510,35 @@ export default {
       } catch {
         // XXX: o que fazer com essa falha?
         this.busy = false
+      }
+    },
+
+    updateData (paper) {
+      switch (paper.kind) {
+        case 'paper': {
+          let incomingData = paper.embedded.filter(e => e.kind === 'data')
+          let embedded = this.paper.embedded.filter(e => e.kind !== 'data')
+          embedded.push(...incomingData)
+          
+          this.$set(this.paper, 'embedded', embedded)
+          this.setAlert(null)
+
+          break
+        }
+
+        case 'fault': {
+          let fault = paper.data
+          let detail = Array.isArray(fault.reason)
+            ? fault.reason.join('\n')
+            : fault.reason
+          
+          this.setAlert({
+            type: 'error',
+            message: 'O servidor não está entregando dados para atualização da grade.',
+            detail
+          })
+          break
+        }
       }
     },
 
@@ -555,6 +555,7 @@ export default {
       return /[\n\r]/.exec(text)
     },
 
+    /*
     async submit () {
       let ok
 
@@ -593,6 +594,7 @@ export default {
         this.setPaper(paper)
       }
     },
+    */
 
     cancel () {
       this.$refs.form.reset()

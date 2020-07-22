@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -458,8 +459,9 @@ namespace Keep.Tools
       if (text == null)
         return false;
 
-      var invariant = System.Globalization.CultureInfo.InvariantCulture;
-      return invariant.CompareInfo.IndexOf(text, pattern) >= 0;
+      var invariant = CultureInfo.InvariantCulture;
+      var options = CompareOptions.IgnoreCase;
+      return invariant.CompareInfo.IndexOf(text, pattern, options) >= 0;
     }
 
     public static int IndexOfIgnoreCase(this string text, string pattern)

@@ -67,7 +67,11 @@ export default {
     },
 
     setAlert (value) {
-      this.content.alert = value
+      if (!value) value = {}
+      this.content.alert.type = value.type
+      this.content.alert.message = value.message
+      this.content.alert.detail = value.detail
+      this.content.alert.fault = value.fault
     }
   }
 }

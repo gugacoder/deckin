@@ -5,7 +5,7 @@
       v-model="valid"
       lazy-validation
       :class="extent || paperExtent"
-      @submit.prevent="emitOrSubmit"
+      @submit.prevent="submit"
     )
       div
         p {{ message }}
@@ -154,15 +154,15 @@ export default {
       }
     },
 
-    emitOrSubmit () {
+    submit () {
       if (this.$listeners.submit) {
         this.$emit('submit')
       } else {
-        this.submit()
+        this.fetchData()
       }
     },
 
-    async submit () {
+    async fetchData () {
       let ok
 
       this.message = null

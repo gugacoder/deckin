@@ -20,6 +20,7 @@ namespace Director.Formularios
 
     public class Filtro
     {
+      /*
       public Var<DateTime?> Data { get; set; } = new Var<DateTime?>(
         new Range<DateTime?>(
           DateTime.Today.AddDays(-1),
@@ -31,6 +32,10 @@ namespace Director.Formularios
       public Var<string> Evento { get; set; }
 
       public Var<string> Mensagem { get; set; }
+      */
+      public string Origem { get; set; }
+      public string Evento { get; set; }
+      public string Mensagem { get; set; }
     }
 
     public FormularioDeMonitoramento(ServicoDeAuditoria auditoria)
@@ -43,6 +48,29 @@ namespace Director.Formularios
       int limit = (pagination?.Limit == null)
         ? (int)PageLimit.UpTo50
         : (int)pagination.Limit;
+
+      var events = auditoria.Find(mapa => mapa
+        .SelectMany(item => item.Value.Find(eventos => eventos
+          .NotNull()
+          .Where(evento =>
+            string.IsNullOrEmpty(filtro.Origem) ||
+            evento.Origem.ContainsIgnoreCase(filtro.Origem)
+          )
+          .Where(evento =>
+            string.IsNullOrEmpty(filtro.Evento) ||
+            evento.Nome.ContainsIgnoreCase(filtro.Evento)
+          )
+          .Where(evento =>
+            string.IsNullOrEmpty(filtro.Mensagem) ||
+            evento.Mensagem.ContainsIgnoreCase(filtro.Mensagem)
+          )
+          .OrderByDescending(evento => evento.Data)
+          .Take(limit > 0 ? limit : MaxLimit)
+        ))
+        .OrderByDescending(evento => evento.Data)
+        .Select(evento => new { Data = evento })
+        .Take(limit > 0 ? limit : MaxLimit)
+      );
 
       return new
       {
@@ -105,42 +133,46 @@ namespace Director.Formularios
           Filter = new
           {
             Data = filtro,
-            Fields = new
+            Fields = new object[]
             {
-              Data = new
+              //new
+              //{
+              //  Kind = FieldKind.Date,
+              //  View = new
+              //  {
+              //    Name = 
+              //    Range = true,
+              //  }
+              //},
+              new
               {
-                Kind = FieldKind.Date,
+                Kind = FieldKind.Text,
                 View = new
                 {
-                  Range = true,
+                  Name = nameof(Filtro.Origem)
                 }
               },
-              Origem = new
+              new
               {
-                Kind = FieldKind.Text
+                Kind = FieldKind.Text,
+                View = new
+                {
+                  Name = nameof(Filtro.Evento)
+                }
               },
-              Evento = new
+              new
               {
-                Kind = FieldKind.Text
-              },
-              Mensagem = new
-              {
-                Kind = FieldKind.Text
+                Kind = FieldKind.Text,
+                View = new
+                {
+                  Name = nameof(Filtro.Mensagem)
+                }
               }
             }
           }
         },
 
-        Embedded = auditoria.Find(mapa => mapa
-          .SelectMany(item => item.Value.Find(eventos => eventos
-            .NotNull()
-            .OrderByDescending(evento => evento.Data)
-            .Take(limit > 0 ? limit : MaxLimit)
-          ))
-          .OrderByDescending(evento => evento.Data)
-          .Select(evento => new { Data = evento })
-          .Take(limit > 0 ? limit : MaxLimit)
-        ),
+        Embedded = events,
 
         Links = new
         {

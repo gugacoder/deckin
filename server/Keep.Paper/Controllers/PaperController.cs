@@ -313,7 +313,6 @@ namespace Keep.Paper.Controllers
     {
       try
       {
-
         var parameterValue = form.ToObject(parameterType);
         return parameterValue;
       }

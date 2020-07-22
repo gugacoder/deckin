@@ -15,6 +15,11 @@ export const unknownPaper = canonifyPaper({
   ]
 })
 
+export function getPaperId (paper) {
+  let link = paper.links.filter(link => link.rel === 'self')[0]
+  return link ? link.href : null
+}
+
 export function createPaperPromise (link) {
   return canonifyPaper({
     kind: 'promise',
@@ -136,6 +141,11 @@ export function canonifyPaper (paper) {
     // FIXME: O nome deveria ser checado contra conflito de nome
     field.data = field.data || {}
     field.view = field.view || {}
+
+    // FIXME: Decidir onde a propriedade NAME deve ser mantida
+    field.data.name = field.data.name || field.view.name
+    field.view.name = field.view.name || field.data.name
+
     field.view.name = field.data.name || `_field${++index}`
     field.view.title = field.view.title || field.data.name.toProperCase()
     // Se um valor não é indicado diretamente então criamos uma função
@@ -260,5 +270,6 @@ export function canonifyPaper (paper) {
 export default {
   unknownPaper,
   canonifyPaper,
+  getPaperId,
   createPaperPromise
 }
