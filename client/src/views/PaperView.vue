@@ -61,18 +61,6 @@
         component(
           v-bind="paperComponent"
         )
-
-      br
-      
-      v-expansion-panels(
-        flat
-      )
-        v-expansion-panel
-          v-expansion-panel-header Raw data
-
-          v-expansion-panel-content
-            pre(v-if="content.paper") {{ content.paper }}
-            small(v-else) ( Waiting for data... )
 </template>
 
 <style scoped>

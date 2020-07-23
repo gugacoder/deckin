@@ -83,7 +83,7 @@
                   span.font-weight-thin Exibir &nbsp;
                     span.font-weight-medium todos &nbsp;
                       span.font-weight-thin os registros
-      
+
       //- Refresh
       v-btn(
         icon
@@ -147,7 +147,7 @@
             @click.stop="filter.expanded = !filter.expanded"
           )
             v-icon {{ filter.expanded ? 'mdi-chevron-left' : 'mdi-chevron-right' }}
-
+      
       action-slice(
         ref="filterSlice"
         v-show="!filter.minified"
@@ -182,6 +182,8 @@
           )
             | {{ item[header.value] }}
     
+    //- Rodapé
+    //-
     the-paper-footer(
       v-bind="parameters"
     )
@@ -436,7 +438,7 @@ export default {
 
       // Filtragem
       this.filter.action = this.paper.actions.filter(a => a.view.name === 'filter')[0]
-      this.updateFilter()
+      this.filter.minified = !!this.paper.view.filterHidden
     },
 
     setAutoRefresh(enabled) {

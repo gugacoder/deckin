@@ -5,6 +5,10 @@
       app
       v-bind="parameters"
     )
+    
+    the-paper-footer(
+      v-bind="parameters"
+    )
 
     action-slice(
       v-bind="actionSlice"
@@ -16,6 +20,7 @@
 <script>
 import PaperBase from './-PaperBase.vue'
 import ThePaperHeader from './parts/ThePaperHeader.vue'
+import ThePaperFooter from './parts/ThePaperFooter.vue'
 import '@/helpers/StringHelper.js'
 
 export default {
@@ -25,6 +30,7 @@ export default {
 
   components: {
     'the-paper-header': ThePaperHeader,
+    'the-paper-footer': ThePaperFooter,
   },
 
   computed: {

@@ -33,6 +33,15 @@ namespace Director.Formularios
 
       public Var<string> Mensagem { get; set; }
       */
+
+      public Filtro()
+      {
+        De = DateTime.Today.AddDays(-1);
+        Ate = DateTime.Today;
+      }
+
+      public DateTime? De { get; set; }
+      public DateTime? Ate { get; set; }
       public string Origem { get; set; }
       public string Evento { get; set; }
       public string Mensagem { get; set; }
@@ -52,6 +61,14 @@ namespace Director.Formularios
       var events = auditoria.Find(mapa => mapa
         .SelectMany(item => item.Value.Find(eventos => eventos
           .NotNull()
+          .Where(evento =>
+            filtro.De == null ||
+            evento.Data.CompareTo(filtro.De) >= 0
+          )
+          .Where(evento =>
+            filtro.Ate == null ||
+            evento.Data.CompareTo(filtro.Ate.Value.AddDays(1)) < 0
+          )
           .Where(evento =>
             string.IsNullOrEmpty(filtro.Origem) ||
             evento.Origem.ContainsIgnoreCase(filtro.Origem)
@@ -81,6 +98,7 @@ namespace Director.Formularios
           Title = "Monitoramento de Eventos do Sistema",
           Design = Design.Grid,
           AutoRefresh = 1, // segundos
+          FilterHidden = true,
           Page = new { limit }
         },
 
@@ -146,10 +164,20 @@ namespace Director.Formularios
               //},
               new
               {
-                Kind = FieldKind.Text,
+                Kind = FieldKind.Date,
                 View = new
                 {
-                  Name = nameof(Filtro.Origem)
+                  Name = nameof(Filtro.De).ToCamelCase(),
+                  Title = "De"
+                }
+              },
+              new
+              {
+                Kind = FieldKind.Date,
+                View = new
+                {
+                  Name = nameof(Filtro.Ate).ToCamelCase(),
+                  Title = "Até"
                 }
               },
               new
@@ -157,7 +185,7 @@ namespace Director.Formularios
                 Kind = FieldKind.Text,
                 View = new
                 {
-                  Name = nameof(Filtro.Evento)
+                  Name = nameof(Filtro.Origem).ToCamelCase()
                 }
               },
               new
@@ -165,7 +193,15 @@ namespace Director.Formularios
                 Kind = FieldKind.Text,
                 View = new
                 {
-                  Name = nameof(Filtro.Mensagem)
+                  Name = nameof(Filtro.Evento).ToCamelCase()
+                }
+              },
+              new
+              {
+                Kind = FieldKind.Text,
+                View = new
+                {
+                  Name = nameof(Filtro.Mensagem).ToCamelCase()
                 }
               }
             }

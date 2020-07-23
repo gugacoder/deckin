@@ -84,7 +84,7 @@ export default {
     },
     
     extent () {
-      return this.field.view.extent || 2
+      return this.field.view.extent || this.defaultExtent || 2
     }
   },
 }
