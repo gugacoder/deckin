@@ -5,7 +5,7 @@
     v-system-bar(
       app
       color="white"
-      v-if="true"
+      v-if="false"
     )
       v-icon mdi-cart-outline
 
@@ -22,9 +22,9 @@
 
       v-spacer
 
-      v-icon mdi-alarm
+      v-icon.d-none.d-sm-flex mdi-alarm
 
-      span {{ currentDate }}
+      span.d-none.d-sm-flex {{ currentDate }}
 
       v-icon
 

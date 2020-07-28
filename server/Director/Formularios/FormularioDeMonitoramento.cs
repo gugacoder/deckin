@@ -95,7 +95,7 @@ namespace Director.Formularios
 
         View = new
         {
-          Title = "Monitoramento de Eventos do Sistema",
+          Title = "Eventos do Sistema",
           Design = Design.Grid,
           AutoRefresh = 1, // segundos
           FilterHidden = true,

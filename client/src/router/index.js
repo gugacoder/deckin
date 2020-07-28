@@ -10,13 +10,15 @@ const routes = [
     path: '/',
     name: 'Home',
     redirect: { path: '/!/App/Home/Index' }
-//    redirect: { path: '/Sandbox/Hi' }
   },
   {
     path: '/!/:catalogName/:paperName/:actionName/:actionKeys?',
     name: 'Paper',
     component: PaperView,
-    props: true
+    props: true,
+    meta: {
+      title: 'Mercadologic™'
+    }
   },
   {
     path: '/Sandbox/:arg',
@@ -38,5 +40,10 @@ const router = new VueRouter({
   base: process.env.BASE_URL,
   routes
 })
+
+router.beforeEach((to, from, next) => {
+  document.title = (to.meta && to.meta.title) || 'Paper App'
+  next();
+});
 
 export default router

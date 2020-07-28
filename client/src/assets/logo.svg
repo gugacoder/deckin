@@ -1,1 +1,299 @@
-<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.5 100"><defs><style>.cls-1{fill:#1697f6;}.cls-2{fill:#7bc6ff;}.cls-3{fill:#1867c0;}.cls-4{fill:#aeddff;}</style></defs><title>Artboard 46</title><polyline class="cls-1" points="43.75 0 23.31 0 43.75 48.32"/><polygon class="cls-2" points="43.75 62.5 43.75 100 0 14.58 22.92 14.58 43.75 62.5"/><polyline class="cls-3" points="43.75 0 64.19 0 43.75 48.32"/><polygon class="cls-4" points="64.58 14.58 87.5 14.58 43.75 100 43.75 62.5 64.58 14.58"/></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0rc1 (09960d6, 2020-04-09)"
+   sodipodi:docname="logo.svg"
+   xml:space="preserve"
+   style="enable-background:new 0 0 512 512;"
+   viewBox="0 0 512 512"
+   y="0px"
+   x="0px"
+   id="Capa_1"
+   version="1.1"><metadata
+   id="metadata85"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata><defs
+   id="defs83" /><sodipodi:namedview
+   inkscape:current-layer="Capa_1"
+   inkscape:window-maximized="0"
+   inkscape:window-y="0"
+   inkscape:window-x="0"
+   inkscape:cy="248.51188"
+   inkscape:cx="213.87934"
+   inkscape:zoom="1.0683594"
+   showgrid="false"
+   id="namedview81"
+   inkscape:window-height="800"
+   inkscape:window-width="1280"
+   inkscape:pageshadow="2"
+   inkscape:pageopacity="0"
+   guidetolerance="10"
+   gridtolerance="10"
+   objecttolerance="10"
+   borderopacity="1"
+   bordercolor="#666666"
+   pagecolor="#ffffff" />
+<circle
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="circle10"
+   r="256"
+   cy="256"
+   cx="256"
+   style="fill:#FF6838;" />
+<path
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="path12"
+   d="M512,256c0-14.006-1.142-27.744-3.307-41.14L375,81.167l-238,45.309L269.345,258.82L137,244.091  l27.164,27.164L137,268.261l62.341,62.341l-83.226,8.452l29.039,29.039l-35.573,16.334l126.834,126.834  C242.88,511.75,249.411,512,256,512C397.385,512,512,397.385,512,256z"
+   style="fill:#AE4E32;" />
+<path
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="path14"
+   d="M345,348l30-8.438V326.7l-12-5.2l12-6.857V114.424l-23.5-8.924L375,94.787v-13.62H137v45.309L168,145  l-31,10.963v88.127l12.5,8.409l-12.5,5.682v10.079l31,6.74l-31,9.435V394.5h208.25c16.43,0,29.75-13.319,29.75-29.75v-7.276L345,348  z"
+   style="fill:#FFFFFF;" />
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g20">
+	<path
+   id="path16"
+   d="M375,81.167H255.952V394.5h89.298c16.43,0,29.75-13.319,29.75-29.75v-7.276L345,348l30-8.438V326.7   l-12-5.2l12-6.857V114.424l-23.5-8.924L375,94.787V81.167z"
+   style="fill:#E0E0E0;" />
+	<path
+   id="path18"
+   d="M315,364.5c0-16.568,13.431-30,30-30H132c-5.835,0-11.277,1.672-15.885,4.554L125,343.75   l-18.405,4.801C103.688,353.172,102,358.638,102,364.5c0,16.568,13.431,30,30,30h213C328.431,394.5,315,381.068,315,364.5z"
+   style="fill:#E0E0E0;" />
+</g>
+<path
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="path22"
+   d="M315,364.5c0-16.568,13.431-30,30-30h-89.048v60H345C328.431,394.5,315,381.068,315,364.5z"
+   style="fill:#C0C0C0;" />
+<rect
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="rect24"
+   height="12.07"
+   width="180.19"
+   style="fill:#FFD863;"
+   y="159.69"
+   x="165.91" />
+<rect
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="rect26"
+   height="12.07"
+   width="90.14"
+   style="fill:#FFB344;"
+   y="159.69"
+   x="255.95" />
+<rect
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="rect28"
+   height="12.07"
+   width="180.19"
+   style="fill:#FFD863;"
+   y="192.67"
+   x="165.91" />
+<rect
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="rect30"
+   height="12.07"
+   width="90.14"
+   style="fill:#FFB344;"
+   y="192.67"
+   x="255.95" />
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g34">
+	<rect
+   id="rect32"
+   height="12.07"
+   width="180.19"
+   style="fill:#FFD863;"
+   y="225.65"
+   x="165.91" />
+</g>
+<rect
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="rect36"
+   height="12.07"
+   width="90.14"
+   style="fill:#FFB344;"
+   y="225.65"
+   x="255.95" />
+<rect
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="rect38"
+   height="12.07"
+   width="180.19"
+   style="fill:#FFD863;"
+   y="258.62"
+   x="165.91" />
+<rect
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="rect40"
+   height="12.07"
+   width="90.14"
+   style="fill:#FFB344;"
+   y="258.62"
+   x="255.95" />
+<rect
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="rect42"
+   height="12.07"
+   width="180.19"
+   style="fill:#FFD863;"
+   y="291.6"
+   x="165.91" />
+<rect
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="rect44"
+   height="12.07"
+   width="90.14"
+   style="fill:#FFB344;"
+   y="291.6"
+   x="255.95" />
+<rect
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="rect46"
+   height="12.07"
+   width="69.19"
+   style="fill:#FFD863;"
+   y="126.72"
+   x="221.4" />
+<rect
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="rect48"
+   height="12.07"
+   width="34.643"
+   style="fill:#FFB344;"
+   y="126.72"
+   x="255.95" />
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g50">
+</g>
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g52">
+</g>
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g54">
+</g>
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g56">
+</g>
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g58">
+</g>
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g60">
+</g>
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g62">
+</g>
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g64">
+</g>
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g66">
+</g>
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g68">
+</g>
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g70">
+</g>
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g72">
+</g>
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g74">
+</g>
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g76">
+</g>
+<g
+   inkscape:export-ydpi="28.500002"
+   inkscape:export-xdpi="28.500002"
+   inkscape:export-filename="/Users/gugacoder/Sources/gugacoder/deckin/client/public/img/icons/apple-touch-icon-152x152.png"
+   id="g78">
+</g>
+</svg>

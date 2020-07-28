@@ -1,114 +1,340 @@
 <template lang="pug"> 
-
-  //- .d-none.d-sm-flex => Não exibido em celulars 
-  //- .d-flex.d-sm-none => Exibido somente em celulares
-  //-
-  //- $vuetify.breakpoint.xsOnly => Diz se é celular
-
   div.grid-paper
-
     the-paper-header(
       v-bind="parameters"
-      @menuClick="menu.visible = !menu.visible"
+      @click="refreshData(true)"
+      :clipped="true"
     )
-
-    the-paper-menu(
-      v-bind="parameters"
-      :menu="menu"
-    )
-
-
-    //-
-
-
-
-      //-
-      //- BARRA DE FERRAMENTAS
-      //-
-      v-app-bar(
-        app
-        dark
-        color="primary"
-        clipped-left
-        clipped-right
+      //- Botão de ocultação da barra de funcoes
+      template(
+        slot="left"
       )
         v-btn(
           icon
+          @click.stop="menu = !menu"
         )
-          v-icon mdi-menu
-
-        v-btn.d-none.d-sm-flex(
-          icon
-        )
-          v-icon mdi-filter
-
-        v-toolbar-title.d-none.d-sm-flex
-          | {{ title }}
+          v-icon
+            | mdi-menu
         
-        v-spacer.d-flex.d-sm-none
+        | {{ title }}
 
-        span.d-flex.d-sm-none
-          | {{ title }}
-
-        v-spacer
-
-        v-btn.d-none.d-sm-flex(
-          icon
+      //- Paginação
+        v-menu(
+          v-if="pagination.enabled"
+          :close-on-click="true"
+          :close-on-content-click="true"
+          :offset-x="false"
+          :offset-y="true"
         )
-          v-icon.flip mdi-history
+          //- Botão de paginação
+          template(
+            v-slot:activator="{ on, attrs }"
+          )
+            v-btn(
+              v-bind="attrs"
+              v-on="on"
+              rounded
+              depressed
+              large
+              color="primary"
+            )
+              span(
+                v-if="pagination.pageSize > 0"
+              )
+                span.font-weight-thin
+                  small Exibindo até &nbsp;
+                  span.font-weight-medium
+                    big {{ pagination.pageSize }} &nbsp;
+                    span.font-weight-thin
+                      small registros
+              span(
+                v-else
+              )
+                span.font-weight-thin
+                  small Exibindo &nbsp;
+                  span.font-weight-medium
+                    big todos &nbsp;
+                    span.font-weight-thin
+                      small os registros
 
-        v-btn(
-          icon
-          @click.stop="dark = !dark"
-          :class="dark ? 'x-btn-pressed' : ''"
-        )
-          v-icon mdi-weather-night
+          //- Submenu de paginação
+          v-list
+            v-list-item(
+              v-for="size in pagination.pageSizes"
+              :key="size"
+              @click="setPageSize(size)"
+            )
+              v-list-item-action
+                v-icon(
+                  :color="pagination.pageSize === 0 ? 'primary' : ''"
+                )
+                  | {{ pagination.pageSize === size ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}
+              v-list-item-content
+                span(
+                  v-if="size > 0"
+                )
+                  span.font-weight-thin Exibir até &nbsp;
+                    span.font-weight-medium {{ size }} &nbsp;
+                      span.font-weight-thin registros
+                span(
+                  v-else
+                )
+                  span.font-weight-thin Exibir &nbsp;
+                    span.font-weight-medium todos &nbsp;
+                      span.font-weight-thin os registros
 
-        v-btn(
-          icon
-        )
-          v-icon mdi-account
-
+      //- Refresh
       //-
-      //- RODAPÉ
-      //-
-      v-app-bar(
-        app
-        bottom
-        :height="!isMobile ? 40 : null"
-      )
-        v-btn.mr-1.d-flex.d-sm-none(
-          icon
-          color="primary"
-        )
-          v-icon.flip mdi-history
-
-
-
-
-
-
-        v-spacer
-
-        v-btn(
-          text
-          rounded
-          :small="!isMobile"
-        )
-          span
-            big {{ rows.length }} &nbsp;
-            span.font-weight-light {{ rows.length === 1 ? 'registro' : 'registros' }}
-
         v-btn(
           icon
-          :small="!isMobile"
+          :disabled="!!autoRefresh.timer"
+          @click="refreshData(true)"
         )
           v-icon mdi-refresh
 
+      //- Autorefresh
+      //-
+        v-btn(
+          rounded
+          large
+          depressed
+          :color="!!autoRefresh.timer ? 'primary lighten-1' : 'primary'"
+          @click="setAutoRefresh(!autoRefresh.timer)"
+        )
+          v-icon.flip
+            | mdi-history
+          
+          span
+            span.font-weight-medium
+              big {{ autoRefresh.seconds }}
+              span.font-weight-thin
+                small s
+
+
+    //- Barra Lateral de Funções
+    v-navigation-drawer(
+      v-model="menu"
+      app
+      width="400"
+    )
+      v-list.pa-0
+        v-list-item.px-2.pt-1(
+          dense
+        )
+          v-list-item-icon.mt-2px.mr-4
+            v-btn(
+              icon
+              @click.stop="menu = !menu"
+            )
+              v-icon mdi-menu
+
+          v-list-item-title.subtitle-1.stretch
+            | {{ title }}
+
+      action-slice(
+        ref="filterSlice"
+        v-bind="filterSlice"
+        @submit="refreshData(true)"
+      )
+        template(
+          v-slot:actionBar
+        )
+          div
+
+    //- Barra Lateral de Filtro
+    v-navigation-drawer(
+      v-model="filter.visible"
+      app
+      :width="filter.expanded ? 590 : 300"
+    )
+      v-list.pa-0
+        v-list-item.px-2.pt-1(
+          dense
+        )
+          v-list-item-icon.mt-2px.mr-4
+            v-btn(
+              icon
+              @click.stop="filter.visible = !filter.visible"
+            )
+              v-icon mdi-filter
+
+          v-list-item-title.subtitle-1.stretch
+            v-btn(
+              text
+              @click.stop="filter.visible = !filter.visible"
+            )
+              | Filtro
+
+          v-btn(
+            color="primary"
+            :disabled="!!autoRefresh.timer"
+            @click="applyFilter"
+          )
+            v-icon mdi-refresh
+
+            | Aplicar
+
+          v-btn.d-none.d-sm-flex(
+            icon
+            @click.stop="filter.expanded = !filter.expanded"
+          )
+            v-icon {{ filter.expanded ? 'mdi-chevron-left' : 'mdi-chevron-right' }}
+      
+      action-slice(
+        ref="filterSlice"
+        v-bind="filterSlice"
+        @submit="refreshData(true)"
+      )
+        template(
+          v-slot:actionBar
+        )
+          div
+
+
+
+
+
+
+
+    //- Barra Lateral de Filtro
+    v-navigation-drawer(
+      clipped
+      permanent
+      mini-variant
+      mini-variant-width="50"
+    )
+      v-list.pa-0
+        v-list-item.px-2.pt-1(
+          dense
+        )
+          v-list-item-icon
+            v-btn(
+              icon
+              @click.stop="filter.visible = !filter.visible"
+            )
+              v-icon mdi-filter
+
+
+
+
+
+    //- Rodapé
     //-
-    //- GRADE DE DADOS
-    //-
-    v-data-table.ma-0(
+    the-paper-footer(
+      v-bind="parameters"
+    )
+      //- Autorefresh
+      template(
+        slot="left"
+      )
+        //- Botão de ocultação do filtro
+        v-btn.mx-1(
+          v-if="filter.action"
+          icon
+          @click.stop="filter.visible = !filter.visible"
+        )
+          v-icon
+            | mdi-filter
+
+        //- Botão de Auto-Refresh
+        v-btn.mx-1(
+          icon
+          :class="!!autoRefresh.timer ? 'x-bg-primary' : ''"
+          :color="!!autoRefresh.timer ? 'white' : ''"
+          @click="setAutoRefresh(!autoRefresh.timer)"
+        )
+          v-icon.flip
+            | mdi-history
+
+        //-
+          v-btn(
+            depressed
+            rounded
+            small
+            :color="!!autoRefresh.timer ? 'primary' : 'white'"
+            @click="setAutoRefresh(!autoRefresh.timer)"
+          )
+            v-icon.flip
+              | mdi-history
+            
+            span
+              span.font-weight-medium
+                big {{ autoRefresh.seconds }}
+                span.font-weight-thin
+                  small s
+
+      //- Paginação
+      v-menu(
+        v-if="pagination.enabled"
+        :close-on-click="true"
+        :close-on-content-click="true"
+        :offset-x="false"
+        :offset-y="true"
+      )
+        //- Botão de paginação
+        template(
+          v-slot:activator="{ on, attrs }"
+        )
+          v-btn(
+            v-bind="attrs"
+            v-on="on"
+            depressed
+            rounded
+            small
+            color="white"
+          )
+            span
+              big {{ rows.length }} &nbsp;
+              span.font-weight-light {{ rows.length === 1 ? 'registro' : 'registros' }}
+
+        //- Submenu de paginação
+        v-list
+          v-list-item(
+            v-for="size in pagination.pageSizes"
+            :key="size"
+            @click="setPageSize(size)"
+          )
+            v-list-item-action
+              v-icon(
+                :color="pagination.pageSize === 0 ? 'primary' : ''"
+              )
+                | {{ pagination.pageSize === size ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}
+            v-list-item-content
+              span(
+                v-if="size > 0"
+              )
+                span.font-weight-thin Exibir até &nbsp;
+                  span.font-weight-medium {{ size }} &nbsp;
+                    span.font-weight-thin registros
+              span(
+                v-else
+              )
+                span.font-weight-thin Exibir &nbsp;
+                  span.font-weight-medium todos &nbsp;
+                    span.font-weight-thin os registros
+
+      v-btn(
+        icon
+        small
+        @click="refreshData(true)"
+      )
+        v-icon(
+          v-if="!autoRefresh.timer && !busy"
+        )
+          | mdi-refresh
+
+        v-progress-circular(
+          v-if="autoRefresh.timer || busy"
+          :indeterminate="busy"
+          rotate
+          value="0"
+          size="16"
+          width="2"
+          color="primary"
+        )
+
+    //- Tabela de dados
+    v-data-table(
       :headers="cols"
       :items="rows"
       :fixed-header="true"
@@ -118,7 +344,6 @@
       :hide-default-header="true"
       :hide-default-footer="true"
       item-key="uid"
-      dense
     )
       template(
         v-slot:header="{ props }"
@@ -142,40 +367,54 @@
             :nowrap="!(header.multiline || hasLineBreak(item[header.value]))"
           )
             | {{ item[header.value] }}
+
 </template>
 
 <style scoped>
-
-.x-btn-pressed {
-  background-color: var(--v-primary-lighten1) !important;
+.x-bg-primary {
+  background-color: var(--v-primary-base);
 }
 
-.x-style-trace {
-  color: var(--v-secondary-lighten2);
+.flip {
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
 }
 
-/*
-.x-style-default {
+.stretch {
+  width: 100%;
+}
+
+.mt-2px {
+  margin-top: 2px;
+}
+
+.custom-menu-button {
+  margin-left: -14px;
+}
+
+.custom-style-trace {
+  color: gray;
+}
+
+.custom-style-default {
   color: var(--v-secondary-base);
 }
-*/
 
-.x-style-information {
+.custom-style-information {
   color: var(--v-info-base);
 }
 
-.x-style-success {
+.custom-style-success {
   color: var(--v-success-base);
 }
 
-.x-style-warning {
+.custom-style-warning {
   color: var(--v-warning-base);
 }
 
-.x-style-danger {
+.custom-style-danger {
   color: var(--v-error-base);
 }
-
 </style>
 
 <script>
@@ -186,7 +425,6 @@ import '@/helpers/StringHelper.js'
 import { unknownPaper } from '@/helpers/PaperHelper.js'
 import ThePaperHeader from './parts/ThePaperHeader.vue'
 import ThePaperFooter from './parts/ThePaperFooter.vue'
-import ThePaperMenu from './parts/ThePaperMenu.vue'
 
 export default {
   extends: PaperBase,
@@ -196,7 +434,6 @@ export default {
   components: {
     'the-paper-header': ThePaperHeader,
     'the-paper-footer': ThePaperFooter,
-    'the-paper-menu': ThePaperMenu,
   },
 
   data: () => ({
@@ -204,9 +441,7 @@ export default {
     lastRequestId: 0,
     busy: false,
 
-    menu: {
-      visible: false,
-    },
+    menu: false,
 
     filter: {
       action: null,
@@ -239,20 +474,6 @@ export default {
   }),
 
   computed: {
-    isMobile () {
-      return this.$vuetify.breakpoint.xsOnly
-    },
-
-    dark: {
-      get () {
-        return this.$vuetify.theme.dark
-      },
-
-      set (value) {
-        this.$vuetify.theme.dark = value
-      }
-    },
-
     href () {
       return this.$browser.href(this)
     },
@@ -296,7 +517,7 @@ export default {
         let styleField = this.paper.fields.filter(x => x.view.useForStyle)[0]
         if (styleField) {
           let style = data[styleField.data.name]
-          data.style = `x-style-${style ? style.toHyphenCase() : null}`
+          data.style = `custom-style-${style ? style.toHyphenCase() : null}`
         }
 
         return data
@@ -318,7 +539,7 @@ export default {
   },
 
   methods: {
-    onPaperChanged () {
+    onPaperChanged() {
 
       // Auto refresh
       //
