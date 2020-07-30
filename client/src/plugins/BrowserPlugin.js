@@ -5,6 +5,11 @@ import store from '@/store'
 
 const API_PREFIX = '/Api/1/Papers'
 
+// PARAMETROS DO SERVIDOR DE API
+const PROTOCOL = window.location.protocol
+const HOST = window.location.hostname
+const PORT = 5000 // window.location.port
+
 function href (catalogName, paperName, actionName, actionKeys) {
   if (!(catalogName instanceof String)) {
     let options = catalogName
@@ -45,6 +50,12 @@ function requestData (href, payload, identity) {
 
     options.method = 'post'
     options.body = JSON.stringify(payload || {})
+
+    if (!href.includes('://')) {
+      href = `${PROTOCOL}//${HOST}:${PORT}${href}`
+    }
+
+    console.log({ href })
 
     fetch(href, options)
       .then(response => response.json())

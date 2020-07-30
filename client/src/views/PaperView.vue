@@ -85,13 +85,11 @@ import { mapState } from 'vuex'
 import moment from 'moment'
 import { unknownPaper } from '@/helpers/PaperHelper'
 import '@/helpers/StringHelper'
-import { BeforeInstallPromptEvent } from "vue-pwa-install";
 
 export default {
   // Strategy: Fetching After Navigation
 
   name: 'paper-view',
-  deferredPrompt: BeforeInstallPromptEvent,
 
   props:
   {
@@ -111,20 +109,6 @@ export default {
       type: String,
       required: false
     }
-  },
-
-  promptInstall () {
-    // Show the prompt:
-    this.deferredPrompt.prompt()
-
-    // Wait for the user to respond to the prompt:
-    this.deferredPrompt.userChoice.then(choiceResult => {
-      if (choiceResult.outcome === "accepted") {
-        // User accepted the install prompt
-      }
-
-      this.deferredPrompt = null
-    })
   },
 
   components: {
@@ -166,7 +150,7 @@ export default {
 
     paperComponent () {
       let paper = this.content.paper
-      let design = (paper ? paper.view.design : 'unknown').toHyphenCase()
+      let design = ((paper && paper.view.design) || 'unknown').toHyphenCase()
       
       let name = `${design}-paper`
       if (!Vue.options.components[name]) {

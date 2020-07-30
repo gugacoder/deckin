@@ -187,6 +187,7 @@ namespace Keep.Paper.Controllers
           {
             Rel = Rel.Self,
             Href = HttpContext.Request.GetDisplayUrl()
+//            Href = Href.MakeRelative(HttpContext.Request.GetDisplayUrl())
           },
           new
           {
@@ -195,7 +196,7 @@ namespace Keep.Paper.Controllers
             Href = Href.To(ctx, loginPaper, "Index"),
             Data = new {
               Form = new {
-               RedirectTo = targetPaperHref
+                RedirectTo = targetPaperHref
               }
             }
           }

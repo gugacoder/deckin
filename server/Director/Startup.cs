@@ -39,6 +39,12 @@ namespace Director
       services.AddPapers();
 
       services.AddSingleton<ServicoDeAuditoria>();
+
+      services.AddCors(o => o.AddPolicy("AllowCorsPolicy", builder => builder
+        .AllowAnyOrigin()
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+      ));
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -47,6 +53,8 @@ namespace Director
       {
         app.UseDeveloperExceptionPage();
       }
+
+      app.UseCors("AllowCorsPolicy");
 
       app.UseRouting();
 

@@ -1,5 +1,12 @@
 import { sanitizeEntity } from '@/helpers/EntityOperations.js'
 
+let protocol = window.location.protocol
+let host = window.location.hostname
+let port = window.location.port
+
+// PORTA DO SERVIDOR DA API
+port = 5000
+
 export function fetchPaper(paper, payload) {
   return new Promise((resolve, reject) => {
     let tokens
@@ -26,7 +33,7 @@ export function fetchPaper(paper, payload) {
       ]
     }
 
-    let path = `/Api/1/Entities/${tokens.join('/')}`
+    let path = `${protocol}://${host}:${port}/Api/1/Entities/${tokens.join('/')}`
     
     let options = {
       headers: new Headers()
@@ -42,6 +49,7 @@ export function fetchPaper(paper, payload) {
       options.body = JSON.stringify(payload)
     }
 
+    console.log({ path });
     fetch(path, options)
       .then(response => response.json())
       .then(data => sanitizeEntity(data))

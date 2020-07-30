@@ -81,6 +81,16 @@
             indeterminate
             color="primary"
           )
+
+        v-col(
+          class="text-center"
+          cols="12"
+        )
+          v-btn(
+            to="/!/App/Home/Index"
+            color="primary"
+          )
+            | Abrir
 </template>
 
 <style lang="scss" scoped>
@@ -98,8 +108,12 @@
 </style>
 
 <script>
+import { BeforeInstallPromptEvent } from "vue-pwa-install";
+
 export default {
   name: 'home-view',
+
+  deferredPrompt: BeforeInstallPromptEvent,
 
   data: () => ({
     windowSize: {
@@ -127,12 +141,25 @@ export default {
   methods: {
     onResize () {
       this.windowSize = { x: window.innerWidth, y: window.innerHeight }
-      console.log(this.windowSize)
     },
 
     reload () {
       this.$router.go()
     }
-  }
+  },
+
+  promptInstall () {
+    // Show the prompt:
+    this.deferredPrompt.prompt()
+
+    // Wait for the user to respond to the prompt:
+    this.deferredPrompt.userChoice.then(choiceResult => {
+      if (choiceResult.outcome === "accepted") {
+        // User accepted the install prompt
+      }
+
+      this.deferredPrompt = null
+    })
+  },
 }
 </script>

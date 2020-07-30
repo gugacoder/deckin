@@ -36,6 +36,13 @@ export function createPaperPromise (link) {
   })
 }
 
+export function canonifyLink (link) {
+  if (!link.href.includes('://')) {
+    let href = link.href.replace(/[^/]+:[/]{2}[^/]+[/]/, '/')
+    lodash.merge(link, { href })
+  }
+}
+
 export function canonifyPaper (paper) {
   let index = 0;
 
@@ -111,6 +118,8 @@ export function canonifyPaper (paper) {
       return lodash.merge({}, properties, link)
     })
   }
+  // Tornando HREF relativo
+  target.links.forEach(link => canonifyLink(link))
 
   // Fields, contém definições sobre os campos de dados, contidos em Data.
   //
@@ -269,6 +278,7 @@ export function canonifyPaper (paper) {
 
 export default {
   unknownPaper,
+  canonifyLink,
   canonifyPaper,
   getPaperId,
   createPaperPromise
