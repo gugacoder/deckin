@@ -44,10 +44,10 @@
           v-icon(
             v-show="dark"
           )
-            | mdi-check-circle
+            | mdi-weather-sunny
 
         v-list-item-content.x-nowrap
-          | {{ dark ? 'Usando' : 'Ativar' }} modo escuro
+          | Usar um tema {{ dark ? 'claro' : 'escuro' }} 
 </template>
 
 <style scoped>

@@ -1,7 +1,8 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import PaperView from '../views/PaperView.vue'
-import NotFoundView from '../views/NotFoundView.vue'
+import HomeView from '@/views/HomeView.vue'
+import PaperView from '@/views/PaperView.vue'
+import NotFoundView from '@/views/NotFoundView.vue'
 
 Vue.use(VueRouter)
 
@@ -9,7 +10,9 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    redirect: { path: '/!/App/Home/Index' }
+    component: HomeView,
+    //redirect: { path: '/!/App/Home/Index' }
+    //redirect: { path: '/Sandbox/Tananana' }
   },
   {
     path: '/!/:catalogName/:paperName/:actionName/:actionKeys?',

@@ -1,17 +1,19 @@
 {
-  "name": "Mercadologic",
+  "name": "paper-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "launch": "bash -c \"cd dist; python -m SimpleHTTPServer 8000\""
   },
   "dependencies": {
     "core-js": "^3.6.5",
     "lodash": "^4.17.15",
     "register-service-worker": "^1.7.1",
     "vue": "^2.6.11",
+    "vue-pwa-install": "^1.1.0",
     "vue-router": "^3.2.0",
     "vuetify": "^2.2.11",
     "vuex": "^3.4.0"
@@ -19,7 +21,7 @@
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.4.0",
     "@vue/cli-plugin-eslint": "~4.4.0",
-    "@vue/cli-plugin-pwa": "~4.4.0",
+    "@vue/cli-plugin-pwa": "^4.4.6",
     "@vue/cli-plugin-router": "~4.4.0",
     "@vue/cli-plugin-vuex": "~4.4.0",
     "@vue/cli-service": "~4.4.0",

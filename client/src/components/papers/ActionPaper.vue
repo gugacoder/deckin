@@ -33,6 +33,10 @@ export default {
     'the-paper-footer': ThePaperFooter,
   },
 
+  data: () => ({
+    batteryLevel: 0
+  }),
+
   computed: {
     actionSlice () {
       return {

@@ -1,66 +1,68 @@
 <template lang="pug">
-  div(
-    class="paper-view"
-  )
-    v-system-bar(
-      app
-      color="white"
-      v-if="false"
-    )
-      v-icon mdi-cart-outline
-
-      v-hover(
-        v-slot:default="{ hover }"
+  v-app
+    v-content
+      div(
+        class="paper-view"
       )
-        span.custom-title
-          router-link(
-            to="/"
+        v-system-bar(
+          app
+          color="white"
+          v-if="false"
+        )
+          v-icon mdi-cart-outline
+
+          v-hover(
+            v-slot:default="{ hover }"
           )
-            span.font-weight-bold Mercado
-            span.font-weight-light Logic &nbsp;
-              small.font-weight-light Alfa
+            span.custom-title
+              router-link(
+                to="/"
+              )
+                span.font-weight-bold Mercado
+                span.font-weight-light Logic &nbsp;
+                  small.font-weight-light Alfa
 
-      v-spacer
+          v-spacer
 
-      v-icon.d-none.d-sm-flex mdi-alarm
+          v-icon.d-none.d-sm-flex mdi-alarm
 
-      span.d-none.d-sm-flex {{ currentDate }}
+          span.d-none.d-sm-flex {{ currentDate }}
 
-      v-icon
+          v-icon
 
-    v-container(
-      id="paper-content"
-      fluid
-    )
-
-      //- :type can be either info, success, warning or error
-      v-alert(
-        v-model="content.alert.valid"
-        v-show="content.alert.message"
-        :type="content.alert.type || 'info'"
-        dense
-        dismissible
-        text
-        transition="fade-transition"
-      )
-        span(
-          class="font-weight-medium"
+        v-container(
+          id="paper-content"
+          fluid
         )
-          | {{ content.alert.message }}
-      
-        br
 
-        span(
-          class="font-weight-light"
-        )
-          | {{ content.alert.detail }}
+          //- :type can be either info, success, warning or error
+          v-alert(
+            v-model="content.alert.valid"
+            v-show="content.alert.message"
+            :type="content.alert.type || 'info'"
+            dense
+            dismissible
+            text
+            transition="fade-transition"
+          )
+            span(
+              class="font-weight-medium"
+            )
+              | {{ content.alert.message }}
           
-      template(
-        v-if="content.paper"
-      )
-        component(
-          v-bind="paperComponent"
-        )
+            br
+
+            span(
+              class="font-weight-light"
+            )
+              | {{ content.alert.detail }}
+              
+          template(
+            v-if="content.paper"
+          )
+            component(
+              v-bind="paperComponent"
+            )
 </template>
 
 <style scoped>
@@ -83,11 +85,13 @@ import { mapState } from 'vuex'
 import moment from 'moment'
 import { unknownPaper } from '@/helpers/PaperHelper'
 import '@/helpers/StringHelper'
+import { BeforeInstallPromptEvent } from "vue-pwa-install";
 
 export default {
   // Strategy: Fetching After Navigation
 
   name: 'paper-view',
+  deferredPrompt: BeforeInstallPromptEvent,
 
   props:
   {
@@ -107,6 +111,20 @@ export default {
       type: String,
       required: false
     }
+  },
+
+  promptInstall () {
+    // Show the prompt:
+    this.deferredPrompt.prompt()
+
+    // Wait for the user to respond to the prompt:
+    this.deferredPrompt.userChoice.then(choiceResult => {
+      if (choiceResult.outcome === "accepted") {
+        // User accepted the install prompt
+      }
+
+      this.deferredPrompt = null
+    })
   },
 
   components: {
@@ -170,6 +188,14 @@ export default {
     this.awaitData();
     this.fetchData();
     this.startTimer();
+
+    this.$on("canInstall", event => {
+      // Prevent Chrome >=67 from automatically showing the prompt:
+      event.preventDefault()
+
+      // Stash the event so it can be triggered later:
+      this.deferredPrompt = event
+    })
   },
 
   watch: {
