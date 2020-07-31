@@ -12,20 +12,18 @@ module.exports = {
     //    changeOrigin: true
     //  }
     //},
-    pwa: {
-      name: 'ProcessaApp',
-      themeColor: '#673ab7',
-      msTileColor: '#673ab7',
-      appleMobileWebAppCapable: 'yes',
-      appleMobileWebAppStatusBarStyle: 'black',
-  
-      // configure the workbox plugin
-      workboxPluginMode: 'InjectManifest',
-      workboxOptions: {
-        // swSrc is required in InjectManifest mode.
-        swSrc: 'dev/sw.js',
-        // ...other Workbox options...
-      }
+  },
+
+  pwa: {
+    name: 'ProcessaApp',
+    themeColor: '#673ab7',
+    msTileColor: '#673ab7',
+    appleMobileWebAppCapable: 'yes',
+    appleMobileWebAppStatusBarStyle: 'black',
+
+    workboxPluginMode: 'InjectManifest',
+    workboxOptions: {
+      swSrc: 'src/service-worker.js',
     }
   }
 }

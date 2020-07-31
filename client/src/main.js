@@ -17,6 +17,16 @@ Vue.use(VueInstall)
 // Registrando componentes globais...
 import '@/components'
 
+Vue.prototype.$app = {
+  title: 'ProcessaApp',
+  banner: {
+    prefix: '',
+    title: 'Processa',
+    suffix: 'App',
+    variant: 'Alfa'
+  }
+}
+
 new Vue({
   router,
   store,

@@ -1,165 +1,152 @@
 <template lang="pug">
   v-app.home-view
-    v-app-bar(
-      app
-      absolute
-      color="primary"
-      dark
-      shrink-on-scroll
+    the-header(
       prominent
-      src="img/supermercado.jpg"
-      fade-img-on-scroll
-      scroll-target="#x-content"
-      scroll-threshold="200"
+      @menuClick="menu = !menu"
     )
-      template(
-        v-slot:img="{ props }"
-      )
-        v-img(
-          v-bind="props"
-          gradient="to top right, rgba(103, 58, 183, .8), rgba(103, 58, 183, 0)"
-        )
 
-      v-app-bar-nav-icon
-
-      v-toolbar-title
-        span.font-weight-bold Processa
-        span.font-weight-light App
-          sup
-            small.font-weight-light alfa
-
-      v-spacer
-
+    the-footer
       v-btn(
         icon
-        @click="reload"
+        @click="$router.go()"
       )
-        v-icon mdi-reload
-
-      v-btn(
-        icon
-        :class="dark ? 'x-primary--pressed' : ''"
-        @click="dark = !dark"
-      )
-        v-icon mdi-weather-night
-
-      //-
-        v-btn(
-          icon
+        v-progress-circular(
+          size="24"
+          width="2"
+          value="0"
+          color="primary"
+          :indeterminate="busy"
         )
-          v-icon mdi-dots-vertical
 
-    v-sheet#x-content.overflow-y-auto(
-      :max-height="windowSize.y"
+    the-app-menu(
+      v-model="menu"
     )
-      v-container(
-        :style="`margin-top:128px; min-height: ${windowSize.y-128+1000}px;`"
+
+    the-content(
+      prominent
+    )
+      v-col(
+        class="text-center"
+        cols="12"
       )
-        v-col(
-          class="text-center"
-          cols="12"
-        )
-          span.title.font-weight-regular Bem-vindo ao &nbsp;
-            span.font-weight-bold Processa
-            span.font-weight-light App
-              sup
-                small.font-weight-light alfa
+        span.title.font-weight-regular Bem-vindo ao &nbsp;
+          app-title
 
-        v-col(
-          class="text-center"
-          cols="12"
+      v-banner.py-8(
+        v-if="busy"
+      )
+        v-avatar(
+          slot="icon"
+          size="40"
         )
-          span.font-weight-regular Estamos checando a sanidade do sistema
-          br
-          span.font-weight-regular Só deve levar alguns instantes...
-
-        v-col(
-          class="text-center"
-          cols="12"
-        )
-          v-progress-linear(
+          v-progress-circular(
+            :size="40"
+            color="warning"
             indeterminate
-            color="primary"
           )
+        
+        p Estamos checando a sanidade do sistema.
 
-        v-col(
-          class="text-center"
-          cols="12"
+        p Deve levar apenas um instante...
+
+      v-banner.py-8(
+        v-if="!busy && fault"
+      )
+        v-avatar(
+          slot="icon"
+          color="warning"
+          size="40"
+        )
+          v-icon(
+            color="white"
+          )
+            | mdi-wifi-strength-alert-outline
+        
+        p.font-weight-bold
+          span O servidor está inisponível no momento. &nbsp;
+            span.font-weight-light
+              | Verifique se o dispositivo está conectado à rede
+              | ou consulte o administrador do sistema.
+        
+        p.font-weight-light.text--secondary
+          | Causa: {{ message || 'Desconhecida' }}
+
+        template(
+          v-slot:actions
         )
           v-btn(
-            to="/!/App/Home/Index"
+            text
             color="primary"
+            @click="ignite"
           )
-            | Abrir
+            | Tentar novamente
 </template>
 
-<style lang="scss" scoped>
-@use "sass:color";
-
-.x-primary--pressed {
-  background-color: rgba(149, 117, 205, .75)
-
-  /*
-  background-color: var(--v-primary-lighten2);
-  background-color: var(--v-primary-base);
-  background-color: rgba(var(--v-primary-lighten1), 1.0);
-  */
-}
-</style>
-
 <script>
-import { BeforeInstallPromptEvent } from "vue-pwa-install";
+import { BeforeInstallPromptEvent } from 'vue-pwa-install';
+import TheHeader from '@/components/layout/TheHeader.vue'
+import TheContent from '@/components/layout/TheContent.vue'
+import TheFooter from '@/components/layout/TheFooter.vue'
+import TheAppMenu from '@/components/layout/TheAppMenu.vue'
+import AppTitle from '@/components/layout/AppTitle.vue'
+import delay from 'delay'
 
 export default {
   name: 'home-view',
 
   deferredPrompt: BeforeInstallPromptEvent,
 
+  components: {
+    TheHeader,
+    TheContent,
+    TheFooter,
+    TheAppMenu,
+    AppTitle,
+  },
+
   data: () => ({
-    windowSize: {
-      x: 0,
-      y: 0
-    }
+    busy: true,
+    fault: null,
+    menu: false,
   }),
 
-  mounted () {
-    this.onResize()
+  mounted() {
+    this.ignite()
   },
 
   computed: {
-    dark: {
-      get () {
-        return this.$vuetify.theme.dark
-      },
-
-      set (value) {
-        this.$vuetify.theme.dark = value
-      }
+    message () {
+      let fault = this.fault ?? {}
+      return (fault.data && fault.data.reason) || fault.description
     },
   },
 
   methods: {
-    onResize () {
-      this.windowSize = { x: window.innerWidth, y: window.innerHeight }
-    },
+    async ignite () {
+      try {
+        this.busy = true
 
-    reload () {
-      this.$router.go()
-    }
-  },
+        await delay(1000)
 
-  promptInstall () {
-    // Show the prompt:
-    this.deferredPrompt.prompt()
+        let href = '/Api/1/Keep.Paper/System/Status'
+        let data = {
+          clientVersion: '0.1.0'
+        }
 
-    // Wait for the user to respond to the prompt:
-    this.deferredPrompt.userChoice.then(choiceResult => {
-      if (choiceResult.outcome === "accepted") {
-        // User accepted the install prompt
+        console.log(href)
+        let paper = await this.$browser.request(href, data)
+        if (paper.kind === 'status') {
+          this.$router.push('/!/App/Home/Index')
+        } else {
+          this.fault = paper
+        }
+
+      } catch(error) {
+        this.fault = error
+      } finally {
+        this.busy = false
       }
-
-      this.deferredPrompt = null
-    })
+    },
   },
 }
 </script>
