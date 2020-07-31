@@ -45,9 +45,11 @@
             indeterminate
           )
         
-        p Estamos checando a sanidade do sistema.
+        | Estamos checando a sanidade do sistema.
 
-        p Deve levar apenas um instante...
+        br
+
+        | Isso deve levar apenas um instante...
 
       v-banner.py-8(
         v-if="!busy && fault"
@@ -63,7 +65,7 @@
             | mdi-wifi-strength-alert-outline
         
         p.font-weight-bold
-          span O servidor está inisponível no momento. &nbsp;
+          span O servidor não está disponível no momento. &nbsp;
             span.font-weight-light
               | Verifique se o dispositivo está conectado à rede
               | ou consulte o administrador do sistema.
