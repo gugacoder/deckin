@@ -2,8 +2,9 @@
   v-app.action-paper
     the-header(
       @menuClick="menu = !menu"
+      :prominent="paper.view.design === 'login'"
     )
-
+    
     the-footer
       v-btn(
         icon
