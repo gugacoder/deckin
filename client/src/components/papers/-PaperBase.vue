@@ -9,30 +9,24 @@ export default {
       type: String,
       required: true
     },
+
     paperName: {
       type: String,
       required: true
     },
+
     actionName: {
       type: String,
       required: true
     },
+
     actionKeys: {
       type: String,
       required: false
     },
-    // content deve ser:
-    // {
-    //   paper: ENTITY,   // Requerido
-    //   alert: {
-    //     type: ...,
-    //     message: ...,
-    //     detail: ...,
-    //     fault: ...
-    //   }
-    // }
-    content: {
-      type: Object,
+
+    value: {
+      type: Object,     // type: Entity
       required: true
     }
   },
@@ -48,31 +42,22 @@ export default {
       }
     },
 
-    paper () {
-      return this.content.paper
+    paper: {
+      get () {
+        return this.value
+      },
+      set (value) {
+        this.$emit('input', value)
+      }
+    },
+    
+    actionArgs () {
+      return (this.paperKeys || '').split(';')
     },
 
     title () {
       return this.paper.view.title
     },
-    
-    alert () {
-      return this.content.alert
-    }
   },
-
-  methods: {
-    setPaper (value) {
-      this.content.paper = value
-    },
-
-    setAlert (value) {
-      if (!value) value = {}
-      this.content.alert.type = value.type
-      this.content.alert.message = value.message
-      this.content.alert.detail = value.detail
-      this.content.alert.fault = value.fault
-    }
-  }
 }
 </script>

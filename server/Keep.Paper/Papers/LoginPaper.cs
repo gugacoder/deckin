@@ -53,7 +53,7 @@ namespace Keep.Paper.Papers
         View = new
         {
           Title,
-          Design = Design.Action,
+          Design = Design.Login,
           Extent = Extent.Small
         },
         Fields = new

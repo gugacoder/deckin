@@ -41,7 +41,7 @@
         )
           v-progress-circular(
             :size="40"
-            color="warning"
+            color="primary"
             indeterminate
           )
         
@@ -128,17 +128,26 @@ export default {
       try {
         this.busy = true
 
-        await delay(1000)
+        await delay(2000)
 
-        let href = '/Api/1/Keep.Paper/System/Status'
+        let href = '/Api/1/Papers/Keep.Paper/System/Status'
         let data = {
           clientVersion: '0.1.0'
         }
 
-        console.log(href)
         let paper = await this.$browser.request(href, data)
-        if (paper.kind === 'status') {
-          this.$router.push('/!/App/Home/Index')
+
+        // O servidor é considerado válido se retornar uma resposta com pelo
+        // menos a estrutura abaixo:
+        //   {
+        //     kind: "info",
+        //     data: {
+        //       serverVersion: "0.1.0"
+        //     }
+        //   };
+        let ok = (paper.kind === 'info') && paper.data.serverVersion
+        if (ok) {
+          this.$router.push('/Home')
         } else {
           this.fault = paper
         }

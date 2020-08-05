@@ -9,6 +9,9 @@ namespace Keep.Paper.Api
     // A Form for Data Input and Validation
     public const string Action = "action";
 
+    // A Form for User Login
+    public const string Login = "login";
+
     // Tables with Columns, Rows and Cells
     public const string Grid = "grid";
 

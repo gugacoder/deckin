@@ -9,6 +9,7 @@
     :rules="rules"
     :required="required"
     :hint="hint"
+    prepend-icon="mdi-lock"
     dense
   )
 </template>

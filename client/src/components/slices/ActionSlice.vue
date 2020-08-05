@@ -1,35 +1,57 @@
 <template lang="pug">
-  div.action-slice.ml-4.mt-4
-    v-form.flex-container(
-      ref="form"
-      v-model="valid"
-      lazy-validation
-      :class="extent || paperExtent"
-      @submit.prevent="submit"
+  v-container.action-slice(
+    class="fill-height"
+    fluid
+  )
+    v-row(  
+      align="center"
+      justify="center"
     )
-      div
-        p {{ message }}
-
-      component.stretch(
-        v-for="field in fields"
-        :key="field.view.name"
-        v-bind="createWidget(field)"
+      v-col(
+        cols="12"
+        sm="8"
+        md="4"
+        align="center"
+        justify="center"
       )
-
-      slot(
-        name="actionBar"
-      )
-        v-btn.mr-2(
-          type="submit"
-          color="primary"
+        v-form(
+          ref="form"
+          v-model="valid"
+          lazy-validation
+          :class="extent || paperExtent"
+          @submit.prevent="submit"
         )
-          | {{ linkTitle }}
+          div
+            p {{ message }}
 
-        v-btn.mr-2(
-          v-if="$listeners.cancel"
-          @click="$emit('cancel')"
-        )
-          | Cancelar
+          v-card(
+            flat
+            :class="extent || paperExtent"
+          )
+            v-card-text
+              component.stretch(
+                v-for="field in fields"
+                :key="field.view.name"
+                v-bind="createWidget(field)"
+              )
+
+            v-card-actions
+              v-spacer
+
+              slot(
+                name="actionBar"
+              )
+                v-btn.mr-2(
+                  type="submit"
+                  color="primary"
+                )
+                  | {{ linkTitle }}
+
+                v-btn.mr-2(
+                  v-if="$listeners.cancel"
+                  @click="$emit('cancel')"
+                )
+                  | Cancelar
 </template>
 
 <style scoped lang="scss">
@@ -137,6 +159,7 @@ export default {
     },
 
     paperExtent () {
+      console.log(this.action.view)
       return this.action.view.extent
     }
   },

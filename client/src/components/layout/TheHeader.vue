@@ -8,7 +8,7 @@
     :prominent="prominent"
     :shrink-on-scroll="prominent"
     :fade-img-on-scroll="prominent"
-    :src="prominent ? 'img/header.jpg' : ''"
+    :src="prominent ? '/img/header.jpg' : ''"
     scroll-target="#x-content"
     scroll-threshold="200"
   )

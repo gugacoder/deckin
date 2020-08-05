@@ -1,6 +1,7 @@
-<template lang="pug"> 
-  v-app.action-paper
+<template lang="pug">
+  v-app.loading-paper
     the-header(
+      prominent
       @menuClick="menu = !menu"
     )
 
@@ -14,6 +15,7 @@
           width="2"
           value="0"
           color="primary"
+          indeterminate
         )
 
     the-app-menu(
@@ -22,19 +24,29 @@
 
     the-content(
       prominent
-    ) 
-      the-alert(
-        v-model="alert"
+    )
+      v-row.mt-8(
+        class="fill-height"
+        align-content="center"
+        justify="center"
       )
+        v-col(
+          class="text-center"
+          cols="12"
+        )
+          span.font-weight-regular Carregando dados...
 
-      action-slice(
-        v-bind="actionSlice"
-        @paperReceived="paper => this.paper = paper"
-        @cancel="cancel"
-      )
-      //-
-              prepend-icon="mdi-account"
-                    type="password"
+        v-col(
+          cols="6"
+        )
+          v-progress-linear(
+            size="24"
+            height="6"
+            value="0"
+            color="primary"
+            indeterminate
+            rounded
+          )
 </template>
 
 <script>
@@ -45,12 +57,11 @@ import TheFooter from '@/components/layout/TheFooter.vue'
 import TheAppMenu from '@/components/layout/TheAppMenu.vue'
 import TheAlert from '@/components/layout/TheAlert.vue'
 import AppTitle from '@/components/layout/AppTitle.vue'
-import '@/helpers/StringHelper.js'
 
 export default {
   extends: PaperBase,
 
-  name: 'action-paper',
+  name: 'loading-paper',
 
   components: {
     TheHeader,
@@ -62,26 +73,8 @@ export default {
   },
 
   data: () => ({
-    menu: false,
     busy: false,
-    alert: null,
+    menu: false,
   }),
-
-  computed: {
-    actionSlice () {
-      return {
-        paper: this.paper,
-        actionName: null,   // O próprio paper é a áção
-      }
-    },
-  },
-
-  methods: {
-    cancel () {
-      this.$refs.form.reset()
-      this.$router.back()
-      this.$router.go()
-    },
-  },
 }
 </script>

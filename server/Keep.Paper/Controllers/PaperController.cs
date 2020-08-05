@@ -38,43 +38,9 @@ namespace Keep.Paper.Controllers
       this.paperCatalog = paperCatalog;
     }
 
-    [Route("App/Home/Index")]
-    public IActionResult GetHome()
-    {
-      try
-      {
-        var homeType = paperCatalog.GetType(PaperCatalog.Home);
-        var homeHref = Href.To(HttpContext, homeType);
-        return Redirect(homeHref);
-      }
-      catch (Exception ex)
-      {
-        return NotFound(new
-        {
-          Kind = Kind.Fault,
-          Data = new
-          {
-            Fault = Fault.ServerFailure,
-            Reason = ex.GetCauseMessages()
-#if DEBUG
-            ,
-            Trace = ex.GetStackTrace()
-#endif
-          },
-          Links = new
-          {
-            Self = new
-            {
-              Href = HttpContext.Request.Path
-            }
-          }
-        });
-      }
-    }
-
     [Route("{catalogName}/{paperName}/{actionName}/{actionKeys?}")]
     public async Task<IActionResult> GetPaperAsync(string catalogName,
-        string paperName, string actionName, string actionKeys)
+      string paperName, string actionName, string actionKeys)
     {
       try
       {

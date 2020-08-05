@@ -9,10 +9,15 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
-    name: 'Home',
+    name: 'Index',
     component: HomeView,
     //redirect: { path: '/!/App/Home/Index' }
     //redirect: { path: '/Sandbox/Tananana' }
+  },
+  {
+    path: '/Home',
+    name: 'Home',
+    redirect: { path: '/!/Keep.Paper/Home/Index' }
   },
   {
     path: '/!/:catalogName/:paperName/:actionName/:actionKeys?',

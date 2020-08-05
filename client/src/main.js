@@ -16,6 +16,8 @@ Vue.use(VueInstall)
 
 // Registrando componentes globais...
 import '@/components'
+// Injetando serviços do Paper em componentes do Vue...
+import '@/services/papers'
 
 Vue.prototype.$app = {
   title: 'ProcessaApp',

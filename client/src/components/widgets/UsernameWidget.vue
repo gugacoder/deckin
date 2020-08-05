@@ -9,6 +9,7 @@
     :required="required"
     :hint="hint"
     dense
+    prepend-icon="mdi-account"
     ref="widget"
   )
 </template>

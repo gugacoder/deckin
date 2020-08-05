@@ -1,43 +1,95 @@
 <template lang="pug">
-  div(
-    class="unknown-paper"
-  )
-    p O conteúdo recebido do servidor não é suportado.
-    pre {{ paper }}
+  v-app.unknown-paper
+    the-header(
+      prominent
+      @menuClick="menu = !menu"
+    )
+
+    the-footer
+      v-btn(
+        icon
+        @click="$router.go()"
+      )
+        v-progress-circular(
+          size="24"
+          width="2"
+          value="0"
+          color="primary"
+        )
+
+    the-app-menu(
+      v-model="menu"
+    )
+
+    the-content(
+      prominent
+    ) 
+      the-alert(
+        type="warning"
+        message="Não foi possível exibir os dados."
+      )
+
+      v-banner
+        v-avatar(
+          slot="icon"
+          color="warning"
+          size="40"
+        )
+          v-icon(
+            color="white"
+          )
+            | mdi-file-alert
+        
+        p.font-weight-bold
+          span O conteúdo recebido do servidor não é suportado. &nbsp;
+        
+        p.font-weight-light
+          | Existe um problema com o servidor. Uma requisição foi realizada
+          | mas a resposta recebida é incompatível com esta versão do
+          | sistema.
+          
+        p.font-weight-light
+          | Entre em contato com o administrador do sistema se o problema
+          | persistir.
+          
+        sup.font-weight-thin {{ $route.path }} ( design: {{ paper.view.design || paper.kind }} )
+      
+        template(
+          v-slot:actions
+        )
+          v-btn(
+            text
+            color="primary"
+            to="/Home"
+          )
+            | Voltar para o início
 </template>
 
 <script>
+import PaperBase from './-PaperBase.vue'
+import TheHeader from '@/components/layout/TheHeader.vue'
+import TheContent from '@/components/layout/TheContent.vue'
+import TheFooter from '@/components/layout/TheFooter.vue'
+import TheAppMenu from '@/components/layout/TheAppMenu.vue'
+import TheAlert from '@/components/layout/TheAlert.vue'
+import AppTitle from '@/components/layout/AppTitle.vue'
+
 export default {
+  extends: PaperBase,
+
   name: 'unknown-paper',
 
-  props: {
-    catalogName: {
-      type: String,
-      required: true
-    },
-    paperName: {
-      type: String,
-      required: true
-    },
-    actionName: {
-      type: String,
-      required: true
-    },
-    actionKeys: {
-      type: String,
-      required: false
-    },
-    content: {
-      type: Object,
-      required: true
-    }
+  components: {
+    TheHeader,
+    TheContent,
+    TheFooter,
+    TheAppMenu,
+    TheAlert,
+    AppTitle,
   },
 
-  computed: {
-    paper () {
-      console.log('content', this.content)
-      return this.content.paper
-    },
-  }
+  data: () => ({
+    menu: false,
+  }),
 }
 </script>
