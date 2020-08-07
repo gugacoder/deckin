@@ -29,7 +29,7 @@
             :class="extent || paperExtent"
           )
             v-card-text
-              component.stretch(
+              component.x-stretch(
                 v-for="field in fields"
                 :key="field.view.name"
                 v-bind="createWidget(field)"
@@ -55,45 +55,8 @@
 </template>
 
 <style scoped lang="scss">
-.flex-container {
-  display: inline-flex;
-  flex-wrap: wrap;
+.x-stretch {
   width: 100%;
-}
-
-.stretch {
-  width: 100%;
-}
-
-.button-row {
-}
-
-.xs-extent {
-  width: 155px;
-}
-
-.sm-extent {
-  width: 300px;
-}
-
-.md-extent {
-  width: 445px;
-}
-
-.lg-extent {
-  width: 590px;
-}
-
-.xl-extent {
-  width: 745px;
-}
-
-.xs-extent .v-card__title,
-.sm-extent .v-card__title,
-.md-extent .v-card__title,
-.lg-extent .v-card__title,
-.xl-extent .v-card__title {
-  display: block;
 }
 </style>
 
@@ -159,7 +122,6 @@ export default {
     },
 
     paperExtent () {
-      console.log(this.action.view)
       return this.action.view.extent
     }
   },

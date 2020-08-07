@@ -3,6 +3,9 @@
 </template>
 
 <style>
+html {
+  background-color: var(--v-primary-darken1);
+}
 </style>
 
 <script>

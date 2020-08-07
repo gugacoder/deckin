@@ -13,7 +13,7 @@ const filepaths = require.context(
 
 const modules = {}
 
-filepaths.keys().forEach((filepath) => {
+const moduleNames = filepaths.keys().map((filepath) => {
   const sourceCode = filepaths(filepath)
   const targetName = filepath.split('/')
     // Pegando o nome do arquivo
@@ -25,6 +25,9 @@ filepaths.keys().forEach((filepath) => {
     
   // Adicionando o módulo à coleção de módulos
   modules[targetName] = sourceCode.default
+
+  return targetName
 })
 
+export { moduleNames }
 export default modules

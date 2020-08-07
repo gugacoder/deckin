@@ -16,8 +16,6 @@ Vue.use(VueInstall)
 
 // Registrando componentes globais...
 import '@/components'
-// Injetando serviços do Paper em componentes do Vue...
-import '@/services/papers'
 
 Vue.prototype.$app = {
   title: 'ProcessaApp',
@@ -25,9 +23,15 @@ Vue.prototype.$app = {
     prefix: '',
     title: 'Processa',
     suffix: 'App',
-    variant: 'Alfa'
+    variant: 'alfa'
   }
 }
+
+Object.defineProperty(Vue.prototype, '$isMobile', {
+  get () {
+    return this.$vuetify.breakpoint.xsOnly
+  }
+})
 
 new Vue({
   router,

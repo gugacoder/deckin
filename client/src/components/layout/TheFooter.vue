@@ -1,5 +1,5 @@
 <template lang="pug">
-  v-footer.the-footer(
+  v-footer.the-footer.px-1(
     app
   )
     slot(
@@ -9,6 +9,21 @@
     v-spacer
     
     slot
+    
+    v-btn(
+      icon
+      @click.stop="refresh"
+    )
+      slot(
+        name="refresh"
+      )
+        v-progress-circular(
+          size="24"
+          width="4"
+          value="0"
+          color="primary"
+          :indeterminate="busy"
+        )
 
     slot(
       name="right"
@@ -19,5 +34,21 @@
 <script>
 export default {
   name: 'the-footer',
+
+  props: {
+    busy: {
+      type: Boolean
+    }
+  },
+
+  methods: {
+    refresh () {
+      if (this.$listeners.refreshClick) {
+        this.$emit('refreshClick', () => this.$router.go())
+      } else {
+        this.$router.go()
+      }
+    }
+  }
 }
 </script>

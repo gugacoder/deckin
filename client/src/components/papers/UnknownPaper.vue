@@ -6,16 +6,6 @@
     )
 
     the-footer
-      v-btn(
-        icon
-        @click="$router.go()"
-      )
-        v-progress-circular(
-          size="24"
-          width="2"
-          value="0"
-          color="primary"
-        )
 
     the-app-menu(
       v-model="menu"

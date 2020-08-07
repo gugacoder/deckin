@@ -1,12 +1,16 @@
 const state = {
-  version: '0.1.0',
-  identity: null
+  identity: null,
+  dark: false,
 }
 
 const mutations = {
   setIdentity (state, identity) {
     state.identity = identity
-  }
+  },
+
+  setDark (state, dark) {
+    state.dark = dark
+  },
 }
 
 const actions = {
@@ -19,7 +23,18 @@ const actions = {
         reject(error)
       }
     })
-  }
+  },
+
+  setDark ({ commit }, dark) {
+    return new Promise((resolve, reject) => {
+      try {
+        commit('setDark', dark)
+        resolve()
+      } catch (error) {
+        reject(error)
+      }
+    })
+  },
 }
 
 const getters = {

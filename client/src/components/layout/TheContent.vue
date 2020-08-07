@@ -7,10 +7,13 @@
     //-  56: header height
     //-  48: footer height
     v-sheet(
-      :min-height="windowSize.y - (prominent ? 128 : 56) - 48"
-      :style="`margin-top: ${prominent ? 128 : 56}px; margin-bottom: 48px;`"
+      :min-height="windowSize.y - (marginTop) - 48"
+      :style="`margin-top: ${marginTop}px; margin-bottom: 48px;`"
     )
-      v-container
+      v-container(
+        :class="noMargins ? 'px-0' : null"
+        :fluid="fluid"
+      )
         slot
 </template>
 
@@ -23,8 +26,15 @@ export default {
 
   props: {
     prominent: {
-      type: Boolean,
-      required: false
+      type: Boolean
+    },
+
+    noMargins: {
+      type: Boolean
+    },
+
+    fluid: {
+      type: Boolean
     }
   },
 
@@ -36,6 +46,9 @@ export default {
   }),
 
   computed: {
+    marginTop () {
+      return this.prominent ? 128 : 80
+    },
   },
 
   mounted () {

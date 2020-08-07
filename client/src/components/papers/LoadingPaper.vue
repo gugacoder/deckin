@@ -5,18 +5,9 @@
       @menuClick="menu = !menu"
     )
 
-    the-footer
-      v-btn(
-        icon
-        @click="$router.go()"
-      )
-        v-progress-circular(
-          size="24"
-          width="2"
-          value="0"
-          color="primary"
-          indeterminate
-        )
+    the-footer(
+      :busy="true"
+    )
 
     the-app-menu(
       v-model="menu"

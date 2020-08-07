@@ -1,25 +1,42 @@
 <template lang="pug">
   v-navigation-drawer.the-app-menu(
     app
-    :width="expanded ? 590 : 300"
+    style="z-index:1;"
+    :width="$isMobile ? '100%' : 375"
     :value="value"
+    @input="value => $emit('input', value)"
   )
-    v-list
-      v-list-item.text-no-wrap.pr-3(
-        @click="$emit('input', $event.target.value)"
+    v-list.pt-0
+
+      v-list-item(
+        link
+        dense
+        style="background-color: rgba(0,0,0,.05);"
+        @click.stop="e => $emit('input', e.target.value)"
       )
-        v-list-item-icon
-          v-icon mdi-menu
+        v-list-item-content.text-no-wrap
+          app-title
 
-        v-list-item-content.text-uppercase.font-weight-bold
-          | Menu
+        v-list-item-action
+          v-btn(
+            icon
+            @click.stop="e => $emit('input', e.target.value)"
+          )
+            v-icon mdi-close
 
-        v-btn.mr-0(
-          icon
-          @click.stop="expanded = !expanded"
-          right
-        )
-          v-icon {{ expanded ? 'mdi-unfold-less-vertical' : 'mdi-unfold-more-vertical' }}
+      //- Título da página corrente
+      v-list-item(
+        v-if="caption"
+        dense
+        style="background-color: rgba(0,0,0,.05);"
+      )
+        v-list-item-content.text-no-wrap
+          span.font-weight-light(
+            v-if="catalog"
+          )
+            span {{ catalog }}
+
+          span.font-weight-medium.text-no-wrap {{ caption }}
 
       slot(
         name="before"
@@ -27,23 +44,16 @@
 
       slot
 
-      v-list-item(
-        link
-        @click="dark = !dark"
-      )
-        v-list-item-icon
-          v-icon(
-            v-show="!dark"
-          )
-            | mdi-weather-night
+      //-
+        v-list-item(
+          link
+        )
+          v-list-item-icon
+            v-icon
+              | mdi-icon
 
-          v-icon(
-            v-show="dark"
-          )
-            | mdi-weather-sunny
-
-        v-list-item-content.text-no-wrap
-          | Usar um tema {{ dark ? 'claro' : 'escuro' }} 
+          v-list-item-content.text-no-wrap
+            | Text
 
       slot(
         name="after"
@@ -51,18 +61,31 @@
 </template>
 
 <script>
+import AppTitle from '@/components/layout/AppTitle.vue'
+
 export default {
   name: 'the-app-menu',
+
+  components: {
+    AppTitle
+  },
 
   props: {
     value: {
       type: Boolean,
-      required: false,
-    }
+    },
+    
+    catalog: {
+      type: String,
+    },
+    
+    caption: {
+      type: String,
+    },
   },
 
   data: () => ({
-    expanded: false,
+    busy: false,
   }),
 
   computed: {
@@ -72,8 +95,12 @@ export default {
       },
       set (value) {
         this.$vuetify.theme.dark = value
+        this.setDark(value)
       }
     },
   },
+
+  methods: {
+  }
 }
 </script>

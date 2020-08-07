@@ -1,15 +1,22 @@
 import Vue from 'vue';
 import Vuetify from 'vuetify/lib';
-// import colors from 'vuetify/lib/util/colors'
+import store from '@/store';
+import '@mdi/font/css/materialdesignicons.css' // Ensure you are using css-loader
 
-Vue.use(Vuetify);
+Vue.use(Vuetify)
 
 export default new Vuetify({
+  icons: {
+    iconfont: 'mdi',
+  },
+
   theme: {
     options: {
       customProperties: true,
     },
-    dark: true,
+
+    dark: store.state.system.dark,
+
     themes: {
       light: {
         primary: '#515b7e',
@@ -20,19 +27,5 @@ export default new Vuetify({
         accent: '#d71f3b',
       },
     }
-    // themes: {
-    //   light: {
-    //     primary: '#414751',
-    //     secondary: colors.grey.darken1,
-    //     accent: '#d41f3a', //colors.shades.black,
-    //     error: colors.red.accent3,
-    //   },
-    //   dark: {
-    //     primary: colors.deepPurple,
-    //     secondary: colors.grey.darken1,
-    //     accent: colors.shades.black,
-    //     error: colors.red.accent3,
-    //   },
-    // },
   },
 });

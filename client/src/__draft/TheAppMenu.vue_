@@ -1,0 +1,139 @@
+<template lang="pug">
+  v-navigation-drawer.the-app-menu(
+    app
+    :width="width"
+    :value="value"
+  )
+    v-list
+      v-list-item.text-no-wrap.pr-3(
+        @click="$emit('input', $event.target.value)"
+      )
+        v-list-item-icon
+          v-icon mdi-menu
+
+        v-list-item-title
+          app-title(
+            v-if="!caption"
+          )
+
+          template(
+            v-if="caption"
+          )
+            span.font-weight-light(
+              v-if="catalog"
+            )
+              span.text-no-wrap {{ catalog }}
+
+              br
+
+            span.text-no-wrap.font-weight-medium {{ caption }}
+
+        v-btn.mr-0(
+          icon
+          @click.stop="expanded = !expanded"
+          right
+        )
+          v-icon {{ expanded ? 'mdi-unfold-less-vertical' : 'mdi-unfold-more-vertical' }}
+
+      //- Título da página corrente
+      v-list-item(
+        v-if="caption"
+        style="background-color: rgba(0,0,0,.05);"
+      )
+        v-list-item-content.text-no-wrap
+          span.font-weight-light(
+            v-if="catalog"
+          )
+            | {{ catalog }}
+
+          span.font-weight-medium {{ caption }}
+
+      slot(
+        name="before"
+      )
+
+      slot
+
+      v-list-item(
+        link
+        @click="dark = !dark"
+      )
+        v-list-item-icon
+          v-icon(
+            v-show="!dark"
+          )
+            | mdi-weather-night
+
+          v-icon(
+            v-show="dark"
+          )
+            | mdi-weather-sunny
+
+        v-list-item-content.text-no-wrap
+          | Usar um tema {{ dark ? 'claro' : 'escuro' }} 
+
+      slot(
+        name="after"
+      )
+</template>
+
+<script>
+import { mapState, mapActions } from 'vuex'
+import AppTitle from '@/components/layout/AppTitle.vue'
+
+export default {
+  name: 'the-app-menu',
+
+  components: {
+    AppTitle
+  },
+
+  props: {
+    value: {
+      type: Boolean,
+      required: false,
+    },
+    
+    catalog: {
+      type: String,
+    },
+    
+    caption: {
+      type: String,
+    },
+  },
+
+  data: () => ({
+    expanded: false,
+  }),
+
+  computed: {
+    ...mapState('system', {
+      dark: state => state.dark
+    }),
+
+    width () {
+      if (this.$isMobile) {
+        return '100%'
+      }
+      return this.expanded ? 590 : 375
+    },
+
+    dark: {
+      get () {
+        return this.$vuetify.theme.dark
+      },
+      set (value) {
+        this.$vuetify.theme.dark = value
+        this.setDark(value)
+      }
+    },
+  },
+
+  methods: {
+    ...mapActions('system', [
+      'setDark'
+    ])
+  }
+}
+</script>

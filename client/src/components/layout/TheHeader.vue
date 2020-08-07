@@ -1,10 +1,11 @@
 <template lang="pug">
-
   v-app-bar.the-paper-header(
     app
     color="primary"
     dark
     absolute
+    :class="showCaption ? 'pt-4' : undefined"
+    :height="showCaption ? 90 : undefined"
     :prominent="prominent"
     :shrink-on-scroll="prominent"
     :fade-img-on-scroll="prominent"
@@ -12,6 +13,21 @@
     scroll-target="#x-content"
     scroll-threshold="200"
   )
+    div#x-caption-bar(
+      v-if="showCaption"
+    )
+      template(
+        v-if="!$isMobile"
+      )
+        app-title.mr-2
+
+        span.primary--text.text--lighten-2.mr-1(
+          v-if="catalog"
+        )
+          spen.text-no-wrap / {{ catalog }} /
+
+      span.font-weight-medium.text-no-wrap {{ caption }}
+
     template(
       v-slot:img="{ props }"
     )
@@ -20,12 +36,13 @@
         :gradient="`to top right, var(--v-primary-${dark ? 'darken2' : 'base'}), rgba(65, 71, 81, 0)`"
       )
 
-    v-app-bar-nav-icon(
-      v-if="$listeners.menuClick"
-      @click="$emit('menuClick')"
+    slot(
+      name="first"
     )
 
-    v-toolbar-title
+    v-toolbar-title(
+      v-if="!noTitle"
+    )
       template(
         v-if="title"
       )
@@ -48,11 +65,25 @@
     )
 </template>
 
-<style scoped>
+<style>
+#x-caption-bar {
+  display: inline-flex;
+  position: fixed;
+  left: 0;
+  top: 0;
+  padding: 8px 18px;
+  width: 100%;
+  height: 34px;
+}
+
+.the-paper-header .v-toolbar__content {
+  padding-left: 4px;
+}
 </style>
 
 <script>
 //import Vue from 'vue'
+import { mapState } from 'vuex'
 import AppTitle from '@/components/layout/AppTitle.vue'
 
 export default {
@@ -65,12 +96,22 @@ export default {
   props: {
     title: {
       type: String,
-      required: false
     },
     
+    catalog: {
+      type: String,
+    },
+    
+    caption: {
+      type: String,
+    },
+
     prominent: {
       type: Boolean,
-      required: false
+    },
+    
+    noTitle: {
+      type: Boolean,
     },
   },
 
@@ -78,14 +119,12 @@ export default {
   }),
 
   computed: {
-    dark: {
-      get () {
-        return this.$vuetify.theme.dark
-      },
+    ...mapState('system', [
+      'dark',
+    ]),
 
-      set (value) {
-        this.$vuetify.theme.dark = value
-      }
+    showCaption () {
+      return this.caption && !this.prominent
     },
   },
 

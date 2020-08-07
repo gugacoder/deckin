@@ -55,8 +55,6 @@ function requestData (href, payload, identity) {
       href = `${PROTOCOL}//${HOST}:${PORT}${href}`
     }
 
-    console.log({ href })
-
     fetch(href, options)
       .then(response => response.json())
       .then(entity => canonifyPaper(entity))
@@ -70,7 +68,7 @@ function getIdentity() {
 }
 
 function setIdentity(value) {
-  store.state.system.identity = value
+  store.dispatch('system/setIdentity', value)
 }
 
 async function request (href, payload, options, inspector) {

@@ -1,5 +1,5 @@
 <template lang="pug">
-  div.user-menu
+  div.the-app-user-menu
     div(
       v-if="!identity"
     )
@@ -32,56 +32,43 @@
       template(
         v-slot:activator="{ on, attrs }"
       )
-        //- Botao de menu para telas pequenas
-        v-btn.d-flex.d-sm-none(
+        v-btn(
           v-bind="attrs"
           v-on="on"
           icon
         )
           v-icon mdi-account-circle
 
-        //- Botão de menu para telas grandes
-        v-btn.d-none.d-sm-flex(
-          v-bind="attrs"
-          v-on="on"
-          color="primary"
-          large
-          rounded
-          depressed
-        )
-          | {{ identity.subject }}
-          
-          v-icon mdi-account-circle
-
       v-list
-        v-list-item(
-          disabled
-        )
-          v-list-item-title {{ identity.subject }}
+        v-list-item
+          v-list-item-content
+            span.font-weight-light Usuário
+            span.font-weight-medium {{ identity.subject }}
 
         v-spacer
 
-        v-slot(
+        slot(
           name="before"
         )
 
-        v-slot
+        slot
 
         v-list-item(
+          link
           @click="logout()"
         )
           v-list-item-title Sair
 
-        v-slot(
+        slot(
           name="after"
         )
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 
 export default {
-  name: 'user-menu',
+  name: 'the-app-user-menu',
 
   components: {
   },
@@ -99,10 +86,13 @@ export default {
   },
 
   methods: {
+    ...mapActions('system', [
+      'setIdentity'
+    ]),
+
     logout () {
-      this.identity = null
-      this.$router.push('/')
-      this.$router.go()
+      this.setIdentity(null)
+      this.$router.push('/Home')
     },
   },
 }

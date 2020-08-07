@@ -1,153 +1,204 @@
-<template lang="pug"> 
-
-  //- .d-none.d-sm-flex => Não exibido em celulars 
-  //- .d-flex.d-sm-none => Exibido somente em celulares
+  background-color: rgba(0,0,0,1) !important;
+<template lang="pug">
+  //- 
+  //- HELP: Métodos de controle de exibição:
+  //-   .d-none.d-sm-flex => Não exibido em celulares 
+  //-   .d-flex.d-sm-none => Exibido somente em celulares
+  //-   $vuetify.breakpoint.xsOnly => Diz se é celular
   //-
-  //- $vuetify.breakpoint.xsOnly => Diz se é celular
-
-  div.grid-paper
-
-    the-paper-header(
-      v-bind="parameters"
-      @menuClick="menu.visible = !menu.visible"
+  v-app.grid-paper
+    the-header(
+      :catalog="catalogName"
+      :caption="title"
+      noTitle
     )
-
-    the-paper-menu(
-      v-bind="parameters"
-      :menu="menu"
-    )
-
-
-    //-
-
-
-
-      //-
-      //- BARRA DE FERRAMENTAS
-      //-
-      v-app-bar(
-        app
-        dark
-        color="primary"
-        clipped-left
-        clipped-right
+      template(
+        slot="first"
       )
-        v-btn(
-          icon
+        the-app-menu-button(
+          v-model="menu"
         )
-          v-icon mdi-menu
 
-        v-btn.d-none.d-sm-flex(
-          icon
-        )
-          v-icon mdi-filter
-
-        v-toolbar-title.d-none.d-sm-flex
-          | {{ title }}
-        
-        v-spacer.d-flex.d-sm-none
-
-        span.d-flex.d-sm-none
-          | {{ title }}
-
-        v-spacer
-
-        v-btn.d-none.d-sm-flex(
-          icon
-        )
-          v-icon.flip mdi-history
-
-        v-btn(
-          icon
-          @click.stop="dark = !dark"
-          :class="dark ? 'x-btn-pressed' : ''"
-        )
-          v-icon mdi-weather-night
-
-        v-btn(
-          icon
-        )
-          v-icon mdi-account
-
-      //-
-      //- RODAPÉ
-      //-
-      v-app-bar(
-        app
-        bottom
-        :height="!isMobile ? 40 : null"
+      template(
+        slot="left"
       )
-        v-btn.mr-1.d-flex.d-sm-none(
-          icon
-          color="primary"
+        template(
+          v-if="$isMobile"
         )
-          v-icon.flip mdi-history
+          v-btn(
+            icon
+          )
+            v-icon
+              | mdi-filter
 
-
-
-
-
-
-        v-spacer
+        template(
+          v-else
+        )
+          v-btn(
+            text
+            large
+            rounded
+          )
+            | Filtro
 
         v-btn(
-          text
-          rounded
-          :small="!isMobile"
+          :icon="!autoRefresh.enabled"
+          :text="autoRefresh.enabled"
+          :large="autoRefresh.enabled"
+          :rounded="autoRefresh.enabled"
+          :outlined="autoRefresh.enabled"
+          :class="autoRefresh.enabled ? 'x-btn-pressed' : undefined"
+          @click="autoRefresh.enabled = !autoRefresh.enabled"
         )
-          span
-            big {{ rows.length }} &nbsp;
-            span.font-weight-light {{ rows.length === 1 ? 'registro' : 'registros' }}
+          v-icon.x-flip mdi-history
+
+          span(
+            v-if="autoRefresh.enabled"
+          )
+            big.font-weight-bold 1
+            small.font-weight-light s
 
         v-btn(
           icon
-          :small="!isMobile"
+          :disabled="autoRefresh.enabled"
+          @click="refreshData(true)"
         )
           v-icon mdi-refresh
 
-    //-
-    //- GRADE DE DADOS
-    //-
-    v-data-table.ma-0(
-      :headers="cols"
-      :items="rows"
-      :fixed-header="true"
-      :disable-filtering="true"
-      :disable-pagination="true"
-      :disable-sort="true"
-      :hide-default-header="true"
-      :hide-default-footer="true"
-      item-key="uid"
-      dense
+      template(
+        slot="right"
+      )
+        the-app-user-menu-button(
+          v-model="userMenu"
+        )
+
+    the-app-menu(
+      v-model="menu"
+      :catalog="catalogName"
+      :caption="title"
+    )
+    
+    the-app-user-menu(
+      v-model="userMenu"
+    )
+
+    the-footer(
+      ref="theFooter"
+      :busy="busy"
+      @refreshClick="() => refreshData(true)"
     )
       template(
-        v-slot:header="{ props }"
+        slot="left"
       )
-        thead
-          tr
-            th(
-              v-for="header in props.headers"
-            )
-              | {{ header.text }}
-    
-      template(
-        v-slot:item="{ item, headers, index, isMobile }"
-      )
-        tr(
-          :class="item.style"
+        v-menu(
+          :close-on-click="true"
+          :close-on-content-click="true"
+          :offset-x="false"
+          :offset-y="true"
+          top
+          dense
         )
-          td.text-start(
-            v-for="header in headers"
-            :key="`${item.key}-${header.value}`"
-            :nowrap="!(header.multiline || hasLineBreak(item[header.value]))"
+          template(
+            v-slot:activator="{ on, attrs }"
           )
-            | {{ item[header.value] }}
+            v-btn(
+              v-bind="attrs"
+              v-on="on"
+              text
+              rounded
+            )
+              span
+                big {{ rows.length }} &nbsp;
+                small.font-weight-light {{ rows.length === 1 ? 'registro' : 'registros' }}
+
+          v-list
+            v-list-item(
+              v-for="size in pagination.pageSizes"
+              :key="size"
+              link
+              @click="pagination.pageSize = size"
+            )
+              v-list-item-icon
+                v-icon(
+                  v-if="pagination.pageSize === size"
+                )
+                  | mdi-radiobox-marked
+                  
+                v-icon(
+                  v-else
+                )
+                  | mdi-radiobox-blank
+
+              v-list-item-title
+                template(
+                  v-if="size === 0"
+                )
+                  span.font-weight-light Exibir &nbsp;
+                  span.font-weight-medium todos &nbsp;
+                  span.font-weight-light os registros
+
+                template(
+                  v-else
+                )
+                  span.font-weight-light Exibir até &nbsp;
+                  span.font-weight-medium {{ size }} &nbsp;
+                  span.font-weight-light registros
+
+    the-content(
+      fluid
+      noMargins
+    )
+      the-alert(
+        v-model="alert"
+      )
+
+      //-
+      //- GRADE DE DADOS
+      //-
+      v-data-table.ma-0(
+        :headers="cols"
+        :items="rows"
+        :fixed-header="true"
+        :disable-filtering="true"
+        :disable-pagination="true"
+        :disable-sort="true"
+        :hide-default-header="true"
+        :hide-default-footer="true"
+        item-key="uid"
+        dense
+      )
+        template(
+          v-slot:header="{ props }"
+        )
+          thead
+            tr
+              th(
+                style="z-index: 0"
+                v-for="header in props.headers"
+              )
+                | {{ header.text }}
+      
+        template(
+          v-slot:item="{ item, headers, index, isMobile }"
+        )
+          tr(
+            :class="item.style"
+          )
+            td.text-start(
+              v-for="header in headers"
+              :key="`${item.key}-${header.value}`"
+              :nowrap="!(header.multiline || hasLineBreak(item[header.value]))"
+            )
+              | {{ item[header.value] }}
 </template>
 
 <style scoped>
+.x-flip {
+  transform: scaleX(-1);
+}
 
 .x-btn-pressed {
-  background-color: var(--v-primary-lighten1) !important;
+  background-color: rgba(255,255,255,.2) !important;
 }
 
 .x-style-trace {
@@ -175,18 +226,25 @@
 .x-style-danger {
   color: var(--v-error-base);
 }
-
 </style>
 
 <script>
 import Vue from 'vue'
 import moment from 'moment'
+
 import PaperBase from './-PaperBase.vue'
+import TheHeader from '@/components/layout/TheHeader.vue'
+import TheContent from '@/components/layout/TheContent.vue'
+import TheFooter from '@/components/layout/TheFooter.vue'
+import TheAppMenu from '@/components/layout/TheAppMenu.vue'
+import TheAppMenuButton from '@/components/layout/TheAppMenuButton.vue'
+import TheAppUserMenu from '@/components/layout/TheAppUserMenu.vue'
+import TheAppUserMenuButton from '@/components/layout/TheAppUserMenuButton.vue'
+import TheAlert from '@/components/layout/TheAlert.vue'
+import AppTitle from '@/components/layout/AppTitle.vue'
+
 import '@/helpers/StringHelper.js'
 import { unknownPaper } from '@/helpers/PaperHelper.js'
-import ThePaperHeader from './parts/ThePaperHeader.vue'
-import ThePaperFooter from './parts/ThePaperFooter.vue'
-import ThePaperMenu from './parts/ThePaperMenu.vue'
 
 export default {
   extends: PaperBase,
@@ -194,19 +252,25 @@ export default {
   name: 'grid-paper',
 
   components: {
-    'the-paper-header': ThePaperHeader,
-    'the-paper-footer': ThePaperFooter,
-    'the-paper-menu': ThePaperMenu,
+    TheHeader,
+    TheContent,
+    TheFooter,
+    TheAppMenu,
+    TheAppMenuButton,
+    TheAppUserMenu,
+    TheAppUserMenuButton,
+    TheAlert,
+    AppTitle,
   },
 
   data: () => ({
+    menu: false,
+    userMenu: false,
+    busy: false,
+    alert: null,
+
     uid: Date.now(),
     lastRequestId: 0,
-    busy: false,
-
-    menu: {
-      visible: false,
-    },
 
     filter: {
       action: null,
@@ -239,10 +303,6 @@ export default {
   }),
 
   computed: {
-    isMobile () {
-      return this.$vuetify.breakpoint.xsOnly
-    },
-
     dark: {
       get () {
         return this.$vuetify.theme.dark
