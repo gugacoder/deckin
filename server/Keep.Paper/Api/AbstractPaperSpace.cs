@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Keep.Paper.Api
 {
-  public class BasePaper : IPaper
+  public abstract class AbstractPaperSpace : IPaperSpace
   {
     protected HttpContext HttpContext { get; private set; }
 

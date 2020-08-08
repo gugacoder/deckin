@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace Keep.Paper.Papers
 {
   [Expose]
-  public class SystemPaper : BasePaper
+  public class SystemPaper : AbstractPaper
   {
     public class ClientInfo
     {

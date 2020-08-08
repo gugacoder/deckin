@@ -70,7 +70,7 @@ namespace Director.Modelos
             .AddSigningCredentials(jwtSettings.SecurityKey)
             .BuildIdentity();
 
-        return identity;
+        return await Task.FromResult(identity);
       }
       catch (Exception ex)
       {

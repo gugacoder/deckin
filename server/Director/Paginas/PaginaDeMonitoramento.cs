@@ -8,12 +8,12 @@ using Keep.Tools.Collections;
 using Microsoft.AspNetCore.Authorization;
 using static Director.Servicos.ServicoDeAuditoria;
 
-namespace Director.Formularios
+namespace Director.Paginas
 {
   [Expose]
   [HomePaper]
   //[AllowAnonymous]
-  public class FormularioDeMonitoramento : BasePaper
+  public class PaginaDeMonitoramento : AbstractPaper
   {
     private const int MaxLimit = 10000;
     private readonly ServicoDeAuditoria auditoria;
@@ -47,7 +47,7 @@ namespace Director.Formularios
       public string Mensagem { get; set; }
     }
 
-    public FormularioDeMonitoramento(ServicoDeAuditoria auditoria)
+    public PaginaDeMonitoramento(ServicoDeAuditoria auditoria)
     {
       this.auditoria = auditoria;
     }

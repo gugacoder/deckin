@@ -8,7 +8,7 @@ using Keep.Tools;
 namespace Innkeeper.Papers
 {
   [Expose, HomePaper]
-  public class HomePaper : BasePaper
+  public class HomePaper : AbstractPaper
   {
     public object Index()
     {

@@ -23,6 +23,19 @@ namespace Keep.Paper.Api
 
     #region To Paper
 
+    public static string To(HttpContext ctx, PaperInfo info)
+    {
+      var route = info.Route;
+      return CreateHref(ctx, route.CatalogName, route.PaperName,
+        route.ActionName, route.ActionKeys);
+    }
+
+    public static string To(HttpContext ctx, Route route)
+    {
+      return CreateHref(ctx, route.CatalogName, route.PaperName,
+        route.ActionName, route.ActionKeys);
+    }
+
     public static string To(HttpContext ctx, Type type, string method,
         params object[] keys)
     {

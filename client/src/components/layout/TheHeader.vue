@@ -40,13 +40,14 @@
       name="first"
     )
 
-    v-toolbar-title(
+    v-toolbar-title.pl-8(
       v-if="!noTitle"
     )
       template(
         v-if="title"
       )
         | {{ title }}
+
       template(
         v-else
       )

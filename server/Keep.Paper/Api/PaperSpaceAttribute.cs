@@ -3,13 +3,13 @@ namespace Keep.Paper.Api
 {
   [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface,
     AllowMultiple = false, Inherited = true)]
-  public class CatalogAttribute : Attribute
+  public class PaperSpaceAttribute : Attribute
   {
-    public CatalogAttribute(string catalogName)
+    public PaperSpaceAttribute(string catalogName)
     {
     }
 
-    public CatalogAttribute(Type catalog)
+    public PaperSpaceAttribute(Type catalog)
     {
     }
   }

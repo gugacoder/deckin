@@ -11,9 +11,6 @@ namespace Keep.Paper.Services
 {
   internal class PaperCatalog : IPaperCatalog
   {
-    public const string Home = nameof(Home);
-    public const string Login = nameof(Login);
-
     private Type[] paperTypes;
     private HashMap<Type> specialTypes;
 
@@ -29,8 +26,8 @@ namespace Keep.Paper.Services
         this.paperTypes.FirstOrDefault(x => x._HasAttribute<LoginPaperAttribute>())
         ?? typeof(LoginPaper);
 
-      SetType(Home, homePaper);
-      SetType(Login, loginPaper);
+      SetType(PaperName.Home, homePaper);
+      SetType(PaperName.Login, loginPaper);
     }
 
     public Type GetType(string specialName) => specialTypes[specialName];

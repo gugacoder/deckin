@@ -9,6 +9,7 @@ using Director.Conectores;
 using Director.Servicos;
 using Keep.Paper.Api;
 using Keep.Paper.Configurations;
+using Keep.Paper.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -30,11 +31,6 @@ namespace Director
 
     public void ConfigureServices(IServiceCollection services)
     {
-      services.AddTransient(services =>
-          new DbDirector(configuration.GetConnectionString("Director")));
-      services.AddTransient(services =>
-          new DbPdv(configuration.GetConnectionString("Pdv")));
-
       services.AddControllers();
       services.AddPapers();
 
@@ -45,6 +41,9 @@ namespace Director
         .AllowAnyHeader()
         .AllowAnyMethod()
       ));
+
+      services.AddTransient<DbDirector>();
+      services.AddTransient<DbPdv>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

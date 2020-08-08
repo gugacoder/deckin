@@ -9,11 +9,11 @@ using Microsoft.AspNetCore.Http;
 namespace Keep.Paper.Papers
 {
   [Expose]
-  public class HomePaper : BasePaper
+  public class HomePaper : AbstractPaper
   {
-    private readonly IPaperCatalog paperCatalog;
+    private readonly Services.IPaperCatalog paperCatalog;
 
-    public HomePaper(IPaperCatalog paperCatalog)
+    public HomePaper(Services.IPaperCatalog paperCatalog)
     {
       this.paperCatalog = paperCatalog;
     }

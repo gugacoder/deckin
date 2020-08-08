@@ -44,7 +44,7 @@ namespace Director.Controladores
     [Route("/Sandbox")]
     public async Task<IActionResult> SandboxAsync()
     {
-      return Ok();
+      return await Task.FromResult(Ok());
     }
   }
 }

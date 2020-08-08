@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
+using Director.Configuracoes;
 using Keep.Paper.Api;
+using Keep.Paper.Services;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Sequel;
@@ -13,29 +15,64 @@ namespace Director.Conectores
 {
   public class DbPdv
   {
-    private readonly IAudit<DbPdv> audit;
-    private readonly string stringDeConexao;
-    private readonly string template;
+    private readonly ICommonSettings settings;
 
-    public DbPdv(string stringDeConexao)
+    private string _stringDeConexao;
+    private string _template;
+
+    private const string TemplatePadrao =
+      "Server=;Database=DBPDV;User ID=postgres;Password=local";
+
+    public DbPdv(ICommonSettings settings)
     {
-      this.audit = audit;
-      this.stringDeConexao = stringDeConexao;
-      this.template = CriarTemplate(stringDeConexao);
+      this.settings = settings;
     }
 
-    private string CriarTemplate(string stringDeConexao)
+    public DbConnection CriarConexao()
     {
-      var entradas =
-        from parametro in stringDeConexao.Split(";")
-        let partes = parametro.Split('=')
-        let chave = partes.First()
-        let valorBase = string.Join("=", partes.Skip(1))
-        let valor = CriarValorDeTemplate(chave, valorBase)
-        select $"{chave}={valor}";
+      var stringDeConexao = ObterStringDeConexao();
+      return new Npgsql.NpgsqlConnection(stringDeConexao);
+    }
 
-      var template = string.Join(";", entradas);
-      return template;
+    public DbConnection CriarConexao(string servidor, int porta = 5432,
+      string banco = "DBpdv")
+    {
+      var stringDeConexaoOriginal = ObterStringDeConexao();
+      var template = ObterTemplate(stringDeConexaoOriginal);
+
+      var stringDeConexao = template
+        .Replace("{servidor}", servidor)
+        .Replace("{porta}", porta.ToString())
+        .Replace("{banco}", banco);
+
+      return new Npgsql.NpgsqlConnection(stringDeConexao);
+    }
+
+    private string ObterStringDeConexao()
+    {
+      if (_stringDeConexao == null)
+      {
+        var stringDeConexao = settings.Get(Chaves.StringsDeConexao.Pdv);
+        _stringDeConexao = stringDeConexao ?? TemplatePadrao;
+      }
+      return _stringDeConexao;
+    }
+
+    private string ObterTemplate(string stringDeConexao)
+    {
+      if (_template == null)
+      {
+        var entradas =
+          from parametro in stringDeConexao.Split(";")
+          let partes = parametro.Split('=')
+          let chave = partes.First()
+          let valorBase = string.Join("=", partes.Skip(1))
+          let valor = CriarValorDeTemplate(chave, valorBase)
+          select $"{chave}={valor}";
+
+        _template = string.Join(";", entradas);
+      }
+      return _template;
     }
 
     private string CriarValorDeTemplate(string chave, string valorBase)
@@ -57,22 +94,6 @@ namespace Director.Conectores
         default:
           return valorBase;
       }
-    }
-
-    public DbConnection CriarConexao()
-    {
-      return new Npgsql.NpgsqlConnection(this.stringDeConexao);
-    }
-
-    public DbConnection CriarConexao(string servidor, int porta = 5432,
-      string banco = "DBpdv")
-    {
-      var stringDeConexao = this.template
-        .Replace("{servidor}", servidor)
-        .Replace("{porta}", porta.ToString())
-        .Replace("{banco}", banco);
-
-      return new Npgsql.NpgsqlConnection(stringDeConexao);
     }
   }
 }

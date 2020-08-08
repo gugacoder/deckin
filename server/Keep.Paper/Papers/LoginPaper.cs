@@ -16,7 +16,7 @@ namespace Keep.Paper.Papers
 {
   [Expose]
   [AllowAnonymous]
-  public class LoginPaper : BasePaper
+  public class LoginPaper : AbstractPaper
   {
     public const string Title = "Credenciais de Usuário";
 
@@ -26,10 +26,10 @@ namespace Keep.Paper.Papers
     }
 
     private readonly IServiceProvider serviceProvider;
-    private readonly IPaperCatalog paperCatalog;
+    private readonly Services.IPaperCatalog paperCatalog;
 
     public LoginPaper(IServiceProvider serviceProvider,
-      IPaperCatalog paperCatalog)
+      Services.IPaperCatalog paperCatalog)
     {
       this.serviceProvider = serviceProvider;
       this.paperCatalog = paperCatalog;
@@ -40,7 +40,7 @@ namespace Keep.Paper.Papers
       var redirectTo = options?.RedirectTo;
       if (redirectTo == null)
       {
-        var homePaper = paperCatalog.GetType(PaperCatalog.Home);
+        var homePaper = paperCatalog.GetType(PaperName.Home);
         redirectTo = Href.To(HttpContext, homePaper, "Index");
       }
       return new
@@ -101,6 +101,7 @@ namespace Keep.Paper.Papers
         }
       };
     }
+
     public async Task<object> AuthenticateAsync(Credential credential, Options options)
     {
       try
@@ -110,7 +111,7 @@ namespace Keep.Paper.Papers
         var redirectHref = options.RedirectTo;
         if (redirectHref == null)
         {
-          var homePaper = paperCatalog.GetType(PaperCatalog.Home);
+          var homePaper = paperCatalog.GetType(PaperName.Home);
           redirectHref = Href.To(HttpContext, homePaper, "Index");
         }
 

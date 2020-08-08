@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Keep.Paper.Api;
 using Keep.Paper.Formatters;
+using Keep.Paper.Interceptors;
 using Keep.Paper.Papers;
 using Keep.Paper.Services;
 using Keep.Tools;
@@ -28,14 +29,18 @@ namespace Keep.Paper.Controllers
   [Route(Href.ApiPrefix)]
   public class PaperController : Controller
   {
+    private delegate Task<object> ChainAsync(PaperInfo info, NextAsync nextAsync);
+
     private readonly IServiceProvider serviceProvider;
     private readonly IPaperCatalog paperCatalog;
+    private readonly IAudit<PaperController> audit;
 
     public PaperController(IServiceProvider serviceProvider,
-        IPaperCatalog paperCatalog)
+        IPaperCatalog paperCatalog, IAudit<PaperController> audit)
     {
       this.serviceProvider = serviceProvider;
       this.paperCatalog = paperCatalog;
+      this.audit = audit;
     }
 
     [Route("{catalogName}/{paperName}/{actionName}/{actionKeys?}")]
@@ -58,34 +63,11 @@ namespace Keep.Paper.Controllers
               $"O paper {paperName} do catálogo {catalogName} existe mas " +
               $"não possui um método para resolver a ação {actionName}");
 
-        // Autenticação...
-        //
-        object userToken = null;
-        if (Request.Headers.ContainsKey(HeaderNames.Authorization))
-        {
-          userToken = Request.Headers[HeaderNames.Authorization].ToString();
-          // FIXME O token deve ser rejeitado se inválido...
-        }
+        var paper =
+          (IPaper)ActivatorUtilities.CreateInstance(serviceProvider, paperType);
 
-        // Autorização...
-        //
-        if (userToken == null)
-        {
-          var allowAnonymous =
-              paperType._HasAttribute<AllowAnonymousAttribute>() ||
-              getter._HasAttribute<AllowAnonymousAttribute>();
-          if (!allowAnonymous)
-          {
-            var redirectPath = Href.To(this.HttpContext, catalogName, paperName,
-                actionName, actionArgs);
-            return RequireAuthentication(redirectPath);
-          }
-        }
-
-        var paper = ActivatorUtilities.CreateInstance(serviceProvider, paperType);
-
-        // Inicialização de BasePaper...
-        (paper as BasePaper)?.Initialize(HttpContext);
+        // Inicialização de instâncias de AbstractPaper...
+        (paper as AbstractPaper)?.Initialize(HttpContext);
 
         var ret = await TryCreateParametersAsync(getter, actionArgs, Request.Body);
         if (!ret.Ok)
@@ -93,7 +75,55 @@ namespace Keep.Paper.Controllers
 
         var getterParameters = ret.Value;
 
-        var result = await getter.InvokeAsync(paper, getterParameters);
+        //
+        // Criando o pipeline de interceptação da mensagem
+        //
+        var pipeline = BuidPipeline(paperType);
+
+        // Acrescentando o renderizador do paper
+        pipeline = pipeline.Append(
+          new ChainAsync(async (info, nextAsync) =>
+          {
+            return await info.Method.InvokeAsync(info.Paper, info.Parameters);
+          })
+        );
+
+        //
+        // Criando o iterador de nodos do pipeline
+        //
+        var iterator = pipeline.GetEnumerator();
+
+        NextAsync nextAsync = null;
+        nextAsync = new NextAsync(async (info) =>
+          {
+            iterator.MoveNext();
+            var node = iterator.Current;
+            var task = node.Invoke(info, nextAsync);
+            return await task;
+          }
+        );
+
+        //
+        // Preparando os parâmetros de renderização
+        //
+        var info = new PaperInfo
+        {
+          Route = new Route
+          {
+            CatalogName = catalogName,
+            PaperName = paperName,
+            ActionName = actionName,
+            ActionKeys = actionKeys,
+          },
+          Paper = paper,
+          Method = getter,
+          Parameters = getterParameters
+        };
+
+        //
+        // Processando o paper e produzindo o resultado
+        // 
+        var result = await nextAsync.Invoke(info);
         if (result == null)
           return Fail(Fault.NotFound);
 
@@ -132,42 +162,46 @@ namespace Keep.Paper.Controllers
       }
     }
 
-    private IActionResult RequireAuthentication(string targetPaperHref)
+    private IEnumerable<ChainAsync> BuidPipeline(Type paperType)
     {
-      var loginPaper = paperCatalog.GetType(PaperCatalog.Login);
+      var authInterceptor =
+        ActivatorUtilities.CreateInstance<AuthInterceptor>(serviceProvider);
+      authInterceptor.Initialize(HttpContext);
+      yield return authInterceptor.InterceptPaper;
 
-      var ctx = this.HttpContext;
-      return Ok(new
+      // SystemPaper não pode ser interceptado
+      if (typeof(SystemPaper).IsAssignableFrom(paperType))
+        yield break;
+
+      var types =
+        from type in ExposedTypes.GetTypes<IPaperInterceptor>()
+        where !(type is IPaper)
+           || type.IsAssignableFrom(paperType)
+        select type;
+
+      foreach (var type in types)
       {
-        Kind = Kind.Fault,
-        Data = new
+        IPaperInterceptor interceptor = null;
+
+        try
         {
-          Fault = Fault.Unauthorized,
-          Reason = new[]{
-            "Acesso restrito a usuários autenticados."
-          }
-        },
-        Links = new object[]
-        {
-          new
-          {
-            Rel = Rel.Self,
-            Href = HttpContext.Request.GetDisplayUrl()
-//            Href = Href.MakeRelative(HttpContext.Request.GetDisplayUrl())
-          },
-          new
-          {
-            LoginPaper.Title,
-            Rel = Rel.Forward,
-            Href = Href.To(ctx, loginPaper, "Index"),
-            Data = new {
-              Form = new {
-                RedirectTo = targetPaperHref
-              }
-            }
-          }
+          interceptor = (IPaperInterceptor)ActivatorUtilities.CreateInstance(
+            serviceProvider, type);
+
+          (interceptor as AbstractPaperInterceptor)?.Initialize(HttpContext);
         }
-      });
+        catch (Exception ex)
+        {
+          throw new Exception(
+            $"Não foi possível inicializar um interceptador de mensagens: {type.FullName}",
+            ex);
+        }
+
+        if (interceptor != null)
+        {
+          yield return interceptor.InterceptPaper;
+        }
+      }
     }
 
     private IActionResult Fail(string fault, params string[] messages)

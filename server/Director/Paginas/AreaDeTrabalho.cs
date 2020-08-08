@@ -2,10 +2,10 @@
 using Keep.Paper.Api;
 using Keep.Tools;
 
-namespace Director.Formularios
+namespace Director.Paginas
 {
   [Expose]
-  public class CatalogoDeFormularios : ICatalog
+  public class AreaDeTrabalho : IPaperSpace
   {
   }
 }

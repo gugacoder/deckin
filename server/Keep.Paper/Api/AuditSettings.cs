@@ -15,6 +15,11 @@ namespace Keep.Paper.Api
       this.Listeners = FindExposedListeners(serviceProvider).ToArray();
     }
 
+    public static AuditSettings CreateDefault()
+    {
+      return new AuditSettings(null);
+    }
+
     public IAuditListener[] Listeners { get; private set; }
 
     public void AddListener(IAuditListener listener)
@@ -25,6 +30,9 @@ namespace Keep.Paper.Api
     private IEnumerable<IAuditListener> FindExposedListeners(
       IServiceProvider provider)
     {
+      if (provider == null)
+        yield break;
+
       var types = ExposedTypes.GetTypes<IAuditListener>();
       foreach (var type in types)
       {

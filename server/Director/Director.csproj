@@ -27,4 +27,8 @@
       <ReferenceSourceTarget>ProjectReference</ReferenceSourceTarget>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Paginas.Interceptadores\" />
+    <Folder Include="Configuracoes\" />
+  </ItemGroup>
 </Project>
