@@ -8,7 +8,7 @@ const API_PREFIX = '/Api/1/Papers'
 // PARAMETROS DO SERVIDOR DE API
 const PROTOCOL = window.location.protocol
 const HOST = window.location.hostname
-const PORT = 5000 // window.location.port
+const PORT = window.location.port
 
 function href (catalogName, paperName, actionName, actionKeys) {
   if (!(catalogName instanceof String)) {

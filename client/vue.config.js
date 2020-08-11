@@ -5,13 +5,13 @@ module.exports = {
   devServer: {
     //host: '0.0.0.0',
     //port: 80,
-    //proxy: {
-    //  "/Api/*": {
-    //    target: 'http://localhost:5000',
-    //    secure: false,
-    //    changeOrigin: true
-    //  }
-    //},
+    proxy: {
+     "/Api/*": {
+       target: 'http://app.processa.com:5050',
+       secure: false,
+       changeOrigin: true
+     }
+    },
   },
 
   pwa: {

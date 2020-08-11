@@ -11,9 +11,9 @@ namespace Keep.Paper.Papers
   [Expose]
   public class HomePaper : AbstractPaper
   {
-    private readonly Services.IPaperCatalog paperCatalog;
+    private readonly Api.IPaperCatalog paperCatalog;
 
-    public HomePaper(Services.IPaperCatalog paperCatalog)
+    public HomePaper(Api.IPaperCatalog paperCatalog)
     {
       this.paperCatalog = paperCatalog;
     }

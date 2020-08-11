@@ -6,6 +6,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
+      // Pode ser sobreposto em: appsettings[.Development].json
       "applicationUrl": "http://0.0.0.0:5000"
     }
   }

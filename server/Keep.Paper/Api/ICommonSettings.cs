@@ -10,7 +10,7 @@ using Keep.Tools;
 using Keep.Tools.Collections;
 using Microsoft.Extensions.Configuration;
 
-namespace Keep.Paper.Services
+namespace Keep.Paper.Api
 {
   public interface ICommonSettings
   {

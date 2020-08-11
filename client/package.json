@@ -6,7 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "launch": "bash -c \"cd dist; python -m SimpleHTTPServer 8000\""
+    "launch": "bash -c \"cd dist; http-server -p 80 -a 0.0.0.0 -P http://localhost:5050 --cors"
   },
   "dependencies": {
     "core-js": "^3.6.5",
@@ -32,6 +32,7 @@
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
+    "http-server": "^0.12.3",
     "material-design-icons-iconfont": "^5.0.1",
     "moment": "^2.27.0",
     "pug": "^3.0.0",

@@ -1,23 +1,25 @@
 ﻿using System;
 using System.Data.Common;
 using System.Data.SqlClient;
-using Director.Configuracoes;
-using Keep.Paper.Services;
+using Keep.Paper.Api;
+using Microsoft.Extensions.Configuration;
 
 namespace Director.Conectores
 {
   public class DbDirector
   {
-    private readonly ICommonSettings settings;
+    private readonly IConfiguration configuration;
 
-    public DbDirector(ICommonSettings settings)
+    public DbDirector(IConfiguration configuration)
     {
-      this.settings = settings;
+      this.configuration = configuration;
     }
 
     public DbConnection CriarConexao()
     {
-      var stringDeConexao = settings.Get(Chaves.StringsDeConexao.Director);
+      var stringDeConexao =
+        configuration["ConnectionStrings:Director:ConnectionString"];
+
       if (string.IsNullOrEmpty(stringDeConexao))
         throw new Exception("A base de dados do Director não está configurada no sistema.");
 

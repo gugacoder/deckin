@@ -26,10 +26,10 @@ namespace Keep.Paper.Papers
     }
 
     private readonly IServiceProvider serviceProvider;
-    private readonly Services.IPaperCatalog paperCatalog;
+    private readonly Api.IPaperCatalog paperCatalog;
 
     public LoginPaper(IServiceProvider serviceProvider,
-      Services.IPaperCatalog paperCatalog)
+      Api.IPaperCatalog paperCatalog)
     {
       this.serviceProvider = serviceProvider;
       this.paperCatalog = paperCatalog;

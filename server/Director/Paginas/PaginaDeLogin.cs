@@ -11,7 +11,7 @@ namespace Director.Paginas
   public class PaginaDeLogin : LoginPaper
   {
     public PaginaDeLogin(IServiceProvider serviceProvider,
-      Keep.Paper.Services.IPaperCatalog paperCatalog)
+      IPaperCatalog paperCatalog)
       : base(serviceProvider, paperCatalog)
     {
     }

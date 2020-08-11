@@ -8,16 +8,17 @@ build ()
   runtime=$1
   extension=$2
   
-  mkdir -p dist
+  mkdir -p Dist
   
-  output=dist/${target}-${version}-${runtime}.${extension}
+  output=Dist/${target}-${version}-${runtime}.${extension}
   folder=Director/bin/Release/netcoreapp3.1/${runtime}/publish
   
   echo
   echo [STAGE]BUILDING...
   echo
   
-  dotnet publish --self-contained -c release -r ${runtime}
+  #dotnet publish -c Release -r ${runtime} /p:PublishSingleFile=true /p:PublishTrimmed=true Director/Director.csproj
+  dotnet publish --self-contained -c Release -r ${runtime} Director/Director.csproj
   echo ${version}-${runtime} > ${folder}/REVISION.txt
   
   echo

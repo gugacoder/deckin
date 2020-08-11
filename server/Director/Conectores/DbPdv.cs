@@ -3,29 +3,29 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
-using Director.Configuracoes;
 using Keep.Paper.Api;
 using Keep.Paper.Services;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
+using Microsoft.Extensions.Configuration;
 
 namespace Director.Conectores
 {
   public class DbPdv
   {
-    private readonly ICommonSettings settings;
-
     private string _stringDeConexao;
     private string _template;
 
     private const string TemplatePadrao =
-      "Server=;Database=DBPDV;User ID=postgres;Password=local";
+      "Server=;Database=DBPDV;User ID=postgres;Password=local;";
 
-    public DbPdv(ICommonSettings settings)
+    private readonly IConfiguration configuration;
+
+    public DbPdv(IConfiguration configuration)
     {
-      this.settings = settings;
+      this.configuration = configuration;
     }
 
     public DbConnection CriarConexao()
@@ -52,7 +52,9 @@ namespace Director.Conectores
     {
       if (_stringDeConexao == null)
       {
-        var stringDeConexao = settings.Get(Chaves.StringsDeConexao.Pdv);
+        var stringDeConexao = configuration[
+          "ConnectionStrings:Pdv:ConnectionString"];
+
         _stringDeConexao = stringDeConexao ?? TemplatePadrao;
       }
       return _stringDeConexao;
@@ -68,6 +70,8 @@ namespace Director.Conectores
           let chave = partes.First()
           let valorBase = string.Join("=", partes.Skip(1))
           let valor = CriarValorDeTemplate(chave, valorBase)
+          where !string.IsNullOrEmpty(chave)
+          where !string.IsNullOrEmpty(valor)
           select $"{chave}={valor}";
 
         _template = string.Join(";", entradas);

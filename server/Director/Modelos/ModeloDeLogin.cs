@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Dapper;
 using Director.Conectores;
+using Keep.Paper.Api;
 using Keep.Paper.Domain;
 using Keep.Paper.Helpers;
 using Keep.Paper.Services;

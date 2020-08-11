@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 
 namespace Keep.Paper.Services
 {
-  internal class JwtSettings : IJwtSettings
+  internal class JwtSettings : Api.IJwtSettings
   {
     public byte[] Key { get; private set; }
     public string KeyText => Convert.ToBase64String(Key);

@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Keep.Paper.Services
+namespace Keep.Paper.Api
 {
   public interface IAuthCatalog
   {

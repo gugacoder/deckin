@@ -65,7 +65,7 @@ namespace Keep.Paper.Configurations
 
       services.AddTransient<IJwtSettings, JwtSettings>();
       services.AddTransient<IAuthCatalog, AuthCatalog>();
-      services.AddSingleton<Services.IPaperCatalog, PaperCatalog>();
+      services.AddSingleton<IPaperCatalog, PaperCatalog>();
       services.AddSingleton<IJobScheduler, JobScheduler>();
 
       services.AddHostedService<JobSchedulerHostedService>();
@@ -84,7 +84,7 @@ namespace Keep.Paper.Configurations
       var options = new MapPaperOptions();
       configuration?.Invoke(options);
 
-      var catalog = endpoints.ServiceProvider.GetService<Services.IPaperCatalog>();
+      var catalog = endpoints.ServiceProvider.GetService<IPaperCatalog>();
 
       if (options.HomePaper != null)
       {
