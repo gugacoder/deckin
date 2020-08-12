@@ -11,8 +11,11 @@ const routes = [
     path: '/',
     name: 'Index',
     component: HomeView,
+    meta: {
+      title: 'Processa AppSuite™'
+    }
     //redirect: { path: '/!/App/Home/Index' }
-    //redirect: { path: '/Sandbox/Tananana' }
+    //redirect: { path: '/Sandbox/Tananana' },
   },
   {
     path: '/Home',
@@ -25,7 +28,7 @@ const routes = [
     component: PaperView,
     props: true,
     meta: {
-      title: 'Mercadologic™'
+      title: 'Processa AppSuite™'
     }
   },
   {

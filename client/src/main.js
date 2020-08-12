@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
+import AppConfig from './AppConfig.js'
 import './registerServiceWorker'
 import router from './router'
 import store from './store'
@@ -17,15 +18,7 @@ Vue.use(VueInstall)
 // Registrando componentes globais...
 import '@/components'
 
-Vue.prototype.$app = {
-  title: 'ProcessaApp',
-  banner: {
-    prefix: '',
-    title: 'Processa',
-    suffix: 'App',
-    variant: 'alfa'
-  }
-}
+Vue.prototype.$app = AppConfig
 
 Object.defineProperty(Vue.prototype, '$isMobile', {
   get () {

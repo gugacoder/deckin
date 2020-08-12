@@ -1,13 +1,29 @@
+const AppConfig = require('./src/AppConfig.js')
+
 module.exports = {
   transpileDependencies: [
     'vuetify'
   ],
+
+  configureWebpack: {
+    name: AppConfig.title
+  },
+
+  chainWebpack: config => {
+    config
+      .plugin('html')
+      .tap(args => {
+        args[0].AppConfig = AppConfig
+        return args
+      })
+  },
+
   devServer: {
     //host: '0.0.0.0',
     //port: 80,
     proxy: {
      "/Api/*": {
-       target: 'http://app.processa.com:5050',
+       target: 'http://localhost:5050',
        secure: false,
        changeOrigin: true
      }
@@ -15,7 +31,7 @@ module.exports = {
   },
 
   pwa: {
-    name: 'ProcessaApp',
+    name: AppConfig.title,
     themeColor: '#673ab7',
     msTileColor: '#673ab7',
     appleMobileWebAppCapable: 'yes',

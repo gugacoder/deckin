@@ -11,9 +11,53 @@
   </head>
   <body>
     <noscript>
-      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+      <strong>
+        Desculpe, mas é preciso ter JavaScript habilitado para o aplicativo <%= htmlWebpackPlugin.options.title %> funcionar bem. Por favor, habilite-o para continuar.</strong>
     </noscript>
-    <div id="app"></div>
+    <div id="app">
+      <style>
+      #x-loading-screen {
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      #x-loading-screen * {
+        text-align: center;
+      }
+      #x-title {
+        font-size: 1.2em;
+        margin-top: 100px;
+        margin-bottom: 50px;
+      }
+      #x-loader {
+        border: 4px solid #f3f3f3; /* Light grey */
+        border-top: 4px solid #3498db; /* Blue */
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 2s linear infinite;
+        margin: auto;
+        margin-top: 10px;
+      }
+      /* Safari */
+      @-webkit-keyframes spin {
+        0% { -webkit-transform: rotate(0deg); }
+        100% { -webkit-transform: rotate(360deg); }
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      </style>
+      <div id="x-loading-screen">
+        <div id="x-title">
+          <%= htmlWebpackPlugin.options.AppConfig.banner.prefix %><strong><%= htmlWebpackPlugin.options.AppConfig.banner.title %></strong><%= htmlWebpackPlugin.options.AppConfig.banner.suffix %><sup><%= htmlWebpackPlugin.options.AppConfig.banner.variant %></sup>
+        </div>
+        <div>
+          Carregando o aplicativo
+          ...
+        </div>
+        <div id="x-loader"></div>
+      </div>
+    </div>
     <!-- built files will be auto injected -->
   </body>
 </html>
