@@ -1,5 +1,5 @@
 <template lang="pug"> 
-  v-app.action-paper
+  v-app.action-paper.x-container
     the-header(
       :prominent="prominent"
       :catalog="catalogName"
@@ -30,7 +30,7 @@
     )
     
     the-footer(
-      @refreshClick="() => { /* Nada a fazer por enquanto */ }"
+      @refresh="() => { /* Nada a fazer por enquanto */ }"
     )
 
     the-content(
@@ -40,12 +40,35 @@
         v-model="alert"
       )
 
-      action-slice(
-        v-bind="actionSlice"
-        @paperReceived="paper => this.paper = paper"
-        @cancel="cancel"
+      v-container(
+        fluid
       )
+        v-row(  
+          align="center"
+          justify="center"
+        )
+          v-col(
+            cols="12"
+            sm="8"
+            md="4"
+            align="center"
+            justify="center"
+          )
+            action-slice(
+              style="width: 320px;"
+              v-bind="actionSlice"
+              :flat="$isMobile"
+              flat
+              right
+              @paperReceived="paper => this.paper = paper"
+            )
 </template>
+
+<style scoped>
+.x-container {
+  display: block;
+}
+</style>
 
 <script>
 import PaperBase from './-PaperBase.vue'
@@ -98,11 +121,6 @@ export default {
   },
 
   methods: {
-    cancel () {
-      this.$refs.form.reset()
-      this.$router.back()
-      this.$router.go()
-    },
   },
 }
 </script>

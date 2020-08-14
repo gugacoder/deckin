@@ -4,7 +4,7 @@
     v-model="value"
     :label="title"
     :hint="hint"
-    :class="`extent-${extent}`"
+    :class="extent"
     disabled
     dense
   )

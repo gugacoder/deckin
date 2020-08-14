@@ -127,6 +127,7 @@ export default {
     logout () {
       this.setIdentity(null)
       this.$router.push('/Home')
+      this.$router.go()
     },
   },
 }

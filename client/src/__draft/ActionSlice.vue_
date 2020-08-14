@@ -1,68 +1,59 @@
 <template lang="pug">
-  v-container.action-slice.pa-0(
+  v-container.action-slice.fill-height(
     fluid
   )
-    v-form(
-      ref="form"
-      v-model="valid"
-      lazy-validation
-      @submit.prevent="submit"
+    v-row(  
+      :align="stretch ? undefined : 'center'"
+      :justify="stretch ? undefined : 'center'"
     )
-      div
-        p {{ message }}
-
-      v-card.mx-auto.x-bg-translucent(
-        :flat="flat"
-        :class="flat ? 'pa-0' : 'pa-3'"
+      v-col(
+        cols="12"
+        sm="8"
+        md="4"
+        :align="stretch ? undefined : 'center'"
+        :justify="stretch ? undefined : 'center'"
       )
-        v-card-title(
-          v-if="!noTitle"
+        v-form(
+          ref="form"
+          v-model="valid"
+          lazy-validation
+          :class="extent || paperExtent"
+          @submit.prevent="submit"
         )
-          | {{ title }}
+          div
+            p {{ message }}
 
-        v-card-text.pa-0.pl-4.pt-2
-          div.x-flex
-            component(
-              v-for="field in fields"
-              :key="field.view.name"
-              v-bind="createWidget(field)"
-            )
-
-        v-card-actions
-          slot(
-            name="action"
+          v-card(
+            flat
+            :class="extent || paperExtent"
           )
-            v-spacer(
-              v-if="right || center"
-            )
+            v-card-text
+              component.x-stretch(
+                v-for="field in fields"
+                :key="field.view.name"
+                v-bind="createWidget(field)"
+              )
 
-            v-btn.mr-2(
-              type="submit"
-              color="primary"
-            )
-              | {{ linkTitle }}
+            v-card-actions
+              v-spacer
 
-            v-btn.mr-2(
-              v-if="$listeners.cancel"
-              @click="$emit('cancel')"
-            )
-              | Cancelar
+              slot(
+                name="actionBar"
+              )
+                v-btn.mr-2(
+                  type="submit"
+                  color="primary"
+                )
+                  | {{ linkTitle }}
 
-            v-spacer(
-              v-if="!right || center"
-            )
+                v-btn.mr-2(
+                  v-if="$listeners.cancel"
+                  @click="$emit('cancel')"
+                )
+                  | Cancelar
 </template>
 
 <style scoped lang="scss">
-.x-flex {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.x-bg-translucent {
-  background-color: rgba(0,0,0,0);
-}
-
 .x-stretch {
   width: 100%;
 }
@@ -114,23 +105,11 @@ export default {
       type: String,
     },
 
-    flat: {
-      type: Boolean,
-    },
-
     extent: {
       type: String,
     },
 
-    noTitle: {
-      type: Boolean
-    },
-
-    right: {
-      type: Boolean,
-    },
-
-    center: {
+    stretch: {
       type: Boolean,
     },
   },
@@ -142,7 +121,7 @@ export default {
 
   computed: {
     action () {
-      if (!this.actionName) {
+      if (this.actionName === null) {
         return this.paper
       } else {
         let actions = this.paper.actions

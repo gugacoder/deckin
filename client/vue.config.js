@@ -31,7 +31,7 @@ module.exports = {
   },
 
   pwa: {
-    name: AppConfig.title,
+    name: AppConfig.name,
     themeColor: '#673ab7',
     msTileColor: '#673ab7',
     appleMobileWebAppCapable: 'yes',

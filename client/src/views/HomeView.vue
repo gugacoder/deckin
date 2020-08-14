@@ -2,21 +2,13 @@
   v-app.home-view
     the-header(
       prominent
-      @menuClick="menu = !menu"
+      @menu="menu = !menu"
     )
 
-    the-footer
-      v-btn(
-        icon
-        @click="$router.go()"
-      )
-        v-progress-circular(
-          size="24"
-          width="2"
-          value="0"
-          color="primary"
-          :indeterminate="busy"
-        )
+    the-footer(
+      :busy="busy"
+      @refresh="$router.go()"
+    )
 
     the-app-menu(
       v-model="menu"

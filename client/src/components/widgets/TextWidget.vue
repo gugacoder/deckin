@@ -2,7 +2,7 @@
   v-text-field.text-widget(
     v-show="!hidden"
     v-model="value"
-    :class="`extent-${extent}`"
+    :class="extent"
     :label="title"
     :rules="rules"
     :required="required"
@@ -19,6 +19,10 @@ export default {
   extends: WidgetBase,
   
   name: 'text-widget',
+
+  data: () => ({
+    defaultExtent: 2,
+  }),
 
   methods: {
     focus () {

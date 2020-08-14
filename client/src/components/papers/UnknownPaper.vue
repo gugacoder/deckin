@@ -2,7 +2,7 @@
   v-app.unknown-paper
     the-header(
       prominent
-      @menuClick="menu = !menu"
+      @menu="menu = !menu"
     )
 
     the-footer

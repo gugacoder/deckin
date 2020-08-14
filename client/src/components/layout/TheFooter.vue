@@ -43,8 +43,8 @@ export default {
 
   methods: {
     refresh () {
-      if (this.$listeners.refreshClick) {
-        this.$emit('refreshClick', () => this.$router.go())
+      if (this.$listeners.refresh) {
+        this.$emit('refresh', () => this.$router.go())
       } else {
         this.$router.go()
       }

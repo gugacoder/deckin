@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Keep.Paper.Api;
 using Keep.Paper.Papers;
 using Keep.Paper.Services;
+using Keep.Tools;
 using Keep.Tools.Reflection;
 using Keep.Tools.Web;
 using Microsoft.AspNetCore.Authorization;
@@ -55,6 +56,11 @@ namespace Keep.Paper.Interceptors
           var redirectPath = Href.To(this.HttpContext, catalogName, paperName,
               actionName, actionArgs);
           var redirectEntity = RequireAuthentication(redirectPath);
+
+          var res = HttpContext.Response;
+
+          res.StatusCode = StatusCodes.Status401Unauthorized;
+          res.Headers[HeaderNames.WWWAuthenticate] = $@"Basic realm=""{App.Name}""";
 
           return await Task.FromResult(redirectEntity);
         }

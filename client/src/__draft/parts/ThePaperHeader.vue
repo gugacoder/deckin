@@ -9,7 +9,7 @@
     )
       v-btn(
         icon
-        @click="$emit('menuClick')"
+        @click="$emit('menu')"
       )
         v-icon mdi-menu
 
@@ -21,7 +21,7 @@
         text
         rounded
         large
-        @click="$emit('menuClick')"
+        @click="$emit('menu')"
       )
         | {{ title }}
 

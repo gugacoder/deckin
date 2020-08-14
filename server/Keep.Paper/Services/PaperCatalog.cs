@@ -35,7 +35,21 @@ namespace Keep.Paper.Services
 
     public Type GetType(string catalogName, string paperName)
     {
-      var paperType = (
+      Type paperType;
+
+      if (catalogName == "Keep.Paper")
+      {
+        // Obtendo um tipo especial se houver.
+        // Um tipo especial é um tipo personalizado pelo usuário da API
+        // sobrepondo um tipo interno do Paper.
+        paperType = GetType(paperName);
+        if (paperType != null)
+        {
+          return paperType;
+        }
+      }
+
+      paperType = (
         from type in paperTypes
         where Name.Catalog(type).Equals(catalogName)
            && Name.Paper(type).Equals(paperName)

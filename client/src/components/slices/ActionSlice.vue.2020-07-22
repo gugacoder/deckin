@@ -1,70 +1,49 @@
 <template lang="pug">
-  v-container.action-slice.pa-0(
-    fluid
-  )
-    v-form(
+  div.action-slice.ml-4.mt-4
+    v-form.flex-container(
       ref="form"
       v-model="valid"
       lazy-validation
-      @submit.prevent="submit"
+      :class="extent || paperExtent"
+      @submit.prevent="emitOrSubmit"
     )
       div
         p {{ message }}
 
-      v-card.mx-auto.x-bg-translucent(
-        :flat="flat"
-        :class="flat ? 'pa-0' : 'pa-3'"
+      component.stretch(
+        v-for="field in fields"
+        :key="field.view.name"
+        v-bind="createWidget(field)"
       )
-        v-card-title(
-          v-if="!noTitle"
+
+      slot(
+        name="actionBar"
+      )
+        v-btn.mr-2(
+          type="submit"
+          color="primary"
         )
-          | {{ title }}
+          | {{ linkTitle }}
 
-        v-card-text.pa-0.pl-4.pt-2
-          div.x-flex
-            component(
-              v-for="field in fields"
-              :key="field.view.name"
-              v-bind="createWidget(field)"
-            )
-
-        v-card-actions
-          slot(
-            name="action"
-          )
-            v-spacer(
-              v-if="right || center"
-            )
-
-            v-btn.mr-2(
-              type="submit"
-              color="primary"
-            )
-              | {{ linkTitle }}
-
-            v-btn.mr-2(
-              v-if="$listeners.cancel"
-              @click="$emit('cancel')"
-            )
-              | Cancelar
-
-            v-spacer(
-              v-if="!right || center"
-            )
+        v-btn.mr-2(
+          v-if="$listeners.cancel"
+          @click="$emit('cancel')"
+        )
+          | Cancelar
 </template>
 
 <style scoped lang="scss">
-.x-flex {
-  display: flex;
+.flex-container {
+  display: inline-flex;
   flex-wrap: wrap;
-}
-
-.x-bg-translucent {
-  background-color: rgba(0,0,0,0);
-}
-
-.x-stretch {
   width: 100%;
+}
+
+.stretch {
+  width: 100%;
+}
+
+.button-row {
 }
 
 .xs-extent {
@@ -109,30 +88,15 @@ export default {
   name: 'action-slice',
   
   props: {
-    // Quando não informado o próprio Paper é considerado a ação
     actionName: {
       type: String,
+      // Quando não informado o próprio Paper é considerado a ação
+      required: false,
     },
-
-    flat: {
-      type: Boolean,
-    },
-
     extent: {
       type: String,
-    },
-
-    noTitle: {
-      type: Boolean
-    },
-
-    right: {
-      type: Boolean,
-    },
-
-    center: {
-      type: Boolean,
-    },
+      required: false
+    }
   },
 
   data: () => ({
@@ -142,7 +106,7 @@ export default {
 
   computed: {
     action () {
-      if (!this.actionName) {
+      if (this.actionName === null) {
         return this.paper
       } else {
         let actions = this.paper.actions
@@ -190,15 +154,15 @@ export default {
       }
     },
 
-    submit () {
+    emitOrSubmit () {
       if (this.$listeners.submit) {
         this.$emit('submit')
       } else {
-        this.fetchData()
+        this.submit()
       }
     },
 
-    async fetchData () {
+    async submit () {
       let ok
 
       this.message = null

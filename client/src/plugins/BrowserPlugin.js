@@ -41,14 +41,17 @@ function routeFor (href) {
 function requestData (href, payload, identity) {
   return new Promise((resolve, reject) => {
     let options = {
-      headers: new Headers()
+      cache: 'no-store',
+      credentials: 'omit',
+      redirect: 'follow',
+      method: 'post',
+      headers: new Headers(),
     }
 
     if (identity && identity.token) {
       options.headers.append('Authorization', `Token ${identity.token}`)
     }
-
-    options.method = 'post'
+    
     options.body = JSON.stringify(payload || {})
 
     if (!href.includes('://')) {

@@ -2,13 +2,26 @@
 </template>
 
 <style scoped lang="scss">
+$base-width-xs: 160px;
 $base-width: 130px;
 $base-margin: 12px;
 
 @for $i from 1 to 5 {
-  .extent-#{$i} {
+  .x-extent-#{$i}-xs {
+    min-width: $base-width-xs;
+    max-width: ($base-width-xs * $i) + ($base-margin * ($i - 1));
+    width: ($base-width-xs * $i) + ($base-margin * ($i - 1));
+    margin: 0;
+    margin-bottom: $base-margin;
+    margin-right: $base-margin;
+  }
+}
+
+@for $i from 1 to 5 {
+  .x-extent-#{$i} {
     min-width: $base-width;
     max-width: ($base-width * $i) + ($base-margin * ($i - 1));
+    width: ($base-width * $i) + ($base-margin * ($i - 1));
     margin: 0;
     margin-bottom: $base-margin;
     margin-right: $base-margin;
@@ -84,7 +97,10 @@ export default {
     },
     
     extent () {
-      return this.field.view.extent || this.defaultExtent || 2
+      let factor = this.field.view.extent || this.defaultExtent || 2
+      let suffix = this.$isMobile ? '-xs' : ''
+      let extent = `x-extent-${factor}${suffix}`
+      return extent
     }
   },
 }

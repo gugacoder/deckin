@@ -4,7 +4,7 @@
     autocomplete="current-password"
     v-show="!hidden"
     v-model="value"
-    :class="`extent-${extent}`"
+    :class="extent"
     :label="title"
     :rules="rules"
     :required="required"

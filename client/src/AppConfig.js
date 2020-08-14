@@ -1,6 +1,6 @@
 module.exports = {
   name: 'processa-app-suite',
-  title: 'Processa AppSuíte',
+  title: 'AppSuíte',
   banner: {
     prefix: 'Processa',
     title: 'AppSuíte',

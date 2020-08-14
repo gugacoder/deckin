@@ -133,12 +133,18 @@ namespace Keep.Paper.Controllers
           Response.Headers[HeaderNames.Location] = location;
         }
 
-        var status = result._Get("Data")?._Get<int?>("Status") ?? 200;
-        return StatusCode(status, result);
+        // FIXME: Como identificar status de retorno a partir da propria entidade?
+        //var customStatus = result._Get("Data")?._Get<int?>("Status");
+        //if (customStatus != null)
+        //{
+        //  status = customStatus;
+        //}
+
+        return StatusCode(Response.StatusCode, result);
       }
       catch (Exception ex)
       {
-        return NotFound(new
+        return StatusCode(StatusCodes.Status500InternalServerError, new
         {
           Kind = Kind.Fault,
           Data = new
