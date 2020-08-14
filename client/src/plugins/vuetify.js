@@ -18,6 +18,7 @@ export default new Vuetify({
     dark: store.state.system.dark,
 
     themes: {
+      /*
       light: {
         primary: '#515b7e',
         accent: '#d71f3b',
@@ -26,6 +27,7 @@ export default new Vuetify({
         primary: '#7382b7', //'#8293ce',
         accent: '#d71f3b',
       },
+      */
     }
   },
 });

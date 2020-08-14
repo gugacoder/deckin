@@ -22,49 +22,100 @@
         slot="left"
       )
         template(
-          v-if="filter.action && $isMobile"
+          v-if="filter.action"
         )
-          v-btn(
-            icon
-            @click="filter.visible = !filter.visible"
-          )
-            v-icon
-              | mdi-filter
-
-        template(
-          v-if="filter.action && !$isMobile"
-        )
-          v-btn(
-            text
-            large
-            rounded
+          v-btn.x-toolbar-btn(
+            :icon="$isMobile"
+            :text="!$isMobile"
+            :outlined="!$isMobile"
+            :class="{ 'x-mobile': $isMobile }"
             @click="filter.visible = !filter.visible"
             v-shortkey="['esc']"
             @shortkey="filter.visible = !filter.visible"
           )
-            | Filtro
+            v-icon mdi-filter
 
-        v-btn(
+            span(
+              v-if="!$isMobile"
+            )
+              | Filtro
+
+        v-btn.x-toolbar-btn.x-dropdown-btn(
+          v-if="!$isMobile"
           text
-          large
-          rounded
-          :class="autoRefresh.enabled ? 'x-btn-pressed' : undefined"
-          @click="autoRefresh.enabled = !autoRefresh.enabled"
-        )
-          v-icon.x-flip mdi-history
-
-          span
-            big.font-weight-bold 1
-            small.font-weight-light s
-
-        v-btn(
-          icon
-          :disabled="autoRefresh.enabled"
+          outlined
           @click="refreshData(true)"
           v-shortkey="['enter']"
           @shortkey="refreshData(true)"
         )
+          v-icon.x-flip(
+            v-if="autoRefresh.enabled"
+          )
+            | mdi-history
+
+          v-icon(
+            v-if="!autoRefresh.enabled"
+          )
+            | mdi-refresh
+
+          span(
+            v-if="!$isMobile"
+          )
+            | Atualizar
+
+          v-menu(
+            bottom
+            offset-y
+            close-on-click
+            close-on-content-click
+          )
+            template(
+              v-slot:activator="{ on, attrs }"
+            )
+              v-btn(
+                v-bind="attrs"
+                v-on="on"
+                text
+                small
+              )
+                v-icon.pa-4 mdi-chevron-down
+
+            v-list
+              v-list-item(
+                link
+                @click="autoRefresh.enabled = false"
+              )
+                v-list-item-icon
+                  v-icon
+                    | {{ !autoRefresh.enabled ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}
+
+                v-list-item-title Atualizar manualmente
+
+              v-list-item(
+                link
+                @click="autoRefresh.enabled = true"
+              )
+                v-list-item-icon
+                  v-icon
+                    | {{ autoRefresh.enabled ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}
+
+                v-list-item-title Atualizar a cada 1 segundo
+
+        v-btn.x-toolbar-btn(
+          v-if="$isMobile"
+          icon
+          :class="{ 'x-mobile': $isMobile }"
+          @click="refreshData(true)"
+        )
           v-icon mdi-refresh
+
+        v-btn.x-toolbar-btn(
+          v-if="$isMobile"
+          icon
+          :class="{ 'x-mobile': $isMobile, 'x-btn-pressed': autoRefresh.enabled }"
+          @click="autoRefresh.enabled = !autoRefresh.enabled"
+        )
+          v-icon.x-flip mdi-history
 
       template(
         slot="right"
@@ -222,6 +273,27 @@
 </template>
 
 <style scoped>
+.x-toolbar-btn {
+  margin-left: 4px !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+.x-toolbar-btn:not(.v-btn--round) .v-icon {
+  margin-right: 4px !important;
+}
+
+.x-dropdown-btn {
+  padding-right: 4px !important;
+}
+           
+.x-dropdown-btn .v-btn{
+  margin-left: 8px !important;
+  padding: 0 !important;
+  width: 30px;
+  min-width: 30px;
+}
+
 .x-flip {
   transform: scaleX(-1);
 }
@@ -615,6 +687,16 @@ export default {
       }
       let widget = this.$refs.widgets[0]
       widget && widget.focus()
+    },
+
+
+
+    a () {
+      alert('a') 
+    },
+
+    b () {
+      alert('b') 
     },
   }
 }
