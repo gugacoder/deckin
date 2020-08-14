@@ -10,6 +10,8 @@
     v-toolbar.x-header(
       color="primary"
       dark
+      style="cursor:pointer;"
+      @click.stop="$emit('input', false)"
     )
       v-btn(
         v-if="!right && !$isMobile"
@@ -29,7 +31,7 @@
         v-show="title"
         text
         large
-        rounded
+        style=""
         @click.stop="$emit('input', false)"
       )
         | {{ title }}

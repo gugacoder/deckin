@@ -61,7 +61,11 @@
           span(
             v-if="!$isMobile"
           )
-            | Atualizar
+            span Atualizar
+              span.x-lowercase(
+                v-if="autoRefresh.enabled"
+              )
+                | : {{ autoRefreshTip }}
 
           v-menu(
             bottom
@@ -82,24 +86,33 @@
 
             v-list
               v-list-item(
+                v-for="interval in autoRefresh.intervals"
+                :key="`interface-${interval.seconds}`"
                 link
-                @click="autoRefresh.enabled = false"
+                dense
+                @click="autoRefresh.seconds = interval.seconds"
               )
-                v-list-item-icon
-                  v-icon
-                    | {{ !autoRefresh.enabled ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}
+                v-list-item-title
+                  span(
+                    :class="{ 'primary--text': (autoRefresh.seconds === interval.seconds) }"
+                  )
+                    template(
+                      v-if="interval.seconds === 0"
+                    )
+                      span.font-weight-light Atualizar &nbsp;
+                      span.font-weight-medium manualmente
 
-                v-list-item-title Atualizar manualmente
+                    template(
+                      v-else
+                    )
+                      span.font-weight-light Atualizar a cada &nbsp;
+                      span.font-weight-medium {{ interval.title }} &nbsp;
 
-              v-list-item(
-                link
-                @click="autoRefresh.enabled = true"
-              )
-                v-list-item-icon
-                  v-icon
-                    | {{ autoRefresh.enabled ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank' }}
-
-                v-list-item-title Atualizar a cada 1 segundo
+                v-list-item-action
+                  v-icon(
+                    color="primary"
+                  )
+                    | {{ (autoRefresh.seconds === interval.seconds) ? 'mdi-check' : undefined }}
 
         v-btn.x-toolbar-btn(
           v-if="$isMobile"
@@ -166,35 +179,34 @@
           v-list
             v-list-item(
               v-for="size in pagination.pageSizes"
-              :key="size"
+              :key="`pageSize-${size}`"
               link
+              dense
               @click="pagination.pageSize = size"
             )
-              v-list-item-icon
-                v-icon(
-                  v-if="pagination.pageSize === size"
-                )
-                  | mdi-radiobox-marked
-                  
-                v-icon(
-                  v-else
-                )
-                  | mdi-radiobox-blank
-
               v-list-item-title
-                template(
-                  v-if="size === 0"
+                span(
+                  :class="{ 'primary--text': (pagination.pageSize === size) }"
                 )
-                  span.font-weight-light Exibir &nbsp;
-                  span.font-weight-medium todos &nbsp;
-                  span.font-weight-light os registros
+                  template(
+                    v-if="size === 0"
+                  )
+                    span.font-weight-light Exibir &nbsp;
+                    span.font-weight-medium todos &nbsp;
+                    span.font-weight-light os registros
 
-                template(
-                  v-else
+                  template(
+                    v-else
+                  )
+                    span.font-weight-light Exibir até &nbsp;
+                    span.font-weight-medium {{ size }} &nbsp;
+                    span.font-weight-light registros
+
+              v-list-item-action
+                v-icon(
+                  color="primary"
                 )
-                  span.font-weight-light Exibir até &nbsp;
-                  span.font-weight-medium {{ size }} &nbsp;
-                  span.font-weight-light registros
+                  | {{ (pagination.pageSize === size) ? 'mdi-check' : undefined }}
 
     app-drawer(
       v-if="filter.action"
@@ -273,6 +285,10 @@
 </template>
 
 <style scoped>
+.x-lowercase {
+  text-transform: lowercase;
+}
+
 .x-toolbar-btn {
   margin-left: 4px !important;
   padding-left: 12px !important;
@@ -384,7 +400,16 @@ export default {
     autoRefresh: {
       enabled: false,
       seconds: 0,
-      timer: null,
+      lastRun: 0,
+      intervals: [
+        { seconds: 0    , tip: ''   , title: ''            },
+        { seconds: 1    , tip: '1s' , title: '1 segundo'   },
+        { seconds: 2    , tip: '2s' , title: '2 segundos'  },
+        { seconds: 3    , tip: '3s' , title: '3 segundos'  },
+        { seconds: 5    , tip: '5s' , title: '5 segundos'  },
+        { seconds: 10   , tip: '10s', title: '10 segundos' },
+        { seconds: 60   , tip: '1m' , title: '1 minuto'    },
+      ]
     },
 
     pagination: {
@@ -465,11 +490,19 @@ export default {
 
         return data
       })
-    }
+    },
+
+    autoRefreshTip () {
+      let seconds = this.autoRefresh.seconds
+      let intervals = this.autoRefresh.intervals 
+      let interval = intervals.filter(x => x.seconds === seconds)[0]
+      return interval && interval.tip
+    },
   },
 
   watch: {
     'content.paper': 'onPaperChanged',
+    'autoRefresh.seconds': 'onAutoRefreshChanged',
   },
 
   created () {
@@ -482,6 +515,13 @@ export default {
   },
 
   methods: {
+    onAutoRefreshChanged () {
+      let enabled = (this.autoRefresh.seconds > 0)
+      if (enabled !== this.autoRefresh.enabled) {
+        this.autoRefresh.enabled = enabled
+      }
+    },
+
     onPaperChanged () {
 
       // Auto refresh
@@ -499,7 +539,7 @@ export default {
       this.pagination.enabled = !!page
       if (this.pagination.enabled)
       {
-        let size = this.pagination.pageSizes.filter(size => page.limit == size)[0]
+        let size = this.pagination.pageSizes.filter(size => page.limit === size)[0]
         this.pagination.pageSize = size || 0
       }
 
@@ -522,27 +562,28 @@ export default {
 
     setTimers() {
       this.clearTimers()
-      if (this.autoRefresh.enabled) {
-        let milliseconds = this.autoRefresh.seconds * 1000
-        this.autoRefresh.timer = setInterval(this.autoRefreshData, milliseconds)
-      }
+      this.autoRefresh.timer = setInterval(this.tickTimer, 100)
     },
 
     clearTimers() {
-      if (this.autoRefresh.timer) {
-        clearInterval(this.autoRefresh.timer)
-        this.autoRefresh.timer = null
-      }
+      clearInterval(this.autoRefresh.timer)
+      this.autoRefresh.timer = undefined
+    },
+
+    tickTimer() {
+      if (!this.autoRefresh.enabled || this.busy)
+        return
+
+      let timeout = this.autoRefresh.lastRun + (1000 * this.autoRefresh.seconds)
+      if (timeout > Date.now())
+        return
+      
+      this.autoRefresh.lastRun = Date.now()
+      this.refreshData()
     },
 
     applyFilter () {
       this.$refs.filterSlice.submit()
-    },
-
-    async autoRefreshData() {
-      if (this.autoRefresh.enabled) {
-        await this.refreshData()
-      }
     },
 
     async refreshData(force) {
@@ -687,16 +728,6 @@ export default {
       }
       let widget = this.$refs.widgets[0]
       widget && widget.focus()
-    },
-
-
-
-    a () {
-      alert('a') 
-    },
-
-    b () {
-      alert('b') 
     },
   }
 }
