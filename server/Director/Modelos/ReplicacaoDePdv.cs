@@ -28,71 +28,20 @@ namespace Director.Modelos
       this.audit = audit;
     }
 
-    #region Parametrização
-
-    public async Task<ParametrosDeReplicacaoDePdv> ObterParametrosAsync(
-      CancellationToken stopToken)
-    {
-      try
-      {
-        audit.Log(
-          "Obtendo os parâmetros do sistema a partir da base do Director...",
-          GetType());
-
-        using var cnDirector = dbDirector.CriarConexao();
-        await cnDirector.OpenAsync(stopToken);
-
-        var parametros = await
-         $@"select (select DFvalor
-                     from mlogic.TBsis_config
-                     where DFchave = 'replicacao.ativado'
-                   ) as DFreplicacao
-                 , (select DFvalor
-                     from mlogic.TBsis_config
-                     where DFchave = 'replicacao.historico.ativado'
-                   ) as DFhistorico
-                 , (select DFvalor
-                     from mlogic.TBsis_config
-                     where DFchave = 'replicacao.historico.dias'
-                   ) as DFdias"
-            .AsSql()
-            .SelectOneAsync(cnDirector,
-              (bool replicacao, bool historico, int dias) =>
-              {
-                var parametros = new ParametrosDeReplicacaoDePdv();
-                parametros.Ativado = replicacao;
-                parametros.Historico.Ativado = historico;
-                parametros.Historico.Dias = dias;
-                return parametros;
-              },
-              stopToken: stopToken);
-
-        audit.Log(
-          To.Text(
-            "Obtenção dos parâmetros do sistema a partir da base do Director concluída.",
-            Json.ToJson(parametros, new Json.Settings { Indent = true })),
-          GetType());
-
-        return parametros;
-      }
-      catch (Exception ex)
-      {
-        audit.LogDanger(
-          To.Text(
-            "Obtenção dos parâmetros do sistema a partir da base do Director concluída com falhas.",
-            ex),
-          GetType());
-        return new ParametrosDeReplicacaoDePdv();
-      }
-    }
-
-    #endregion
-
     #region Replicação de dados
 
-    public async Task ReplicarPdvsAsync(ParametrosDeReplicacaoDePdv parametros,
-      CancellationToken stopToken)
+    public async Task ReplicarPdvsAsync(CancellationToken stopToken)
     {
+      ReplicacaoDePdvParametros parametros;
+
+      using (var cnDirector = dbDirector.CriarConexao())
+      {
+        await cnDirector.OpenAsync();
+
+        parametros = await ReplicacaoDePdvParametros.ObterAsync(cnDirector,
+          stopToken);
+      }
+
       if (!parametros.Ativado)
         return;
 
@@ -107,10 +56,9 @@ namespace Director.Modelos
       await Task.WhenAll(tarefas);
     }
 
-    private async Task<sp_obter_pdvs[]> ObterPdvsAtivosAsync(
-      CancellationToken stopToken)
+    private async Task<TBpdv[]> ObterPdvsAtivosAsync(CancellationToken stopToken)
     {
-      var listDePdvAtivo = new List<sp_obter_pdvs>();
+      var listDePdvAtivo = new List<TBpdv>();
       try
       {
         audit.Log(
@@ -143,7 +91,7 @@ namespace Director.Modelos
 
             await cnDirector.OpenAsync(stopToken);
 
-            var pdvs = await sp_obter_pdvs.ObterAsync(cnDirector,
+            var pdvs = await TBpdv.ObterAsync(cnDirector,
               empresa.DFcod_empresa, stopToken);
 
             listDePdvAtivo.AddRange(pdvs.Where(pdv =>
@@ -177,8 +125,8 @@ namespace Director.Modelos
       return listDePdvAtivo.ToArray();
     }
 
-    private async Task ReplicarAsync(ParametrosDeReplicacaoDePdv parametros,
-      sp_obter_pdvs pdv, CancellationToken stopToken)
+    private async Task ReplicarAsync(ReplicacaoDePdvParametros parametros,
+      TBpdv pdv, CancellationToken stopToken)
     {
       try
       {
@@ -245,7 +193,7 @@ namespace Director.Modelos
     }
 
     private async Task ReplicarTabelaAsync(DbConnection cnDirector,
-      DbConnection cnPdv, sp_obter_pdvs pdv, string tabela, DateTime dataLimite,
+      DbConnection cnPdv, TBpdv pdv, string tabela, DateTime dataLimite,
       CancellationToken stopToken
       )
     {
@@ -381,11 +329,17 @@ namespace Director.Modelos
 
     #region Limpeza de dados
 
-    public async Task ApagarHistoricoAsync(ParametrosDeReplicacaoDePdv parametros,
-      CancellationToken stopToken)
+    public async Task ApagarHistoricoAsync(CancellationToken stopToken)
     {
       try
       {
+        using var cnDirector = dbDirector.CriarConexao();
+
+        await cnDirector.OpenAsync(stopToken);
+
+        var parametros = await ReplicacaoDePdvParametros.ObterAsync(cnDirector,
+            stopToken);
+
         if (!parametros.Ativado ||
             !parametros.Historico.Ativado ||
             parametros.Historico.Dias <= 0)
@@ -394,10 +348,6 @@ namespace Director.Modelos
         audit.LogTrace(
           $"Iniciando limpeza de replicações antigas...",
           GetType());
-
-        using var cnDirector = dbDirector.CriarConexao();
-
-        await cnDirector.OpenAsync(stopToken);
 
         var dataLimite = DateTime.Now.AddDays(-parametros.Historico.Dias);
 

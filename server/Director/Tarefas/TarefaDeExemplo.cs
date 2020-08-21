@@ -10,7 +10,7 @@ using Keep.Tools;
 namespace Director.Tarefas
 {
   [Expose]
-  public class TarefaDeExemplo : IJob
+  public class TarefaDeExemplo : IJobAsync
   {
     private readonly IAudit<TarefaDeExemplo> audit;
 
@@ -29,13 +29,15 @@ namespace Director.Tarefas
       while (true) yield return DateTime.Now.AddSeconds(1);
     }
 
-    public void Run(CancellationToken stopToken)
+    public async Task RunAsync(CancellationToken stopToken)
     {
       var levels = Enum.GetValues(typeof(Level));
       var choice = new Random().Next(levels.Length);
       var level = (Level)levels.GetValue(choice);
       audit.Log(level, To.Text($"Exemplo de evento {level}..."),
         nameof(TarefaDeExemplo));
+
+      await Task.CompletedTask;
     }
   }
 }

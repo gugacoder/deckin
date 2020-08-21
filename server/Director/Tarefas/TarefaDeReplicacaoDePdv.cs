@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Director.Tarefas
 {
   [Expose]
-  public class TarefaDeReplicacaoDePdv : IJob
+  public class TarefaDeReplicacaoDePdv : IJobAsync
   {
     private readonly IServiceProvider provider;
     private readonly IAudit<TarefaDeReplicacaoDePdv> audit;
@@ -37,16 +37,15 @@ namespace Director.Tarefas
       }
     }
 
-    public void Run(CancellationToken stopToken)
+    public async Task RunAsync(CancellationToken stopToken)
     {
       try
       {
         var replicacao = ActivatorUtilities.
           CreateInstance<ModeloDeReplicacaoDePdv>(provider);
 
-        var parametros = replicacao.ObterParametrosAsync(stopToken).Await();
-        replicacao.ReplicarPdvsAsync(parametros, stopToken).Await();
-        replicacao.ApagarHistoricoAsync(parametros, stopToken).Await();
+        await replicacao.ReplicarPdvsAsync(stopToken);
+        await replicacao.ApagarHistoricoAsync(stopToken);
       }
       catch (Exception ex)
       {

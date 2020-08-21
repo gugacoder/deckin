@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 
 namespace Keep.Paper.Jobs
 {
-  public interface IJob
+  public interface IJobAsync
   {
     void SetUp(IJobScheduler scheduler);
 
-    void Run(CancellationToken stopToken);
+    Task RunAsync(CancellationToken stopToken);
   }
 }

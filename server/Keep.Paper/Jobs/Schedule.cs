@@ -9,14 +9,14 @@ namespace Keep.Paper.Jobs
   {
     private readonly IEnumerator<DateTime> schedule;
 
-    public Schedule(IJob job, NextRun nextRun)
+    public Schedule(IJobAsync job, NextRun nextRun)
     {
       this.Job = job;
       this.schedule = nextRun().GetEnumerator();
       SetNextRun();
     }
 
-    public IJob Job { get; }
+    public IJobAsync Job { get; }
 
     public DateTime Due { get; private set; }
 

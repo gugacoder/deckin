@@ -30,5 +30,7 @@
   <ItemGroup>
     <Folder Include="Paginas.Interceptadores\" />
     <Folder Include="Configuracoes\" />
+    <Folder Include="Dominio.dbo\" />
+    <Folder Include="Dominio.mlogic\" />
   </ItemGroup>
 </Project>

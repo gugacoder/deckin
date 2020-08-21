@@ -10,10 +10,10 @@ namespace Director.Dominio.mlogic
   /// <summary>
   /// Mapeamento do resultado da procedure: mlogic.sp_obter_pdvs
   /// </summary>
-  public partial class sp_obter_pdvs
+  public partial class TBpdv
   {
     public int DFcod_empresa { get; set; }
-    public int DFid_pdv { get; set; }
+    public int DFcod_pdv { get; set; }
     public string DFdescricao { get; set; }
     public string DFip { get; set; }
     public string DFbanco_dados { get; set; }
@@ -30,14 +30,14 @@ namespace Director.Dominio.mlogic
     /// <param name="DFcod_empresa">O código da empresa pesquisada.</param>
     /// <param name="stopToken">Um TOKEN para cancelamento assíncrono da tareafa.</param>
     /// <returns></returns>
-    public static async Task<sp_obter_pdvs[]> ObterAsync(DbConnection connection,
+    public static async Task<TBpdv[]> ObterAsync(DbConnection connection,
       int DFcod_empresa, CancellationToken stopToken = default)
     {
       var pdvs = await
         @"exec mlogic.sp_obter_pdvs @DFcod_empresa"
           .AsSql()
           .Set(new { DFcod_empresa })
-          .SelectAsync<sp_obter_pdvs>(connection, stopToken: stopToken);
+          .SelectAsync<TBpdv>(connection, stopToken: stopToken);
       return pdvs;
     }
 

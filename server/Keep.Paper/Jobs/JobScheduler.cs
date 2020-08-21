@@ -36,12 +36,12 @@ namespace Keep.Paper.Jobs
     {
       try
       {
-        var types = FilterJobs(ExposedTypes.GetTypes<IJob>());
+        var types = FilterJobs(ExposedTypes.GetTypes<IJobAsync>());
         foreach (var type in types)
         {
           try
           {
-            var job = (IJob)ActivatorUtilities.CreateInstance(provider, type);
+            var job = (IJobAsync)ActivatorUtilities.CreateInstance(provider, type);
             job.SetUp(this);
             Console.WriteLine($"[JOB_ADDED]{GetTypeName(job.GetType())}");
           }
@@ -114,14 +114,14 @@ namespace Keep.Paper.Jobs
       return type.FullName.Split(',', ';').First();
     }
 
-    public Schedule Add(IJob job, NextRun nextRun)
+    public Schedule Add(IJobAsync job, NextRun nextRun)
     {
       var schedule = new Schedule(job, nextRun);
       queue.Add(schedule);
       return schedule;
     }
 
-    public Schedule[] Find(Func<IJob, bool> criteria)
+    public Schedule[] Find(Func<IJobAsync, bool> criteria)
     {
       return queue.Find(x => criteria.Invoke(x.Job));
     }
@@ -156,7 +156,7 @@ namespace Keep.Paper.Jobs
     {
       try
       {
-        await Task.Run(() => schedule.Job.Run(stopToken));
+        await schedule.Job.RunAsync(stopToken);
       }
       finally
       {
