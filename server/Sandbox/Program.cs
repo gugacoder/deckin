@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Keep.Paper.Api;
+using Keep.Paper.Client;
 using Keep.Paper.Configurations;
 using Keep.Paper.Services;
 using Keep.Tools;
@@ -24,24 +25,27 @@ namespace Director
     {
       try
       {
-        //var auditSettings = AuditSettings.CreateDefault();
-        //auditSettings.AddListener(new AuditListenerDebugAdapter());
+        var explorer = new FileBrowser();
 
-        //var audit = new Audit<CommonSettings>(auditSettings);
-        //var settings = new CommonSettings(null);
+        var stack = new Stack<string>();
+        stack.Push("/");
 
-        //foreach (var key in settings.Keys)
-        //{
-        //  Debug.WriteLine(settings.Get(key));
-        //}
+        while (stack.Count > 0)
+        {
+          var folder = stack.Pop();
 
-        //settings.Set(" MY  .   ID    ", 1);
-        //settings.Set("my .name ", "One");
-        //settings.Set(" My. DATE  ", DateTime.Now);
+          Debug.WriteLine(FileBrowser.GetName(folder));
 
-        //Debug.WriteLine(settings.Get<int>("My . ID"));
-        //Debug.WriteLine(settings.Get<string>("My . NAME"));
-        //Debug.WriteLine(settings.Get<DateTime>("  My . DATE  "));
+          explorer.EnumerateFiles(folder).ForEach(filepath =>
+          {
+            var bytes = explorer.ReadFile(filepath);
+            var exists = explorer.FileExists(filepath);
+            var name = FileBrowser.GetName(filepath);
+            Debug.WriteLine($"{name}:{exists}:{bytes?.Length}");
+          });
+
+          explorer.EnumerateFolders(folder).ForEach(stack.Push);
+        }
       }
       catch (Exception ex)
       {

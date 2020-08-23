@@ -4,15 +4,22 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Keep.Paper.Api;
+using Keep.Paper.Client;
 using Keep.Paper.Jobs;
+using Keep.Paper.Middlewares;
 using Keep.Paper.Papers;
 using Keep.Paper.Services;
+using Keep.Tools;
 using Keep.Tools.Reflection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging.EventLog;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Keep.Paper.Configurations
@@ -45,6 +52,43 @@ namespace Keep.Paper.Configurations
     //  });
     //}
 
+    public static IHostBuilder ConfigurePaperWebHost(
+      this IHostBuilder hostBuilder, Action<IWebHostBuilder> webBuilder)
+    {
+      hostBuilder.ConfigureServices(services =>
+        {
+          services.Configure<EventLogSettings>(config =>
+          {
+            config.LogName = App.Name;
+            config.SourceName = App.Description ?? App.Name;
+          });
+        });
+      hostBuilder.UseWindowsService();
+      hostBuilder.ConfigureWebHostDefaults(builder =>
+        {
+          var env = builder.GetSetting("environment");
+          var configBuilder = new ConfigurationBuilder()
+              .SetBasePath(App.Path)
+              .AddJsonFile("appsettings.json", optional: true,
+                reloadOnChange: true)
+              .AddJsonFile($"appsettings.{env}.json", optional: true,
+                reloadOnChange: true)
+              .AddEnvironmentVariables();
+
+          var config = configBuilder.Build();
+
+          var urls = config.GetSection("Host:Urls").Get<string[]>();
+          if (urls?.Any() == true)
+          {
+            builder.UseUrls(urls);
+          }
+
+          webBuilder?.Invoke(builder);
+        });
+
+      return hostBuilder;
+    }
+
     public static void AddPapers(this IServiceCollection services,
       Action<ServiceOptions> builder = null)
     {
@@ -76,6 +120,14 @@ namespace Keep.Paper.Configurations
         jsonOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         jsonOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
       });
+    }
+
+    public static void UsePaperStaticFiles(this IApplicationBuilder app,
+      Action<Middlewares.StaticFileOptions> options = null)
+    {
+      var fileOptions = new Middlewares.StaticFileOptions();
+      options?.Invoke(fileOptions);
+      app.UseMiddleware<StaticFilesMiddleware>(fileOptions);
     }
 
     public static void MapPapers(this IEndpointRouteBuilder endpoints,

@@ -55,6 +55,8 @@ namespace Director
 
       app.UseCors("AllowCorsPolicy");
 
+      app.UsePaperStaticFiles(options => options.UseDefaultFiles());
+
       app.UseRouting();
 
       app.UseEndpoints(endpoints =>

@@ -3,15 +3,19 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Director", "Director\Director.csproj", "{0DFD1DF8-8536-47E3-BF98-A189B53299FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Director", "server\Director\Director.csproj", "{0DFD1DF8-8536-47E3-BF98-A189B53299FF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Innkeeper", "Innkeeper\Innkeeper.csproj", "{A6BC256E-8045-479A-B22A-C29C07B450FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Innkeeper", "server\Innkeeper\Innkeeper.csproj", "{A6BC256E-8045-479A-B22A-C29C07B450FA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keep.Tools", "Keep.Tools\Keep.Tools.csproj", "{A1711D92-A194-402D-B8E9-B4F67B5399A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keep.Tools", "server\Keep.Tools\Keep.Tools.csproj", "{A1711D92-A194-402D-B8E9-B4F67B5399A8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keep.Paper", "Keep.Paper\Keep.Paper.csproj", "{5585C66E-A8F9-44F5-A87C-F1C6AE5D58A7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keep.Paper", "server\Keep.Paper\Keep.Paper.csproj", "{5585C66E-A8F9-44F5-A87C-F1C6AE5D58A7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sandbox", "Sandbox\Sandbox.csproj", "{F3070085-E053-4F82-8794-374448A556B8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sandbox", "server\Sandbox\Sandbox.csproj", "{F3070085-E053-4F82-8794-374448A556B8}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "server\Setup\Setup.vdproj", "{7C624395-47FE-4604-BA6D-2FE77981D461}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keep.Paper.Client", "client\Keep.Paper.Client.csproj", "{BF814B2B-9090-4872-B7E2-141B5F849FE5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,6 +87,24 @@ Global
 		{F3070085-E053-4F82-8794-374448A556B8}.Release|x64.Build.0 = Release|Any CPU
 		{F3070085-E053-4F82-8794-374448A556B8}.Release|x86.ActiveCfg = Release|Any CPU
 		{F3070085-E053-4F82-8794-374448A556B8}.Release|x86.Build.0 = Release|Any CPU
+		{7C624395-47FE-4604-BA6D-2FE77981D461}.Debug|Any CPU.ActiveCfg = Debug
+		{7C624395-47FE-4604-BA6D-2FE77981D461}.Debug|x64.ActiveCfg = Debug
+		{7C624395-47FE-4604-BA6D-2FE77981D461}.Debug|x86.ActiveCfg = Debug
+		{7C624395-47FE-4604-BA6D-2FE77981D461}.Release|Any CPU.ActiveCfg = Release
+		{7C624395-47FE-4604-BA6D-2FE77981D461}.Release|x64.ActiveCfg = Release
+		{7C624395-47FE-4604-BA6D-2FE77981D461}.Release|x86.ActiveCfg = Release
+		{BF814B2B-9090-4872-B7E2-141B5F849FE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF814B2B-9090-4872-B7E2-141B5F849FE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF814B2B-9090-4872-B7E2-141B5F849FE5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BF814B2B-9090-4872-B7E2-141B5F849FE5}.Debug|x64.Build.0 = Debug|Any CPU
+		{BF814B2B-9090-4872-B7E2-141B5F849FE5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BF814B2B-9090-4872-B7E2-141B5F849FE5}.Debug|x86.Build.0 = Debug|Any CPU
+		{BF814B2B-9090-4872-B7E2-141B5F849FE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF814B2B-9090-4872-B7E2-141B5F849FE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF814B2B-9090-4872-B7E2-141B5F849FE5}.Release|x64.ActiveCfg = Release|Any CPU
+		{BF814B2B-9090-4872-B7E2-141B5F849FE5}.Release|x64.Build.0 = Release|Any CPU
+		{BF814B2B-9090-4872-B7E2-141B5F849FE5}.Release|x86.ActiveCfg = Release|Any CPU
+		{BF814B2B-9090-4872-B7E2-141B5F849FE5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

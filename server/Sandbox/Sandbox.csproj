@@ -18,6 +18,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\..\client\Keep.Paper.Client.csproj" />
     <ProjectReference Include="..\Keep.Paper\Keep.Paper.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
       <ReferenceSourceTarget>ProjectReference</ReferenceSourceTarget>
