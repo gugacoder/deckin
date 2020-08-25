@@ -19,6 +19,11 @@ namespace Keep.Paper.Api
     public const string Paper = "paper";
 
     /// <summary>
+    /// A entidade representa um dado qualquer.
+    /// </summary>
+    public const string Data = "data";
+
+    /// <summary>
     /// Entidade de transporte de validação de dados e formulários.
     /// </summary>
     public const string Validation = "validation";

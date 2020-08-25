@@ -27,6 +27,7 @@ using Newtonsoft.Json.Linq;
 namespace Keep.Paper.Controllers
 {
   [Route(Href.ApiPrefix)]
+  [NewtonsoftJsonFormatter]
   public class PaperController : Controller
   {
     private delegate Task<object> ChainAsync(PaperInfo info, NextAsync nextAsync);

@@ -141,7 +141,7 @@ namespace Keep.Tools.Sequel
     /// </summary>
     internal static object CreateSqlCompatibleValue(object value)
     {
-      value = (value as Var)?.RawType ?? value;
+      value = value is Var ? ((Var)value).RawValue : value;
 
       if (Value.IsNull(value))
       {
@@ -647,7 +647,7 @@ namespace Keep.Tools.Sequel
     private static string CreateCriteria(Sql target, HashMap parameters,
       string parameter, object value, Dialect dialect, KeyGen keyGen)
     {
-      value = (value as Var)?.RawValue ?? value;
+      value = value is Var ? ((Var)value).RawValue : value;
 
       if (value == null)
       {

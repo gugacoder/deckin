@@ -96,50 +96,61 @@ namespace Director.Paginas
         View = new
         {
           Title = "Eventos do Sistema",
-          Design = Design.Grid,
-          AutoRefresh = 1, // segundos
-          FilterHidden = true,
-          Page = new { limit }
+          Design = new
+          {
+            Kind = Design.Grid,
+            AutoRefresh = 1, // segundos
+            Page = new
+            {
+              limit
+            }
+          }
         },
 
         Fields = new object[]
         {
-          new {
-            Data = new {
-              Name = nameof(Evento.Id).ToCamelCase()
-            },
-            View = new {
+          new
+          {
+            View = new
+            {
+              Name = nameof(Evento.Id).ToCamelCase(),
               Hidden = true
             }
           },
-          new {
-            Data = new {
+          new
+          {
+            View = new
+            {
               Name = nameof(Evento.Origem).ToCamelCase()
             }
           },
-          new {
-            Data = new {
-              Name = nameof(Evento.Nome).ToCamelCase()
-            },
-            View = new {
+          new
+          {
+            View = new
+            {
+              Name = nameof(Evento.Nome).ToCamelCase(),
               Title = "Evento"
             }
           },
-          new {
-            Data = new {
+          new
+          {
+            View = new
+            {
               Name = nameof(Evento.Data).ToCamelCase()
             }
           },
-          new {
-            Data = new {
+          new
+          {
+            View = new
+            {
               Name = nameof(Evento.Mensagem).ToCamelCase()
             }
           },
-          new {
-            Data = new {
-              Name = nameof(Evento.Nivel).ToCamelCase()
-            },
-            View = new {
+          new
+          {
+            View = new
+            {
+              Name = nameof(Evento.Nivel).ToCamelCase(),
               Hidden = true,
               UseForStyle = true
             }
@@ -212,10 +223,10 @@ namespace Director.Paginas
 
         Links = new
         {
-          Self = Href.To(HttpContext, GetType(), nameof(Index))
+          Self = Href.To(HttpContext, GetType(), nameof(Index)),
+          Workspace = Href.To(HttpContext, typeof(AreaDeTrabalho))
         }
       };
     }
-
   }
 }

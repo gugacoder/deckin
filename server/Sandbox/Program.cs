@@ -1,19 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading.Tasks;
-using Keep.Paper.Api;
-using Keep.Paper.Client;
-using Keep.Paper.Configurations;
-using Keep.Paper.Services;
 using Keep.Tools;
-using Keep.Tools.Collections;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Keep.Tools.Sequel;
+using Keep.Tools.Sequel.Runner;
 
 #nullable enable
 
@@ -25,27 +16,29 @@ namespace Director
     {
       try
       {
-        var explorer = new FileBrowser();
+        using var cn = new SqlConnection(
+          "server=172.27.0.119;database=DBdirector_mac_29;uid=sl;pwd=123;timeout=60;"
+        );
+        cn.Open();
 
-        var stack = new Stack<string>();
-        stack.Push("/");
+        SequelTracer.TraceQuery = sql => Debug.WriteLine(sql);
 
-        while (stack.Count > 0)
-        {
-          var folder = stack.Pop();
+        var codigos = @"
+          select TBempresa_mercadologic.DFcod_empresa
+            from TBempresa_mercadologic
+           inner join TBempresa
+                   on TBempresa.DFcod_empresa = TBempresa_mercadologic.DFcod_empresa
+           where TBempresa_mercadologic.DFcod_empresa matches if set @DFcod_empresa
+             and TBempresa.DFnome_fantasia matches if set @DFnome_fantasia"
+            .AsSql()
+            .Set(new
+            {
+              //DFcod_empresa = (int?)null,
+              DFnome_fantasia = (string?)null
+            })
+            .Select<int>(cn);
 
-          Debug.WriteLine(FileBrowser.GetName(folder));
-
-          explorer.EnumerateFiles(folder).ForEach(filepath =>
-          {
-            var bytes = explorer.ReadFile(filepath);
-            var exists = explorer.FileExists(filepath);
-            var name = FileBrowser.GetName(filepath);
-            Debug.WriteLine($"{name}:{exists}:{bytes?.Length}");
-          });
-
-          explorer.EnumerateFolders(folder).ForEach(stack.Push);
-        }
+        Debug.WriteLine(string.Join(", ", codigos));
       }
       catch (Exception ex)
       {

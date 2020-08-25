@@ -89,8 +89,14 @@ export function canonifyPaper (paper) {
   // View, contém instruções de rederização do componente.
   //
   target.view = source.view || {}
+  // Corrigindo ou criando o objeto "design".
+  if (lodash.isString(target.view.design)) {
+    target.view.design = { kind: target.view.design }
+  }
+  if (!target.view.design) target.view.design = {}
+  // Corrigindo o design para tipo paper.
   if (target.kind === 'paper') {
-    if (!target.view.design) target.view.design = 'data'
+    if (!target.view.design.kind) target.view.design.kind = 'data'
   }
 
   // Links, coleção dos links relacionados à entidade.
@@ -254,7 +260,7 @@ export function canonifyPaper (paper) {
 
   // Corrigindo a falta de campos em designs como Grid
   if (target.kind === 'paper') {
-    if (target.view.design === 'grid' && target.fields.length === 0) {
+    if (target.view.design.kind === 'grid' && target.fields.length === 0) {
       let firstRecord = target.embedded[0]
       if (firstRecord) {
         target.fields = Object.keys(firstRecord.data).map(key => {

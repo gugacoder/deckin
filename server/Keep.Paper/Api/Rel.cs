@@ -6,6 +6,12 @@ namespace Keep.Paper.Api
     // Marca um elemento como representando o próprio objeto.
     public const string Self = "self";
 
+    // Marca um elemento como parte da composição da área de trabalho.
+    public const string Workspace = "workspace";
+
+    // Marca um elemento como membro de menu
+    public const string Menu = "menu";
+
     // Marca um objeto como sendo o item de uma coleção de objetos.
     public const string Item = "item";
 

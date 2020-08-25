@@ -126,7 +126,7 @@
           v-if="$isMobile"
           icon
           :class="{ 'x-mobile': $isMobile, 'x-btn-pressed': autoRefresh.enabled }"
-          @click="autoRefresh.enabled = !autoRefresh.enabled"
+          @click="setAutoRefresh(!autoRefresh.enabled)"
         )
           v-icon.x-flip mdi-history
 
@@ -348,6 +348,7 @@
 <script>
 import Vue from 'vue'
 import moment from 'moment'
+import lodash from 'lodash'
 
 import PaperBase from './-PaperBase.vue'
 import TheHeader from '@/components/layout/TheHeader.vue'
@@ -485,7 +486,7 @@ export default {
         let styleField = this.paper.fields.filter(x => x.view.useForStyle)[0]
         if (styleField) {
           let style = data[styleField.data.name]
-          data.style = `x-style-${style ? style.toHyphenCase() : null}`
+          data.style = `x-style-${style ? this.stylize(style) : null}`
         }
 
         return data
@@ -526,16 +527,18 @@ export default {
 
       // Auto refresh
       //
-      this.autoRefresh.enabled = !!this.paper.view.autoRefresh
-      this.autoRefresh.seconds = this.paper.view.autoRefresh
-      if (!Number.isInteger(this.autoRefresh.seconds)
-          || this.autoRefresh.seconds <= 0) {
-        this.autoRefresh.seconds = 2
+      let seconds = this.paper.view.design.autoRefresh || 0
+      if (!Number.isInteger(seconds) || seconds < 0) {
+        seconds = 0
       }
+      this.autoRefresh.enabled = seconds > 0
+      this.autoRefresh.seconds = seconds
+
+      console.log({seconds})
       
       // Paginacao
       //
-      let page = this.paper.view.page
+      let page = this.paper.view.design.page
       this.pagination.enabled = !!page
       if (this.pagination.enabled)
       {
@@ -728,6 +731,26 @@ export default {
       }
       let widget = this.$refs.widgets[0]
       widget && widget.focus()
+    },
+
+    stylize (style) {
+      if (Number.isInteger(style)) {
+        var options = [
+          'trace',        // Cinza
+          'default',      // Preto
+          'information',  // Azul
+          'success',      // Verde
+          'warning',      // Laranja
+          'danger',       // Vermelho
+        ]
+        style = options[style] || 'default'
+      }
+
+      if (!lodash.isString(style)) {
+        style = 'default'
+      }
+
+      return style.toHyphenCase()
     },
   }
 }

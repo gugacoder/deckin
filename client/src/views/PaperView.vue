@@ -70,7 +70,7 @@ export default {
       } else {
         let paper = this.paper
 
-        let design = (paper && (paper.view.design || paper.kind)) || 'unknown'
+        let design = (paper && (paper.view.design.kind || paper.kind)) || 'unknown'
         let designName = design.toHyphenCase()
         
         // Páginas ainda não implementadas

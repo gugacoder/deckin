@@ -7,32 +7,30 @@
     <ApplicationIcon>..\..\client\public\favicon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="3.1.4" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.6.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.4" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.4" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="3.1.7" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.7.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.7" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4" />
     <PackageReference Include="Dapper" Version="2.0.35" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.0.3" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Keep.Paper\Keep.Paper.csproj">
-      <GlobalPropertiesToRemove>
-      </GlobalPropertiesToRemove>
-      <ReferenceSourceTarget>ProjectReference</ReferenceSourceTarget>
-    </ProjectReference>
-    <ProjectReference Include="..\Keep.Tools\Keep.Tools.csproj">
-      <GlobalPropertiesToRemove>
-      </GlobalPropertiesToRemove>
-      <ReferenceSourceTarget>ProjectReference</ReferenceSourceTarget>
-    </ProjectReference>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.7" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Paginas.Interceptadores\" />
     <Folder Include="Configuracoes\" />
     <Folder Include="Dominio.dbo\" />
     <Folder Include="Dominio.mlogic\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Keep.Tools\Keep.Tools.csproj">
+      <GlobalPropertiesToRemove>
+      </GlobalPropertiesToRemove>
+    </ProjectReference>
+    <ProjectReference Include="..\Keep.Paper\Keep.Paper.csproj">
+      <GlobalPropertiesToRemove>
+      </GlobalPropertiesToRemove>
+    </ProjectReference>
   </ItemGroup>
 </Project>

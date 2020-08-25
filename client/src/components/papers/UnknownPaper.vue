@@ -2,6 +2,7 @@
   v-app.unknown-paper
     the-header(
       prominent
+      noTitle
       @menu="menu = !menu"
     )
 

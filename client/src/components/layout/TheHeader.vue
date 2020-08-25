@@ -23,10 +23,10 @@
       )
         app-title.mr-2
 
-        span.primary--text.text--lighten-2.mr-1(
+        span.mr-1(
           v-if="catalog"
         )
-          span.text-no-wrap / {{ catalog }} /
+          span.font-weight-light.text-no-wrap / {{ catalog }} /
 
       span.font-weight-medium.text-no-wrap {{ caption }}
 

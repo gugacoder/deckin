@@ -3,6 +3,10 @@ namespace Keep.Paper.Api
 {
   public static class FieldKind
   {
+    public const string Number = "number";
+
+    public const string Decimal = "decimal";
+
     public const string Text = "text";
 
     public const string Date = "date";

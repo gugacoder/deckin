@@ -151,6 +151,114 @@ namespace Keep.Tools.Collections
     }
 
     /// <summary>
+    /// Constrói um vetor com os elementros de um enumerado transformados.
+    /// </summary>
+    /// <typeparam name="TSource">O tipo do elemento do enumerado.</typeparam>
+    /// <typeparam name="TResult">O tipo do elemento produzido pela transformação.</typeparam>
+    /// <param name="enumerable">O enumerado.</param>
+    /// <param name="transformation">O algoritmo de transformação de elemento.</param>
+    /// <returns>O vetor com os itens transformados.</returns>
+    public static TResult[] ToArray<TSource, TResult>(
+      this IEnumerable<TSource> enumerable,
+      Func<TSource, TResult> transformation)
+    {
+      return enumerable.Select(transformation).ToArray();
+    }
+
+    /// <summary>
+    /// Constrói um vetor com os elementros de um enumerado transformados.
+    /// O algoritmo de transformação recebe cada elemento do enumerado e seu
+    /// índice correspondente.
+    /// </summary>
+    /// <typeparam name="TSource">O tipo do elemento do enumerado.</typeparam>
+    /// <typeparam name="TResult">O tipo do elemento produzido pela transformação.</typeparam>
+    /// <param name="enumerable">O enumerado.</param>
+    /// <param name="transformation">O algoritmo de transformação de elemento.</param>
+    /// <returns>O vetor com os itens transformados.</returns>
+    public static TResult[] ToArray<TSource, TResult>(
+      this IEnumerable<TSource> enumerable,
+      Func<TSource, int, TResult> transformation)
+    {
+      return enumerable.Select(transformation).ToArray();
+    }
+
+    /// <summary>
+    /// Constrói uma lista com os elementros de um enumerado transformados.
+    /// </summary>
+    /// <typeparam name="TSource">O tipo do elemento do enumerado.</typeparam>
+    /// <typeparam name="TResult">O tipo do elemento produzido pela transformação.</typeparam>
+    /// <param name="enumerable">O enumerado.</param>
+    /// <param name="transformation">O algoritmo de transformação de elemento.</param>
+    /// <returns>A lista com os itens transformados.</returns>
+    public static List<TResult> ToList<TSource, TResult>(
+      this IEnumerable<TSource> enumerable,
+      Func<TSource, TResult> transformation)
+    {
+      return enumerable.Select(transformation).ToList();
+    }
+
+    /// <summary>
+    /// Constrói uma lista com os elementros de um enumerado transformados.
+    /// O algoritmo de transformação recebe cada elemento do enumerado e seu
+    /// índice correspondente.
+    /// </summary>
+    /// <typeparam name="TSource">O tipo do elemento do enumerado.</typeparam>
+    /// <typeparam name="TResult">O tipo do elemento produzido pela transformação.</typeparam>
+    /// <param name="enumerable">O enumerado.</param>
+    /// <param name="transformation">O algoritmo de transformação de elemento.</param>
+    /// <returns>A lista com os itens transformados.</returns>
+    public static List<TResult> ToList<TSource, TResult>(
+      this IEnumerable<TSource> enumerable,
+      Func<TSource, int, TResult> transformation)
+    {
+      return enumerable.Select(transformation).ToList();
+    }
+
+    /// <summary>
+    /// Constrói uma coleção com os elementros de um enumerado transformados.
+    /// </summary>
+    /// <typeparam name="TSource">O tipo do elemento do enumerado.</typeparam>
+    /// <typeparam name="TResult">O tipo do elemento produzido pela transformação.</typeparam>
+    /// <param name="enumerable">O enumerado.</param>
+    /// <param name="transformation">O algoritmo de transformação de elemento.</param>
+    /// <returns>A coleção com os itens transformados.</returns>
+    public static Collection<TResult> ToCollection<TSource, TResult>(
+      this IEnumerable<TSource> enumerable,
+      Func<TSource, TResult> transformation)
+    {
+      return new Collection<TResult>(enumerable.Select(transformation));
+    }
+
+    /// <summary>
+    /// Constrói uma coleção com os elementros de um enumerado transformados.
+    /// O algoritmo de transformação recebe cada elemento do enumerado e seu
+    /// índice correspondente.
+    /// </summary>
+    /// <typeparam name="TSource">O tipo do elemento do enumerado.</typeparam>
+    /// <typeparam name="TResult">O tipo do elemento produzido pela transformação.</typeparam>
+    /// <param name="enumerable">O enumerado.</param>
+    /// <param name="transformation">O algoritmo de transformação de elemento.</param>
+    /// <returns>A coleção com os itens transformados.</returns>
+    public static Collection<TResult> ToCollection<TSource, TResult>(
+      this IEnumerable<TSource> enumerable,
+      Func<TSource, int, TResult> transformation)
+    {
+      return new Collection<TResult>(enumerable.Select(transformation));
+    }
+
+    /// <summary>
+    /// Constrói uma coleção com os elementros de um enumerado transformados.
+    /// </summary>
+    /// <typeparam name="T">O tipo do elemento do enumerado.</typeparam>
+    /// <param name="enumerable">O enumerado.</param>
+    /// <param name="transformation">O algoritmo de transformação de elemento.</param>
+    /// <returns>A coleção com os itens transformados.</returns>
+    public static Collection<T> ToCollection<T>(this IEnumerable<T> enumerable)
+    {
+      return new Collection<T>(enumerable);
+    }
+
+    /// <summary>
     /// Varre o enumerado e executa a ação para cada item encontrado.
     /// </summary>
     /// <typeparam name="T"></typeparam>

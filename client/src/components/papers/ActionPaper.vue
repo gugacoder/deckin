@@ -4,6 +4,7 @@
       :prominent="prominent"
       :catalog="catalogName"
       :caption="title"
+      noTitle
     )
       template(
         slot="first"

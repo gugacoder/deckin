@@ -2,6 +2,7 @@
   v-app.fault-paper
     the-header(
       prominent
+      noTitle
       @menu="menu = !menu"
     )
 

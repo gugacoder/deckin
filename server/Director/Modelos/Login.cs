@@ -40,7 +40,7 @@ namespace Director.Modelos
         };
 
 #if DEBUG
-        if (credencial.Username == "")
+        if (credencial.Username.EqualsIgnoreCase("hacker"))
         {
           info = new
           {

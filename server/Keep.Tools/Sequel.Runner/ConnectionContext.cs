@@ -79,9 +79,8 @@ namespace Keep.Tools.Sequel.Runner
         command.Parameters.Add(parameter);
       }
 
-      //#if DEBUG
-      //      System.Diagnostics.Debug.WriteLine($"---\n{sql.Beautify()}\n---\n");
-      //#endif
+      SequelTracer.TraceQuery?.Invoke(SqlBuilderExtensions.Beautify(sql.Text));
+      SequelTracer.TraceCommand?.Invoke(command);
 
       return command;
     }
