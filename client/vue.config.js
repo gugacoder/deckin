@@ -6,7 +6,7 @@ module.exports = {
   ],
 
   configureWebpack: {
-    name: AppConfig.title
+    name: AppConfig.name
   },
 
   chainWebpack: config => {
@@ -16,6 +16,19 @@ module.exports = {
         args[0].AppConfig = AppConfig
         return args
       })
+  },
+
+  pwa: {
+    name: AppConfig.title,
+    themeColor: '#673ab7',
+    msTileColor: '#673ab7',
+    appleMobileWebAppCapable: 'yes',
+    appleMobileWebAppStatusBarStyle: 'black',
+
+    workboxPluginMode: 'InjectManifest',
+    workboxOptions: {
+      swSrc: 'src/service-worker.js',
+    }
   },
 
   devServer: {
@@ -29,17 +42,4 @@ module.exports = {
      }
     },
   },
-
-  pwa: {
-    name: AppConfig.name,
-    themeColor: '#673ab7',
-    msTileColor: '#673ab7',
-    appleMobileWebAppCapable: 'yes',
-    appleMobileWebAppStatusBarStyle: 'black',
-
-    workboxPluginMode: 'InjectManifest',
-    workboxOptions: {
-      swSrc: 'src/service-worker.js',
-    }
-  }
 }

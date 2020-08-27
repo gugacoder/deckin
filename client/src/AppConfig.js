@@ -1,8 +1,8 @@
 module.exports = {
-  name: 'processa-app-suite',
-  title: 'AppSuíte',
+  name: 'Director.AppSuite',
+  title: 'Director AppSuíte™',
   banner: {
-    prefix: 'Processa',
+    prefix: 'Director',
     title: 'AppSuíte',
     suffix: '',
     variant: 'alfa'

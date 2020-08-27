@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 import HomeView from '@/views/HomeView.vue'
 import PaperView from '@/views/PaperView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
+import AppConfig from '@/AppConfig.js'
 
 Vue.use(VueRouter)
 
@@ -12,7 +13,7 @@ const routes = [
     name: 'Index',
     component: HomeView,
     meta: {
-      title: 'Processa AppSuite™'
+      title: AppConfig.title
     }
     //redirect: { path: '/!/App/Home/Index' }
     //redirect: { path: '/Sandbox/Tananana' },
@@ -28,7 +29,7 @@ const routes = [
     component: PaperView,
     props: true,
     meta: {
-      title: 'Processa AppSuite™'
+      title: AppConfig.title
     }
   },
   {
@@ -53,7 +54,7 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  document.title = (to.meta && to.meta.title) || 'Paper App'
+  document.title = (to.meta && to.meta.title) || AppConfig.title
   next();
 });
 

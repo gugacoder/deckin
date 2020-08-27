@@ -15,6 +15,12 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keep.Paper.Client", "Keep.Paper.Client\Keep.Paper.Client.csproj", "{BF814B2B-9090-4872-B7E2-141B5F849FE5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7647C1C5-A792-49DC-9955-0515EB1DBDCB}"
+	ProjectSection(SolutionItems) = preProject
+		pack.conf = pack.conf
+		pack.info = pack.info
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -73,6 +79,7 @@ Global
 		{F3070085-E053-4F82-8794-374448A556B8}.Release|x86.ActiveCfg = Release|Any CPU
 		{F3070085-E053-4F82-8794-374448A556B8}.Release|x86.Build.0 = Release|Any CPU
 		{7C624395-47FE-4604-BA6D-2FE77981D461}.Debug|Any CPU.ActiveCfg = Debug
+		{7C624395-47FE-4604-BA6D-2FE77981D461}.Debug|Any CPU.Build.0 = Debug
 		{7C624395-47FE-4604-BA6D-2FE77981D461}.Debug|x64.ActiveCfg = Debug
 		{7C624395-47FE-4604-BA6D-2FE77981D461}.Debug|x64.Build.0 = Debug
 		{7C624395-47FE-4604-BA6D-2FE77981D461}.Debug|x86.ActiveCfg = Debug
@@ -98,6 +105,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {59C38C47-85C8-4A16-B6E1-11FCB7F3C036}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {59C38C47-85C8-4A16-B6E1-11FCB7F3C036}

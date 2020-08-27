@@ -16,7 +16,7 @@
 #   Veja mais detalhes digitando:
 #     pack --help
 pack
-  Processa/AppSuite/1.0.0
+  Processa/Director.AppSuite/0.1.0
 
 # Declaração das dependências do projeto.
 #   Uma dependência por linha.

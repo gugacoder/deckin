@@ -24,10 +24,10 @@ namespace Director
       new WindowsServiceLauncher()
         .Configure(opts =>
         {
-          opts.Name = "AppSuite";
-          opts.Title = "AppSuite™";
+          opts.Name = "Director.AppSuite";
+          opts.Title = "Director AppSuÃ­teâ„¢";
           opts.Manufacturer = "Processa";
-          opts.Description = "Plataforma de distribuição de aplicativos.";
+          opts.Description = "Plataforma de distribuiÃ§Ã£o de aplicativos.";
         })
         .RunOrInstall(args, args =>
           CreateHostBuilder(args).Build().Run()
