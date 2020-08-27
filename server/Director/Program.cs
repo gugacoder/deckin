@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Keep.Paper.Api;
 using Keep.Paper.Configurations;
 using Keep.Tools;
 using Keep.Tools.Collections;
@@ -20,7 +21,17 @@ namespace Director
   {
     public static void Main(string[] args)
     {
-      CreateHostBuilder(args).Build().Run();
+      new WindowsServiceLauncher()
+        .Configure(opts =>
+        {
+          opts.Name = "AppSuite";
+          opts.Title = "AppSuite™";
+          opts.Manufacturer = "Processa";
+          opts.Description = "Plataforma de distribuição de aplicativos.";
+        })
+        .RunOrInstall(args, args =>
+          CreateHostBuilder(args).Build().Run()
+        );
     }
 
     public static IHostBuilder CreateHostBuilder(string[] args) =>

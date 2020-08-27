@@ -1,4 +1,7 @@
 paket-files/**
 .vs
-
 .DS_Store
+.svn
+server/*.exe
+server/Deps
+server/Tools

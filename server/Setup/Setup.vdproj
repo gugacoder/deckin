@@ -4,13 +4,14 @@
 "ProjectType" = "8:{978C614F-708E-4E1A-B201-565925725DBA}"
 "IsWebType" = "8:FALSE"
 "ProjectName" = "8:Setup"
-"LanguageId" = "3:1033"
+"LanguageId" = "3:1046"
 "CodePage" = "3:1252"
-"UILanguageId" = "3:1033"
+"UILanguageId" = "3:1046"
 "SccProjectName" = "8:"
 "SccLocalPath" = "8:"
 "SccAuxPath" = "8:"
 "SccProvider" = "8:"
+"BackwardsCompatibleGUIDGeneration" = "8:TRUE"
     "Hierarchy"
     {
         "Entry"
@@ -44,6 +45,9 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                }
             }
         }
         "Release"
@@ -51,7 +55,7 @@
         "DisplayName" = "8:Release"
         "IsDebugOnly" = "11:FALSE"
         "IsReleaseOnly" = "11:TRUE"
-        "OutputFilename" = "8:Release\\Setup.msi"
+        "OutputFilename" = "8:..\\Dist\\Setup\\Setup.msi"
         "PackageFilesAs" = "3:2"
         "PackageFileSize" = "3:-2147483648"
         "CabType" = "3:1"
@@ -83,6 +87,62 @@
     {
         "CustomAction"
         {
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_128968D1B7E6452B99740F33AA89D333"
+            {
+            "Name" = "8:PublishItemsOutputGroup from Director (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_E6A1194003094FDD846089A133ADEEC6"
+            "FileType" = "3:2"
+            "InstallAction" = "3:3"
+            "Arguments" = "8:/Rollback"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:1"
+            "Identifier" = "8:_D655BC70_1212_43DA_9614_AF47DA142A7C"
+            "InstallerClass" = "11:FALSE"
+            "CustomActionData" = "8:"
+            }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_1AFC8B269AE440528E12F0F978FDA8E2"
+            {
+            "Name" = "8:PublishItemsOutputGroup from Director (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_E6A1194003094FDD846089A133ADEEC6"
+            "FileType" = "3:2"
+            "InstallAction" = "3:4"
+            "Arguments" = "8:/Uninstall"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:1"
+            "Identifier" = "8:_484EF87B_04EC_4C8E_BFD9_0380EFD0CCC2"
+            "InstallerClass" = "11:FALSE"
+            "CustomActionData" = "8:"
+            }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_5BCA9AF75CE54A0DAD58825057F64EC5"
+            {
+            "Name" = "8:PublishItemsOutputGroup from Director (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_E6A1194003094FDD846089A133ADEEC6"
+            "FileType" = "3:2"
+            "InstallAction" = "3:2"
+            "Arguments" = "8:/Commit"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:1"
+            "Identifier" = "8:_1640AF1C_3D90_4FAD_BC96_1FEFC5B3569F"
+            "InstallerClass" = "11:FALSE"
+            "CustomActionData" = "8:"
+            }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_6698916931F7485AAA8740EA0F3DC56B"
+            {
+            "Name" = "8:PublishItemsOutputGroup from Director (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_E6A1194003094FDD846089A133ADEEC6"
+            "FileType" = "3:2"
+            "InstallAction" = "3:1"
+            "Arguments" = "8:/Install"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:1"
+            "Identifier" = "8:_59C13388_B240_41B8_B68A_58A8068EA987"
+            "InstallerClass" = "11:FALSE"
+            "CustomActionData" = "8:"
+            }
         }
         "DefaultFeature"
         {
@@ -101,8 +161,8 @@
                 "AllowLaterVersions" = "11:FALSE"
                 "InstallUrl" = "8:https://dotnet.microsoft.com/download/dotnet-core/[NetCoreVerMajorDotMinor]"
                 "IsNETCore" = "11:TRUE"
-                "Architecture" = "2:0"
-                "Runtime" = "2:0"
+                "Architecture" = "2:2"
+                "Runtime" = "2:1"
                 }
             }
         }
@@ -134,33 +194,11 @@
             "Property" = "8:ProgramMenuFolder"
                 "Folders"
                 {
-                    "{9EF0B969-E518-4E46-987F-47570745A589}:_2551A2DD651843F08F69FEAD344BC4C8"
-                    {
-                    "Name" = "8:Processa Sistemas"
-                    "AlwaysCreate" = "11:FALSE"
-                    "Condition" = "8:"
-                    "Transitive" = "11:FALSE"
-                    "Property" = "8:_E4B462B268994601AE9613BB12DFEC65"
-                        "Folders"
-                        {
-                            "{9EF0B969-E518-4E46-987F-47570745A589}:_8A6416C3452B444F9DD526D14F9A39A2"
-                            {
-                            "Name" = "8:AppSuite™"
-                            "AlwaysCreate" = "11:FALSE"
-                            "Condition" = "8:"
-                            "Transitive" = "11:FALSE"
-                            "Property" = "8:_D764654A6F984B7881746EA7FEA61612"
-                                "Folders"
-                                {
-                                }
-                            }
-                        }
-                    }
                 }
             }
             "{3C67513D-01DD-4637-8A68-80971EB9504F}:_4F1322F749A54BCAB5DC799525B00ED1"
             {
-            "DefaultLocation" = "8:[ProgramFilesFolder][Manufacturer]\\[ProductName]"
+            "DefaultLocation" = "8:[ProgramFiles64Folder][Manufacturer]\\[ProductName]"
             "Name" = "8:#1925"
             "AlwaysCreate" = "11:FALSE"
             "Condition" = "8:"
@@ -179,7 +217,7 @@
         }
         "MsiBootstrapper"
         {
-        "LangId" = "3:1033"
+        "LangId" = "3:1046"
         "RequiresElevation" = "11:FALSE"
         }
         "Product"
@@ -187,18 +225,18 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:AppSuite"
         "ProductCode" = "8:{2FB365AE-7D76-4E11-ACEC-F62D4C382A98}"
-        "PackageCode" = "8:{AE8872B2-8D2A-467D-B444-540DC61AD9E9}"
+        "PackageCode" = "8:{CE344E5E-42C3-4164-8B35-29C001BF1963}"
         "UpgradeCode" = "8:{615182A9-7122-4F78-896B-E2B4D155863D}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
-        "RemovePreviousVersions" = "11:FALSE"
+        "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
-        "InstallAllUsers" = "11:FALSE"
+        "InstallAllUsers" = "11:TRUE"
         "ProductVersion" = "8:1.0.0"
         "Manufacturer" = "8:Processa Sistemas"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
-        "Title" = "8:AppSuite"
+        "Title" = "8:AppSuite™"
         "Subject" = "8:"
         "ARPCONTACT" = "8:Processa Sistemas"
         "Keywords" = "8:"
@@ -208,7 +246,7 @@
         "ARPIconIndex" = "3:0"
         "SearchPath" = "8:"
         "UseSystemSearchPath" = "11:TRUE"
-        "TargetPlatform" = "3:0"
+        "TargetPlatform" = "3:1"
         "PreBuildEvent" = "8:"
         "PostBuildEvent" = "8:"
         "RunPostBuildEvent" = "3:0"
@@ -307,20 +345,6 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_9172A3EBB5384FD5AF9FA2D3F7A96A7C"
-            {
-            "Name" = "8:AppSuite™"
-            "Arguments" = "8:"
-            "Description" = "8:"
-            "ShowCmd" = "3:1"
-            "IconIndex" = "3:32512"
-            "Transitive" = "11:FALSE"
-            "Target" = "8:_E6A1194003094FDD846089A133ADEEC6"
-            "Folder" = "8:_8A6416C3452B444F9DD526D14F9A39A2"
-            "WorkingFolder" = "8:_4F1322F749A54BCAB5DC799525B00ED1"
-            "Icon" = "8:_E6A1194003094FDD846089A133ADEEC6"
-            "Feature" = "8:"
-            }
         }
         "UserInterface"
         {
@@ -722,7 +746,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_E6A1194003094FDD846089A133ADEEC6"
             {
-            "SourcePath" = "8:\\\\mac\\Home\\Sources\\gugacoder\\deckin\\server\\Director\\obj\\Release\\netcoreapp3.1\\Director.exe"
+            "SourcePath" = "8:..\\Director\\obj\\Debug\\netcoreapp3.1\\Director.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_4F1322F749A54BCAB5DC799525B00ED1"

@@ -13,6 +13,7 @@ namespace Keep.Tools
     private static string _commonPath;
     private static string _manufacturer;
     private static string _sharedPath;
+    private static string _title;
 
     static App()
     {
@@ -100,6 +101,15 @@ namespace Keep.Tools
     /// Versão corrente do aplicativo.
     /// </summary>
     public static VersionInfo Version { get; set; }
+
+    /// <summary>
+    /// Título do aplicativo.
+    /// </summary>
+    public static string Title
+    {
+      get => _title ?? Name;
+      set => _title = value;
+    }
 
     /// <summary>
     /// Descrição amigável opcional do aplicativo.

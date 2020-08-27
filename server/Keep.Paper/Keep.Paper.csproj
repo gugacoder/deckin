@@ -26,7 +26,6 @@
     <Folder Include="Helpers\" />
     <Folder Include="Formatters\" />
     <Folder Include="Papers\" />
-    <Folder Include="Api\" />
     <Folder Include="Services\" />
     <Folder Include="Domain\" />
     <Folder Include="Models\" />
