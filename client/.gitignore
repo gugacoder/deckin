@@ -3,5 +3,4 @@ obj
 node_modules
 .vscode
 *.user
-dist
 
