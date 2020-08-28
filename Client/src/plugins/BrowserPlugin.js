@@ -39,30 +39,59 @@ function routeFor (href) {
 }
 
 function requestData (href, payload, identity) {
-  return new Promise((resolve, reject) => {
-    let options = {
-      cache: 'no-store',
-      credentials: 'omit',
-      redirect: 'follow',
-      method: 'post',
-      headers: new Headers(),
-    }
+  return new Promise((resolve /*, reject */) => {
+    try {
+      let options = {
+        cache: 'no-store',
+        credentials: 'omit',
+        redirect: 'follow',
+        method: 'post',
+        headers: new Headers(),
+      }
 
-    if (identity && identity.token) {
-      options.headers.append('Authorization', `Token ${identity.token}`)
-    }
-    
-    options.body = JSON.stringify(payload || {})
+      if (identity && identity.token) {
+        options.headers.append('Authorization', `Token ${identity.token}`)
+      }
+      
+      options.body = JSON.stringify(payload || {})
 
-    if (!href.includes('://')) {
-      href = `${PROTOCOL}//${HOST}:${PORT}${href}`
-    }
+      if (!href.includes('://')) {
+        href = `${PROTOCOL}//${HOST}:${PORT}${href}`
+      }
 
-    fetch(href, options)
-      .then(response => response.json())
-      .then(entity => canonifyPaper(entity))
-      .then(entity => resolve(entity))
-      .catch(error => reject(error))
+      fetch(href, options)
+        .then(response => response.json())
+        .then(entity => resolve(canonifyPaper(entity)))
+        .catch(error => resolve(canonifyPaper({
+          kind: 'fault',
+          data: {
+            fault: 'Houve uma falha de comunicação com o servidor de dados.',
+            reason: error
+          },
+          links: [
+            {
+              rel: 'self',
+              href
+            }
+          ]
+        })))
+
+    } catch (ex) {
+      resolve(canonifyPaper({
+        kind: 'fault',
+        data: {
+          fault: 'Houve uma falha interna tentando estabelecer conexão com o servidor de dados.',
+          reason: ex.message,
+          stackTrace: ex.trace
+        },
+        links: [
+          {
+            rel: 'self',
+            href
+          }
+        ]
+      }))
+    }
   })
 }
 
@@ -89,7 +118,7 @@ async function request (href, payload, options, inspector) {
     }
     
     // Applying metas...
-    if (paper.meta.identity) {
+    if (paper.meta && paper.meta.identity) {
       setIdentity(paper.meta.identity)
     }
 

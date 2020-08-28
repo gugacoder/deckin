@@ -387,7 +387,11 @@ export default {
     menu: false,
     userMenu: false,
     busy: false,
-    alert: null,
+    alert: {
+      type: null,     // String: info | success | warning | error,
+      message: null,  // String
+      detail: null    // String | Array
+    },
 
     uid: Date.now(),
     lastRequestId: 0,
@@ -534,8 +538,6 @@ export default {
       this.autoRefresh.enabled = seconds > 0
       this.autoRefresh.seconds = seconds
 
-      console.log({seconds})
-      
       // Paginacao
       //
       let page = this.paper.view.design.page
@@ -614,6 +616,15 @@ export default {
         
         let paper = await this.$browser.request(href, payload) || unknownPaper
 
+        if (paper.kind === 'fault') {
+          this.$set(this, 'alert', {
+            type: 'error',
+            message: paper.data.fault || 'Falhou a tentativa de obter dados do servidor.',
+            detail: paper.data.reason
+          })
+          return
+        }
+
         let self = paper.getLink('self') || { href: this.href }
         let path = this.$browser.routeFor(self.href)
         if (path === this.$route.path) {
@@ -624,9 +635,9 @@ export default {
           }
         }
 
-        this.busy = false
-      } catch {
-        // XXX: o que fazer com essa falha?
+      } catch (ex) {
+        console.log({ ex })
+      } finally {
         this.busy = false
       }
     },
@@ -639,7 +650,7 @@ export default {
           embedded.push(...incomingData)
           
           this.$set(this.paper, 'embedded', embedded)
-          this.setAlert(null)
+          this.$set(this, 'alert', null)
 
           break
         }
@@ -650,7 +661,7 @@ export default {
             ? fault.reason.join('\n')
             : fault.reason
           
-          this.setAlert({
+          this.$set(this, 'alert', {
             type: 'error',
             message: 'O servidor não está entregando dados para atualização da grade.',
             detail
