@@ -61,6 +61,7 @@
               :flat="$isMobile"
               flat
               right
+              @alert="alert => this.alert = alert"
               @paperReceived="paper => this.paper = paper"
             )
 </template>
@@ -105,12 +106,16 @@ export default {
     menu: false,
     userMenu: false,
     busy: false,
-    alert: null,
+    alert: {
+      type: null,     // String: info | success | warning | error,
+      message: null,  // String
+      detail: null    // String | Array
+    },
   }),
 
   computed: {
     prominent () {
-      return this.paper.view.design === 'login'
+      return this.paper.view.design.kind === 'login'
     },
     
     actionSlice () {

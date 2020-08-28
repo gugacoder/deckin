@@ -7,6 +7,7 @@
     :rules="rules"
     :required="required"
     :hint="hint"
+    :error-messages="errorMessages"
     dense
     ref="widget"
   )

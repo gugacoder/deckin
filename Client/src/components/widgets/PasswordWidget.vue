@@ -9,6 +9,7 @@
     :rules="rules"
     :required="required"
     :hint="hint"
+    :error-messages="errorMessages"
     prepend-icon="mdi-lock"
     dense
   )

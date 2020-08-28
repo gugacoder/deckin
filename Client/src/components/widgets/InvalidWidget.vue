@@ -5,6 +5,7 @@
     :label="title"
     :hint="hint"
     :class="extent"
+    :error-messages="errorMessages"
     disabled
     dense
   )

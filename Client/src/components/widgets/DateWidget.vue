@@ -27,7 +27,8 @@
         :rules="rules"
         :required="required"
         :hint="hint"
-    :class="extent"
+        :error-messages="errorMessages"
+        :class="extent"
         prepend-icon="mdi-calendar"
         readonly
         dense

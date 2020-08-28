@@ -123,9 +123,18 @@ namespace Keep.Paper.Papers
             Kind = Kind.Validation,
             Data = new
             {
-              Field = nameof(credential.Username).ToCamelCase(),
-              Message = ret.Fault.Message ?? "Usuário e senha não conferem.",
-              Severity = Severities.Warning
+              Issues = new[] {
+                new {
+                  Field = nameof(credential.Username).ToCamelCase(),
+                  Message = ret.Fault.Message ?? "Usuário e senha não conferem.",
+                  Severity = Severities.Warning
+                },
+                new {
+                  Field = nameof(credential.Password).ToCamelCase(),
+                  Message = ret.Fault.Message ?? "Usuário e senha não conferem.",
+                  Severity = Severities.Warning
+                }
+              }
             },
             Links = new object[]
             {

@@ -8,9 +8,6 @@
       lazy-validation
       @submit.prevent="submit"
     )
-      div
-        p {{ message }}
-
       v-card.mx-auto.x-bg-translucent(
         :flat="flat"
         :class="flat ? 'pa-0' : 'pa-3'"
@@ -25,6 +22,7 @@
             component(
               v-for="field in fields"
               :key="field.view.name"
+              :ref="field.view.name"
               v-bind="createWidget(field)"
             )
 
@@ -137,7 +135,6 @@ export default {
 
   data: () => ({
     valid: true,
-    message: null
   }),
 
   computed: {
@@ -201,7 +198,7 @@ export default {
     async fetchData () {
       let ok
 
-      this.message = null
+      this.clearValidation()
 
       ok = this.$refs.form.validate()
       if (!ok) return
@@ -220,6 +217,10 @@ export default {
 
       let paper = await this.$browser.request(href, payload) || unknownPaper
 
+      if (paper.kind === 'validation') {
+        return this.showValidation(paper)
+      }
+
       let paperLink = paper.getLink('self')
           || this.paper.getLink('self')
           || { href: this.$browser.href(this) }
@@ -227,28 +228,78 @@ export default {
       if (path !== this.$route.path) {
         this.$router.push(path)
       }
-
-      if (paper.kind === 'validation') {
-        // TODO: Falta exibir a validação na interface...
-        return
-      }
-
+      
       this.$emit('paperReceived', paper)
     },
+    
+    clearValidation () {
+      if (this.$refs) {
+        Object.keys(this.$refs).forEach(key => {
+          let ref = this.$refs[key]
+          let widgets = Array.isArray(ref) ? ref : [ ref ]
+          widgets.forEach(widget => {
+            if (widget.alert) {
+              this.$set(widget, 'alert', {})
+            }
+          })
+        })
+      }
+      this.$emit('alert', {
+        type: null,
+        message: null,
+        detail: null,
+      })
+    },
 
-    showValidation (message, fieldName) {
-      let field = this.fields.filter(x => x.name === fieldName).shift()
-      if (field) {
-        field.fault = message
-        field.rules = [ ( ) => !field.fault || field.fault ]
-      } else {
-        field = this.fields[0]
-        this.message = message
+    // paper must be of kind 'validation'
+    showValidation (paper) {
+      let issues = []
+      let focusedWidget
+      
+      if (paper.data.message) {
+        issues.push(paper.data)
       }
 
-      let widget = this.$refs.widgets[0]
-      widget && widget.focus()
+      if (paper.data.issues) {
+        issues.push(...paper.data.issues)
+      }
+      
+      issues.forEach(issue => {
+        let alert = {
+          type: (issue.severity || 'warning').toLowerCase(),
+          message: issue.message || 'Falhou a tentativa de enviar os dados para o servidor.',
+          detail: issue.detail
+        }
+
+        let widget = issue.field ? this.$refs[issue.field] : null
+        if (Array.isArray(widget)) {
+          widget = widget[0]
+        }
+
+        if (widget) {
+          focusedWidget = focusedWidget || widget
+          this.$set(widget, 'alert', alert)
+        } else {
+          this.$emit('alert', alert)
+        }
+      })
+
+      focusedWidget && focusedWidget.focus()
     },
+
+    // showValidation (message, fieldName) {
+    //   let field = this.fields.filter(x => x.name === fieldName).shift()
+    //   if (field) {
+    //     field.fault = message
+    //     field.rules = [ ( ) => !field.fault || field.fault ]
+    //   } else {
+    //     field = this.fields[0]
+    //     this.message = message
+    //   }
+
+    //   let widget = this.$refs.widgets[0]
+    //   widget && widget.focus()
+    // },
   }
 }
 </script>

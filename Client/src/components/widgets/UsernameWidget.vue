@@ -8,6 +8,7 @@
     :rules="rules"
     :required="required"
     :hint="hint"
+    :error-messages="errorMessages"
     dense
     prepend-icon="mdi-account"
     ref="widget"

@@ -30,7 +30,6 @@ $base-margin: 12px;
 </style>
 
 <script>
-
 export default {
   props: {
     paper: {
@@ -40,8 +39,16 @@ export default {
     fieldName: {
       type: String,
       required: true
-    }
+    },
   },
+
+  data: () => ({
+    alert: {
+      type: 'warning',  // Um de 'info', 'success', 'warning', 'error'
+      message: null,
+      detail: null,     // Um texto ou linhas de texto de detalhe
+    },
+  }),
 
   computed: {
     parameters () {
@@ -95,13 +102,17 @@ export default {
         (v) => !this.required || !!v || 'Requerido'
       ]
     },
-    
+
     extent () {
       let factor = this.field.view.extent || this.defaultExtent || 2
       let suffix = this.$isMobile ? '-xs' : ''
       let extent = `x-extent-${factor}${suffix}`
       return extent
-    }
+    },
+
+    errorMessages () {
+      return this.alert && this.alert.message
+    },
   },
 }
 </script>

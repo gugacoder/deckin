@@ -36,15 +36,15 @@ export default {
     // }
     value: {
       type: Object,
-      validator (value) {
-        // Pelo menos a mensagem deve ser indicada.
-        return !value || !!value.message
-      }
+      // validator (value) {
+      //   console.log({value})
+      //   // Pelo menos a mensagem deve ser indicada.
+      //   return !value || !!value.message
+      // }
     },
 
     type: {
       type: String,
-      default: 'info',
       // NOTE: Validador desativado porque não queremos ser tão restritivos assim.
       // validator: (value) => {
       //   return [ 'info', 'success', 'warning', 'error' ].indexOf(value) !== -1
