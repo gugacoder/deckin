@@ -57,15 +57,14 @@ namespace Keep.Paper.Controllers
           return Fail(Fault.NotFound,
               $"O paper {paperName} do catálogo {catalogName} não existe.");
 
-        var getter = paperType.GetMethod(actionName)
-                  ?? paperType.GetMethod($"{actionName}Async");
+        var getter = paperType.Type.GetMethod(actionName)
+                  ?? paperType.Type.GetMethod($"{actionName}Async");
         if (getter == null)
           return Fail(Fault.NotFound,
               $"O paper {paperName} do catálogo {catalogName} existe mas " +
               $"não possui um método para resolver a ação {actionName}");
 
-        var paper =
-          (IPaper)ActivatorUtilities.CreateInstance(serviceProvider, paperType);
+        var paper = paperType.Factory.Invoke(serviceProvider);
 
         // Inicialização de instâncias de AbstractPaper...
         (paper as AbstractPaper)?.Initialize(HttpContext);
@@ -79,7 +78,7 @@ namespace Keep.Paper.Controllers
         //
         // Criando o pipeline de interceptação da mensagem
         //
-        var pipeline = BuidPipeline(paperType);
+        var pipeline = BuidPipeline(paperType.Type);
 
         // Acrescentando o renderizador do paper
         pipeline = pipeline.Append(

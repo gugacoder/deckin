@@ -41,7 +41,7 @@ namespace Keep.Paper.Papers
       if (redirectTo == null)
       {
         var homePaper = paperCatalog.GetType(PaperName.Home);
-        redirectTo = Href.To(HttpContext, homePaper, "Index");
+        redirectTo = Href.To(HttpContext, homePaper.Type, "Index");
       }
       return new
       {
@@ -112,7 +112,7 @@ namespace Keep.Paper.Papers
         if (redirectHref == null)
         {
           var homePaper = paperCatalog.GetType(PaperName.Home);
-          redirectHref = Href.To(HttpContext, homePaper, "Index");
+          redirectHref = Href.To(HttpContext, homePaper.Type, "Index");
         }
 
         var ret = await model.AuthenticateAsync(credential);

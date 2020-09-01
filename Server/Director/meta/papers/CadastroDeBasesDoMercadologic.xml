@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<QueryTemplate xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <Catalog>Mercadologic</Catalog>
+  <Name>Empresas</Name>
+  <Enabled>true</Enabled>
+  <Title>Cadastro de Bases do Mercadologic</Title>
+  <Design>
+    <Grid />
+  </Design>
+  <Connection>Director</Connection>
+  <Query><![CDATA[
+    select TBempresa_mercadologic.DFcod_empresa
+         , TBempresa.DFnome_fantasia
+         , TBempresa_mercadologic.DFprovider
+         , TBempresa_mercadologic.DFdriver
+         , TBempresa_mercadologic.DFservidor
+         , TBempresa_mercadologic.DFporta
+         , TBempresa_mercadologic.DFdatabase
+         , TBempresa_mercadologic.DFusuario
+         , case when TBempresa_mercadologic.DFsenha is null
+                  or TBempresa_mercadologic.DFsenha = ''
+             then '(não)'
+             else '(sim)'
+           end as DFsenha
+      from TBempresa_mercadologic
+     inner join TBempresa
+             on TBempresa.DFcod_empresa = TBempresa_mercadologic.DFcod_empresa
+     where TBempresa_mercadologic.DFcod_empresa matches @cod_empresa
+  ]]></Query>
+  <!--
+  <Fields>
+    <Field>
+      <View>
+        <Name>DFcod_empresa</Name>
+        <Title>Empresa</Title>
+      </View>
+    </Field>
+    <Field>
+      <View>
+        <Name>DFnome_fantasia</Name>
+        <Title>Nome da Empresa</Title>
+      </View>
+    </Field>
+    <Field>
+      <View>
+        <Name>DFservidor</Name>
+        <Title>ServiEntityEntitydor</Title>
+      </View>
+    </Field>
+  </Fields>
+  -->
+</QueryTemplate>

@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.7" />
     <PackageReference Include="System.Text.Json" Version="4.7.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.7" />
+    <PackageReference Include="System.Linq.Async" Version="4.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Keep.Paper.Client\Keep.Paper.Client.csproj" />
@@ -32,5 +33,6 @@
     <Folder Include="Data\" />
     <Folder Include="Jobs\" />
     <Folder Include="Interceptors\" />
+    <Folder Include="Api.Types\" />
   </ItemGroup>
 </Project>

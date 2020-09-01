@@ -9,7 +9,7 @@ using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
-using static Keep.Paper.Api.Types;
+using Keep.Paper.Api.Types;
 
 namespace Director.Paginas
 {
@@ -146,9 +146,9 @@ namespace Director.Paginas
           }
         },
 
-        Actions = new Collection<Types.Action>
+        Actions = new Collection<Keep.Paper.Api.Types.Action>
         {
-          new Types.Action
+          new Keep.Paper.Api.Types.Action
           {
             View = new View
             {

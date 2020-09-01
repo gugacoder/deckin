@@ -27,7 +27,7 @@ namespace Keep.Paper.Papers
         select new
         {
           Rel = Rel.Item,
-          Href = Href.To(HttpContext, paperType, "Index")
+          Href = Href.To(HttpContext, paperType.Type, "Index")
         }).ToArray();
 
       return new

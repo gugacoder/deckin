@@ -140,11 +140,11 @@ namespace Keep.Paper.Configurations
 
       if (options.HomePaper != null)
       {
-        catalog.SetType(PaperName.Home, options.HomePaper);
+        catalog.SetType(PaperName.Home, new PaperType(options.HomePaper));
       }
       if (options.LoginPaper != null)
       {
-        catalog.SetType(PaperName.Login, options.LoginPaper);
+        catalog.SetType(PaperName.Login, new PaperType(options.LoginPaper));
       }
 
       endpoints.MapControllers();

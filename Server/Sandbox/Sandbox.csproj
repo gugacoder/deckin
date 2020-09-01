@@ -17,7 +17,18 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Keep.Tools\Keep.Tools.csproj">
-      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+      <GlobalPropertiesToRemove>
+      </GlobalPropertiesToRemove>
     </ProjectReference>
+    <ProjectReference Include="..\Keep.Paper\Keep.Paper.csproj">
+      <GlobalPropertiesToRemove>
+      </GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\Director\meta\**">
+      <Link>meta\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

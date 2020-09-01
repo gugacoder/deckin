@@ -94,7 +94,7 @@ namespace Keep.Paper.Interceptors
           {
             LoginPaper.Title,
             Rel = Rel.Forward,
-            Href = Href.To(ctx, loginPaper, "Index"),
+            Href = Href.To(ctx, loginPaper.Type, "Index"),
             Data = new {
               Form = new {
                 RedirectTo = targetPaperHref

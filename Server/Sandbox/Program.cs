@@ -2,9 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.IO;
+using Keep.Paper.Api;
+using Keep.Paper.Api.Types;
+using Keep.Paper.Helpers;
 using Keep.Tools;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
+using Keep.Tools.Xml;
 
 #nullable enable
 
@@ -16,29 +21,45 @@ namespace Director
     {
       try
       {
-        using var cn = new SqlConnection(
-          "server=172.27.0.119;database=DBdirector_mac_29;uid=sl;pwd=123;timeout=60;"
-        );
-        cn.Open();
+        //var types = EmbeddedPapers.GetTypes();
+        //foreach (var type in types)
+        //{
 
-        SequelTracer.TraceQuery = sql => Debug.WriteLine(sql);
+        //}
 
-        var codigos = @"
-          select TBempresa_mercadologic.DFcod_empresa
-            from TBempresa_mercadologic
-           inner join TBempresa
-                   on TBempresa.DFcod_empresa = TBempresa_mercadologic.DFcod_empresa
-           where TBempresa_mercadologic.DFcod_empresa matches if set @DFcod_empresa
-             and TBempresa.DFnome_fantasia matches if set @DFnome_fantasia"
-            .AsSql()
-            .Set(new
-            {
-              //DFcod_empresa = (int?)null,
-              DFnome_fantasia = (string?)null
-            })
-            .Select<int>(cn);
 
-        Debug.WriteLine(string.Join(", ", codigos));
+        var assembly = typeof(Program).Assembly;
+
+        var resource = "papers/CadastroDeBasesDoMercadologic.xml";
+        using var stream = assembly.GetManifestResourceStream(resource) ?? Stream.Null;
+
+        using var reader = new StreamReader(stream);
+
+
+        var xml = reader.ReadToEnd();
+        var entity = xml.ToXmlObject<Entity>();
+        Debug.WriteLine(entity.ToXElement());
+
+        //var x = new View
+        //{
+        //  Design = new GridDesign
+        //  {
+        //    AutoRefresh = 1
+        //  }
+        //};
+        //Debug.WriteLine(x.ToXElement());
+
+        //var xml = @"
+        //  <View xmlns:i=""http://www.w3.org/2001/XMLSchema-instance"">
+        //    <Design i:type=""GridDesign"">
+        //      <AutoRefresh>1</AutoRefresh>
+        //      <Kind>grid</Kind>
+        //    </Design>
+        //  </View>";
+
+        //var view = xml.ToXmlObject<View>();
+        //Debug.WriteLine(view.ToXElement());
+
       }
       catch (Exception ex)
       {

@@ -2,40 +2,57 @@
 using System.Collections.Generic;
 using System.Linq;
 using Keep.Paper.Api;
+using Keep.Paper.Helpers;
 using Keep.Paper.Papers;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Keep.Paper.Services
 {
   internal class PaperCatalog : IPaperCatalog
   {
-    private Type[] paperTypes;
-    private HashMap<Type> specialTypes;
+    private readonly PaperType[] paperTypes;
+    private readonly HashMap<PaperType> specialTypes;
 
-    public PaperCatalog()
+    public PaperCatalog(IServiceProvider provider)
     {
-      this.paperTypes = ExposedTypes.GetTypes<IPaper>().ToArray();
-      this.specialTypes = new HashMap<Type>();
+      var embeddedPapers =
+        ActivatorUtilities.CreateInstance<EmbeddedPapers>(provider);
+
+      var exposedTypes = ExposedTypes
+        .GetTypes<IPaper>()
+        .Select(type => new PaperType(type))
+        .ToArray();
+
+      var embeddedTypes = embeddedPapers.GetTypes();
+
+      this.paperTypes = exposedTypes.Concat(embeddedTypes).ToArray();
+
+      this.specialTypes = new HashMap<PaperType>();
 
       var homePaper =
-        this.paperTypes.FirstOrDefault(x => x._HasAttribute<HomePaperAttribute>())
-        ?? typeof(HomePaper);
+        this.paperTypes.FirstOrDefault(x => x.Type._HasAttribute<HomePaperAttribute>())
+        ?? new PaperType(typeof(HomePaper));
+
       var loginPaper =
-        this.paperTypes.FirstOrDefault(x => x._HasAttribute<LoginPaperAttribute>())
-        ?? typeof(LoginPaper);
+        this.paperTypes.FirstOrDefault(x => x.Type._HasAttribute<LoginPaperAttribute>())
+        ?? new PaperType(typeof(LoginPaper));
 
       SetType(PaperName.Home, homePaper);
       SetType(PaperName.Login, loginPaper);
     }
 
-    public Type GetType(string specialName) => specialTypes[specialName];
-    public void SetType(string specialName, Type paperType) => specialTypes[specialName] = paperType;
+    public PaperType GetType(string specialName)
+      => specialTypes[specialName];
 
-    public Type GetType(string catalogName, string paperName)
+    public void SetType(string specialName, PaperType paperType)
+      => specialTypes[specialName] = paperType;
+
+    public PaperType GetType(string catalogName, string paperName)
     {
-      Type paperType;
+      PaperType paperType;
 
       if (catalogName == "Keep.Paper")
       {
@@ -50,25 +67,31 @@ namespace Keep.Paper.Services
       }
 
       paperType = (
-        from type in paperTypes
-        where Name.Catalog(type).Equals(catalogName)
-           && Name.Paper(type).Equals(paperName)
-        select type
+        from x in paperTypes
+        where x.Catalog.Equals(catalogName)
+           && x.Name.Equals(paperName)
+        select x
       ).FirstOrDefault();
       return paperType;
     }
 
     public IEnumerable<string> EnumerateCatalogs()
-        => paperTypes.Select(Name.Catalog).Distinct().OrderBy();
+      => paperTypes
+          .Select(x => x.Catalog)
+          .Distinct()
+          .OrderBy();
 
     public IEnumerable<string> EnumeratePapers(string catalogName)
-        => paperTypes.Where(x => Name.Catalog(x).Equals(catalogName))
-              .Select(Name.Paper).OrderBy();
+      => paperTypes
+          .Where(x => x.Catalog.Equals(catalogName))
+          .Select(x => x.Name)
+          .OrderBy();
 
-    public IEnumerable<Type> EnumerateTypes(string catalogName = null) => (
-        from paper in paperTypes
-        where (catalogName == null) || Name.Catalog(paper).Equals(catalogName)
-        select paper
-        ).OrderBy(Name.Paper);
+    public IEnumerable<PaperType> EnumerateTypes(string catalogName = null)
+      => (
+        from x in paperTypes
+        where (catalogName == null) || x.Catalog.Equals(catalogName)
+        select x
+      ).OrderBy(x => x.Name);
   }
 }
