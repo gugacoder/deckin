@@ -33,7 +33,7 @@ namespace Keep.Tools.Sequel
     {
       if (parameters == null)
         return sql;
-      
+
       foreach (var key in parameters.AllKeys)
       {
         ((ISettableContract)sql).SetParameter(key, parameters[key]);
@@ -86,18 +86,25 @@ namespace Keep.Tools.Sequel
       if (parameters == null)
         return sql;
 
-      var isGraph = IsGraph(parameters.NotNull().FirstOrDefault());
-      if (isGraph)
-      {
-        var invalid = parameters.NotNull().FirstOrDefault(x => !IsGraph(x));
-        if (invalid != null)
-        {
-          throw new Exception("Todos os parâmetros deveriam ser objetos para extração de propriedads mas foi contrado: " + invalid.GetType().FullName);
-        }
+      var sample = parameters.NotNull().FirstOrDefault();
 
+      if (IsGraph(sample) || IsMap(sample))
+      {
+        var invalid = parameters.NotNull().Any(x => !IsGraph(x) && !IsMap(x));
+        if (invalid)
+          throw new Exception("Todos os parâmetros deveriam ser objetos ou mapas para extração de propriedades, mas foi encontrado: " + invalid.GetType().FullName);
+
+        var target = ((ISettableContract)sql).EnsureParameters();
         foreach (var graph in parameters)
         {
-          UnwrapGraph(graph, ((ISettableContract)sql).EnsureParameters());
+          if (graph is IDictionary map)
+          {
+            UnwrapMap(map, target);
+          }
+          else
+          {
+            UnwrapGraph(graph, target);
+          }
         }
       }
       else
@@ -162,7 +169,7 @@ namespace Keep.Tools.Sequel
         map[bagName] = bag = new List<IDictionary<string, object>>();
       }
 
-      var entries = 
+      var entries =
         parameters.AsSingle().Concat(otherMaps).Select(CreateMap).ToArray();
       bag.AddRange(entries);
 
@@ -204,7 +211,7 @@ namespace Keep.Tools.Sequel
     /// Cada mapa de parâmetros irá compor uma entrada na cesta de parâmetros.
     /// </param>
     /// <returns>A própria instância de Sql processada.</returns>
-    public static SqlBuilder SetMany(this SqlBuilder sql, string bagName, 
+    public static SqlBuilder SetMany(this SqlBuilder sql, string bagName,
       IDictionary parameters, params IDictionary[] otherMaps)
     {
       var map = ((ISettableContract)sql).EnsureParameters();
@@ -378,6 +385,39 @@ namespace Keep.Tools.Sequel
     }
 
     /// <summary>
+    /// Desmonta um dicionario.
+    /// </summary>
+    /// <param name="source">O dicionario a ser desmontado.</param>
+    /// <param name="target">Mapa para escrita das propriedades encontradas.</param>
+    /// <returns>O mapa de propriedades do dicionario.</returns>
+    public static IDictionary<string, object> UnwrapMap(IDictionary source)
+    {
+      var target = new HashMap();
+      UnwrapMap(source, target);
+      return target;
+    }
+
+    /// <summary>
+    /// Desmonta um dicionario.
+    /// </summary>
+    /// <param name="source">O dicionario a ser desmontado.</param>
+    /// <param name="target">Mapa para escrita das propriedades encontradas.</param>
+    /// <returns>O mapa de propriedades do dicionario.</returns>
+    public static void UnwrapMap(IDictionary source,
+      IDictionary<string, object> target)
+    {
+      foreach (string name in source.Keys)
+      {
+        var value = source[name];
+        if (value != null)
+        {
+          target[name] = IsPrimitive(value)
+            ? value : (value as Var ?? new Var(value));
+        }
+      }
+    }
+
+    /// <summary>
     /// Desmonta um objeto em um mapa de propriedades.
     /// </summary>
     /// <param name="source">O grafo a ser desmontado.</param>
@@ -401,8 +441,11 @@ namespace Keep.Tools.Sequel
       foreach (var name in source._Keys())
       {
         var value = source._Get(name);
-        target[name] = IsPrimitive(value)
-          ? value : (value as Var ?? new Var(value));
+        if (value != null)
+        {
+          target[name] = IsPrimitive(value)
+            ? value : (value as Var ?? new Var(value));
+        }
       }
     }
 

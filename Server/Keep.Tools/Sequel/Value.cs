@@ -38,7 +38,7 @@ namespace Keep.Tools.Sequel
     {
       if (value == null) return false;
       return !(value is Var) && !IsPrimitive(value) && !IsEnumerable(value)
-        && !IsRange(value);
+        && !IsRange(value) && !IsMap(value);
     }
 
     /// <summary>
@@ -65,6 +65,17 @@ namespace Keep.Tools.Sequel
     {
       if (value == null) return false;
       return !(value is string) && (value is IEnumerable);
+    }
+
+    /// <summary>
+    /// Determina se o objeto é considerado um dicionário.
+    /// </summary>
+    /// <returns>
+    /// Verdadeiro se o tipo for considerado um dicionário; Falso caso contrário.
+    /// </returns>
+    public static bool IsMap(object value)
+    {
+      return value is IDictionary;
     }
 
     /// <summary>

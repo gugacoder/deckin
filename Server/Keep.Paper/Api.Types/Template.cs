@@ -23,5 +23,7 @@ namespace Keep.Paper.Api.Types
     public bool HideUndeclaredFields { get; set; }
 
     public Collection<Field> Fields { get; set; }
+
+    public Collection<Field> Filter { get; set; }
   }
 }

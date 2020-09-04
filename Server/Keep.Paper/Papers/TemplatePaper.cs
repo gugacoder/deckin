@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -24,7 +25,7 @@ namespace Keep.Paper.Papers
       this.connector = connector;
     }
 
-    public async Task<object> IndexAsync(object filter, Pagination pagination)
+    public async Task<object> IndexAsync(object options, Pagination pagination)
     {
       var template = (QueryTemplate)this.template;
 
@@ -32,20 +33,30 @@ namespace Keep.Paper.Papers
         ?? template.Design?.Grid?.Pagination?.Limit
         ?? (int)PageLimit.UpTo50;
 
+      if (options is IDictionary map)
+      {
+        var keys = map.Keys.Cast<string>().ToArray();
+        foreach (var key in keys)
+        {
+          if (Equals(map[key], string.Empty))
+          {
+            map[key] = null;
+          }
+        }
+      }
+
       using var cn = await connector.ConnectAsync(template.Connection);
-      using var reader = await template.Query.AsSql().ReadAsync(cn);
+      using var reader = await template.Query.AsSql().Set(options).ReadAsync(cn);
 
-      Collection<Field> fields = null;
-
+      var fields = new Collection<Field>();
       var embedded = new List<object>();
 
       while (await reader.ReadAsync())
       {
         var record = reader.Current;
 
-        if (fields == null)
+        if (!fields.Any())
         {
-          fields = new Collection<Field>();
           for (int i = 0; i < record.FieldCount; i++)
           {
             var name = record.GetName(i);
@@ -93,6 +104,17 @@ namespace Keep.Paper.Papers
         }
       }
 
+      object filter = null;
+
+      if (template.Filter?.Any() == true)
+      {
+        filter = new
+        {
+          Data = options,
+          Fields = template.Filter
+        };
+      }
+
       return new
       {
         Kind = Kind.Paper,
@@ -115,6 +137,11 @@ namespace Keep.Paper.Papers
         Links = new
         {
           Self = Href.To(HttpContext, template.Catalog, template.Name, "Index")
+        },
+
+        Actions = new
+        {
+          filter
         }
       };
     }

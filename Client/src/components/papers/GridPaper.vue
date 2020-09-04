@@ -212,7 +212,6 @@
       v-if="filter.action"
       v-model="filter.visible"
       title="Filtro"
-      :noFooter="autoRefresh.enabled"
     )
       template(
         slot="footer"
@@ -223,7 +222,7 @@
         )
           | Aplicar
 
-      action-slice(
+      action-slice.mt-4(
         ref="filterSlice"
         v-bind="filterSlice"
         flat

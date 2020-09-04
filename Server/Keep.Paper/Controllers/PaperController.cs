@@ -320,7 +320,15 @@ namespace Keep.Paper.Controllers
     {
       try
       {
-        var parameterValue = form.ToObject(parameterType);
+        object parameterValue;
+        if (parameterType == typeof(object))
+        {
+          parameterValue = form.ToObject<HashMap>();
+        }
+        else
+        {
+          parameterValue = form.ToObject(parameterType);
+        }
         return parameterValue;
       }
       catch (Exception ex)

@@ -30,7 +30,8 @@
       from TBempresa_mercadologic
      inner join TBempresa
              on TBempresa.DFcod_empresa = TBempresa_mercadologic.DFcod_empresa
-     where TBempresa_mercadologic.DFcod_empresa matches if set @cod_empresa
+     where TBempresa_mercadologic.DFcod_empresa matches if set @DFcod_empresa
+       and TBempresa.DFnome_fantasia matches if set @DFnome_fantasia
   ]]></Query>
   <!--<HideUndeclaredFields />-->
   <Fields>
@@ -53,4 +54,30 @@
       </View>
     </Field>
   </Fields>
+  <Filter>
+    <Field>
+      <Kind>text</Kind>
+      <View>
+        <Name>DFcod_empresa</Name>
+        <Title>Empresa</Title>
+        <!--
+        <Design>
+          <Number></Number>
+        </Design>
+        -->
+      </View>
+    </Field>
+    <Field>
+      <Kind>text</Kind>
+      <View>
+        <Name>DFnome_fantasia</Name>
+        <Title>Nome da Empresa</Title>
+        <!--
+        <Design>
+          <Text></Text>
+        </Design>
+        -->
+      </View>
+    </Field>
+  </Filter>
 </QueryTemplate>
