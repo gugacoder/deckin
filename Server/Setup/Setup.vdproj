@@ -176,7 +176,7 @@
         {
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_26B21BD6F04C4D86BEEBCCAADD4E6B02"
             {
-            "SourcePath" = "8:\\\\Mac\\Home\\Sources\\gugacoder\\deckin\\Server\\Director\\appsettings.json"
+            "SourcePath" = "8:..\\Director\\appsettings.json"
             "TargetName" = "8:appsettings.json"
             "Tag" = "8:"
             "Folder" = "8:_4F1322F749A54BCAB5DC799525B00ED1"
