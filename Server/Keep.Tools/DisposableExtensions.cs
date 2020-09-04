@@ -14,7 +14,7 @@ namespace Keep.Tools
     {
       try
       {
-        disposable.Dispose();
+        disposable?.Dispose();
         return true;
       }
       catch (Exception ex)

@@ -34,10 +34,8 @@ namespace Director.Modelos
     {
       ReplicacaoDePdvParametros parametros;
 
-      using (var cnDirector = dbDirector.CriarConexao())
+      using (var cnDirector = await dbDirector.ConnectAsync(stopToken))
       {
-        await cnDirector.OpenAsync();
-
         parametros = await ReplicacaoDePdvParametros.ObterAsync(cnDirector,
           stopToken);
       }
@@ -73,10 +71,8 @@ namespace Director.Modelos
 
         TBempresa[] empresasAtivas;
 
-        using (var cnDirector = dbDirector.CriarConexao())
+        using (var cnDirector = await dbDirector.ConnectAsync(stopToken))
         {
-          await cnDirector.OpenAsync(stopToken);
-
           var empresas = await TBempresa.ObterAsync(cnDirector, stopToken);
 
           empresasAtivas = empresas
@@ -87,9 +83,7 @@ namespace Director.Modelos
         {
           try
           {
-            using var cnDirector = dbDirector.CriarConexao();
-
-            await cnDirector.OpenAsync(stopToken);
+            using var cnDirector = await dbDirector.ConnectAsync(stopToken);
 
             var pdvs = await TBpdv.ObterAsync(cnDirector,
               empresa.DFcod_empresa, stopToken);
@@ -137,11 +131,9 @@ namespace Director.Modelos
           $"Iniciando replicação do PDV {pdv.DFdescricao} para o Director...",
           GetType());
 
-        using var cnDirector = dbDirector.CriarConexao();
-        using var cnPdv = dbPdv.CriarConexao(pdv.DFip, banco: pdv.DFbanco_dados);
-
-        await cnDirector.OpenAsync(stopToken);
-        await cnPdv.OpenAsync(stopToken);
+        using var cnDirector = await dbDirector.ConnectAsync(stopToken);
+        using var cnPdv = await dbPdv.ConnectAsync(stopToken,
+          pdv.DFip, pdv.DFbanco_dados);
 
         var dataLimite = await
           @"select now()"
@@ -272,6 +264,7 @@ namespace Director.Modelos
             // Cada índice par contém o nome de um campo e cada índice ímpar
             // contém o valor desse campo.
             var codRegistro = (int)registro[1];
+            var codEmpresa = (int)registro[3];
 
             using (var tx = cnDirector.BeginTransaction())
             {
@@ -282,10 +275,11 @@ namespace Director.Modelos
                     @{valores}, current_timestamp
                   where not exists (
                     select 1 from mlogic.TBintegracao_@{tabela}
-                    where DFcod_registro = @codRegistro
+                    where DFcod_empresa = @codEmpresa
+                      and DFcod_registro = @codRegistro
                   )"
                   .AsSql()
-                  .Set(new { tabela, campos, valores, codRegistro })
+                  .Set(new { tabela, campos, valores, codRegistro, codEmpresa })
                   .Set(registro)
                   .ExecuteAsync(cnDirector, tx, stopToken: stopToken);
 
@@ -333,9 +327,7 @@ namespace Director.Modelos
     {
       try
       {
-        using var cnDirector = dbDirector.CriarConexao();
-
-        await cnDirector.OpenAsync(stopToken);
+        using var cnDirector = await dbDirector.ConnectAsync(stopToken);
 
         var parametros = await ReplicacaoDePdvParametros.ObterAsync(cnDirector,
             stopToken);

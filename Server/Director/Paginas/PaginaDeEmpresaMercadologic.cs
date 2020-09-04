@@ -27,8 +27,7 @@ namespace Director.Paginas
     {
       pagination.Limit ??= (int)PageLimit.UpTo50;
 
-      using var cnDirector = dbDirector.CriarConexao();
-      await cnDirector.OpenAsync();
+      using var cnDirector = await dbDirector.ConnectAsync();
 
       SequelTracer.TraceQuery = sql => Debug.WriteLine(sql);
 

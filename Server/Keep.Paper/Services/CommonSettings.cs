@@ -20,8 +20,6 @@ namespace Keep.Paper.Services
     //   des.GenerateKey();
     //   Console.WriteLine(Convert.ToBase64String(des.Key));
     // }
-    private const string CryptoKey = "Keep.Tools";
-
     private readonly IAudit<CommonSettings> audit;
 
     private HashMap<string> cache;
@@ -94,13 +92,7 @@ namespace Keep.Paper.Services
           try
           {
             var value = File.ReadAllText(filepath);
-
-            if (value.StartsWith("enc:"))
-            {
-              value = value.Substring("enc:".Length);
-              value = Crypto.Decrypt(value, CryptoKey);
-            }
-
+            value = Api.Crypto.Decrypt(value);
             entries.Add(key, value);
           }
           catch (Exception ex)
@@ -140,11 +132,7 @@ namespace Keep.Paper.Services
         folder = LocateCommonSettingsFolder();
         file = Path.Combine(folder, $"{key}.key");
 
-        if (!value.StartsWith("enc:"))
-        {
-          value = Crypto.Encrypt(value, CryptoKey);
-          value = $"enc:{value}";
-        }
+        value = Api.Crypto.Encrypt(value);
 
         File.WriteAllText(file, value);
 

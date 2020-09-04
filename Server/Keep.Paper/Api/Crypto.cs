@@ -6,51 +6,32 @@ namespace Keep.Paper.Api
 {
   public static class Crypto
   {
-    public static string CreateValidKey(string key)
+    public const string Key = "Keep.Paper.Api.Crypto";
+
+    public static string Encrypt(string input)
     {
-      if (key.Length < 24)
+      if (input.StartsWith("enc:"))
       {
-        key += new string('=', 24 - key.Length);
+        return input;
       }
-      return key;
+      else
+      {
+        var hash = Tools.Crypto.Decrypt(input, Key);
+        return $"enc:{hash}";
+      }
     }
 
-    public static string Encrypt(string input, string key)
+    public static string Decrypt(string input)
     {
-      key = CreateValidKey(key);
-
-      var source = UTF8Encoding.UTF8.GetBytes(input);
-
-      var des = new TripleDESCryptoServiceProvider();
-      des.Key = UTF8Encoding.UTF8.GetBytes(key);
-      des.Mode = CipherMode.ECB;
-      des.Padding = PaddingMode.PKCS7;
-
-      var transform = des.CreateEncryptor();
-      var target = transform.TransformFinalBlock(source, 0, source.Length);
-
-      des.Clear();
-
-      return Convert.ToBase64String(target, 0, target.Length);
-    }
-
-    public static string Decrypt(string input, string key)
-    {
-      key = CreateValidKey(key);
-
-      var source = Convert.FromBase64String(input);
-
-      var des = new TripleDESCryptoServiceProvider();
-      des.Key = UTF8Encoding.UTF8.GetBytes(key);
-      des.Mode = CipherMode.ECB;
-      des.Padding = PaddingMode.PKCS7;
-
-      var transform = des.CreateDecryptor();
-      var target = transform.TransformFinalBlock(source, 0, source.Length);
-
-      des.Clear();
-
-      return UTF8Encoding.UTF8.GetString(target);
+      if (input.StartsWith("enc:"))
+      {
+        input = input.Substring("enc:".Length);
+        return Tools.Crypto.Decrypt(input, Key);
+      }
+      else
+      {
+        return input;
+      }
     }
   }
 }

@@ -2,28 +2,16 @@
 using System.Data.Common;
 using System.Data.SqlClient;
 using Keep.Paper.Api;
+using Keep.Paper.Data;
 using Microsoft.Extensions.Configuration;
 
 namespace Director.Conectores
 {
-  public class DbDirector
+  public class DbDirector : DbConnector<DbDirector>
   {
-    private readonly IConfiguration configuration;
-
-    public DbDirector(IConfiguration configuration)
+    public DbDirector(IDbConnector dbConnector)
+      : base("Director", dbConnector)
     {
-      this.configuration = configuration;
-    }
-
-    public DbConnection CriarConexao()
-    {
-      var stringDeConexao =
-        configuration["ConnectionStrings:Director:ConnectionString"];
-
-      if (string.IsNullOrEmpty(stringDeConexao))
-        throw new Exception("A base de dados do Director não está configurada no sistema.");
-
-      return new SqlConnection(stringDeConexao);
     }
   }
 }

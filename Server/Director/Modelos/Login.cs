@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using Director.Conectores;
@@ -54,7 +55,7 @@ namespace Director.Modelos
         {
 #endif
 
-          using var cn = dbDirector.CriarConexao();
+          using var cn = await dbDirector.ConnectAsync();
 
           info = await
             @"select TBusuario.DFid_usuario
