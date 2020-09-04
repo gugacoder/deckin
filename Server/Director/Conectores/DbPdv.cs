@@ -8,6 +8,7 @@ using Keep.Paper.Data;
 using Keep.Paper.Services;
 using Keep.Tools;
 using Keep.Tools.Collections;
+using Keep.Tools.Data;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
 using Microsoft.Extensions.Configuration;
@@ -19,7 +20,8 @@ namespace Director.Conectores
     public DbPdv(IDbConnector dbConnector)
       : base("Pdv", dbConnector)
     {
-      this.SetConnectionString("Server=;Database=DBPDV;User ID=postgres;Password=local;");
+      this.SetProvider(DataProviders.PostgreSQL);
+      this.SetConnectionString("Server=;Database=DBPDV;User ID=postgres;Password=local;Timeout=60");
     }
   }
 }

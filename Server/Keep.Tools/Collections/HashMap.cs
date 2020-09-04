@@ -39,7 +39,7 @@ namespace Keep.Tools.Collections
 
     public void Add(object target)
     {
-      var items = Reflection.ObjectExtensions._GetMap(target);
+      var items = Reflection.ObjectExtensions._Map(target);
       AddMany(items);
     }
   }

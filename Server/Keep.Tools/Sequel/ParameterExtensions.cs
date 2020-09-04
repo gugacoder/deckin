@@ -398,7 +398,7 @@ namespace Keep.Tools.Sequel
     public static void UnwrapGraph(object source,
       IDictionary<string, object> target)
     {
-      foreach (var name in source._GetPropertyNames())
+      foreach (var name in source._Keys())
       {
         var value = source._Get(name);
         target[name] = IsPrimitive(value)

@@ -182,7 +182,7 @@ namespace Keep.Tools
       if (graph == null)
         return;
 
-      foreach (var key in graph._GetPropertyNames())
+      foreach (var key in graph._Keys())
       {
         var value = graph._Get(key);
         SetCompatibleMapValue(map, key, value);

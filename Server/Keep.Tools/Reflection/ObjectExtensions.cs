@@ -14,69 +14,81 @@ namespace Keep.Tools.Reflection
   public static class ObjectExtensions
   {
     private readonly static BindingFlags Flags =
-      BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static;
+      BindingFlags.FlattenHierarchy |
+      BindingFlags.NonPublic |
+      BindingFlags.Public |
+      BindingFlags.Instance |
+      BindingFlags.Static;
 
-    private readonly static BindingFlags CaseInsensitiveFlags =
-      BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.IgnoreCase;
+    private readonly static BindingFlags InsensitiveFlags =
+      BindingFlags.FlattenHierarchy |
+      BindingFlags.NonPublic |
+      BindingFlags.Public |
+      BindingFlags.Instance |
+      BindingFlags.Static |
+      BindingFlags.IgnoreCase;
 
-    public static PropertyInfo _GetPropertyInfo(this object typeOrObject, string propertyName)
+    public static Type _TypeOf(this object typeOrObject, string key)
     {
-      var type = (typeOrObject is Type) ? (Type)typeOrObject : typeOrObject.GetType();
-      var property =
-        type
-          .GetProperties(Flags)
-          .Where(x => x.Name.EqualsAnyIgnoreCase(propertyName))
-          .FirstOrDefault();
-      return property;
+      var member = _Define(typeOrObject, key);
+      return (member as PropertyInfo)?.PropertyType
+          ?? (member as FieldInfo)?.FieldType;
     }
 
-    public static Type _GetPropertyType(this object typeOrObject, string propertyName)
+    public static MemberInfo _Define(this object typeOrObject, string key)
     {
-      return _GetPropertyInfo(typeOrObject, propertyName)?.PropertyType;
+      var type = typeOrObject as Type ?? typeOrObject.GetType();
+      var member = (
+        from m in type.GetMembers(Flags)
+        where m is PropertyInfo || m is FieldInfo
+        where m.Name.EqualsIgnoreCase(key)
+        select m
+        ).FirstOrDefault();
+      return member;
     }
 
-    public static MethodInfo _GetMethodInfo(this object typeOrObject, string methodName, Type[] argTypes = null)
+    public static MethodInfo _DefineMethod(this object typeOrObject, string method, Type[] argTypes = null)
     {
-      var type = (typeOrObject is Type) ? (Type)typeOrObject : typeOrObject.GetType();
-      return LocateMethod(type, methodName, CaseInsensitiveFlags, argTypes, leniente: false);
+      var type = typeOrObject as Type ?? typeOrObject.GetType();
+      return LocateMethod(type, method, InsensitiveFlags, argTypes, leniente: false);
     }
 
-    private static MethodInfo LocateMethod(Type type, string methodName, BindingFlags flags, Type[] argTypes, bool leniente)
+    private static MethodInfo LocateMethod(Type type, string method, BindingFlags flags, Type[] argTypes, bool leniente)
     {
       if (argTypes == null)
       {
-        return type.GetMethod(methodName, CaseInsensitiveFlags);
+        return type.GetMethod(method, flags);
       }
       else
       {
         // localizando o metodo que melhor suporta os parametros
-        MethodInfo method = null;
+        MethodInfo member;
         do
         {
-          method = type.GetMethod(methodName, CaseInsensitiveFlags, null, argTypes, null);
-          if (method != null || argTypes.Length == 0 || !leniente)
+          member = type.GetMethod(method, flags, null, argTypes, null);
+          if (member != null || argTypes.Length == 0 || !leniente)
             break;
 
           argTypes = argTypes.Take(argTypes.Length - 1).ToArray();
         } while (true);
 
-        return method;
+        return member;
       }
     }
 
     public static bool _HasAttribute<T>(this object typeOrObject)
       where T : Attribute
     {
-      return _GetAttribute<T>(typeOrObject) != null;
+      return _Attribute<T>(typeOrObject) != null;
     }
 
-    public static bool _HasAttribute<T>(this object typeOrObject, string propertyOrMethodName)
+    public static bool _HasAttribute<T>(this object typeOrObject, string keyOrMethod)
       where T : Attribute
     {
-      return _GetAttribute<T>(typeOrObject, propertyOrMethodName) != null;
+      return _Attribute<T>(typeOrObject, keyOrMethod) != null;
     }
 
-    public static T _GetAttribute<T>(this object typeOrObject)
+    public static T _Attribute<T>(this object typeOrObject)
       where T : Attribute
     {
       if (typeOrObject == null)
@@ -87,21 +99,21 @@ namespace Keep.Tools.Reflection
       return attr;
     }
 
-    public static T _GetAttribute<T>(this object typeOrObject, string propertyOrMethodName)
+    public static T _Attribute<T>(this object typeOrObject, string keyOrMethod)
       where T : Attribute
     {
       if (typeOrObject == null)
         return null;
 
       var member =
-        (MemberInfo)_GetPropertyInfo(typeOrObject, propertyOrMethodName)
-        ?? _GetMethodInfo(typeOrObject, propertyOrMethodName);
+        (MemberInfo)_Define(typeOrObject, keyOrMethod)
+        ?? _DefineMethod(typeOrObject, keyOrMethod);
 
       var attr = member?.GetCustomAttributes(true).OfType<T>().FirstOrDefault();
       return attr;
     }
 
-    public static IEnumerable<T> _GetAttributes<T>(this object typeOrObject)
+    public static IEnumerable<T> _Attributes<T>(this object typeOrObject)
       where T : Attribute
     {
       if (typeOrObject == null)
@@ -112,23 +124,23 @@ namespace Keep.Tools.Reflection
       return attrs;
     }
 
-    public static IEnumerable<T> _GetAttributes<T>(this object typeOrObject, string propertyOrMethodName)
+    public static IEnumerable<T> _Attributes<T>(this object typeOrObject, string keyOrMethod)
       where T : Attribute
     {
       if (typeOrObject == null)
         return null;
 
       var member =
-        (MemberInfo)_GetPropertyInfo(typeOrObject, propertyOrMethodName)
-        ?? _GetMethodInfo(typeOrObject, propertyOrMethodName);
+        (MemberInfo)_Define(typeOrObject, keyOrMethod)
+        ?? _DefineMethod(typeOrObject, keyOrMethod);
 
       var attrs = member.GetCustomAttributes(true).OfType<T>();
       return attrs;
     }
 
-    public static IEnumerable<string> _GetPropertyNames(this object typeOrObject)
+    public static IEnumerable<string> _Keys(this object typeOrObject)
     {
-      var type = (typeOrObject is Type) ? (Type)typeOrObject : typeOrObject.GetType();
+      var type = typeOrObject as Type ?? typeOrObject.GetType();
       var names =
         from prop in type.GetProperties()
         let member = prop.GetCustomAttributes(true).OfType<DataMemberAttribute>().FirstOrDefault()
@@ -139,64 +151,91 @@ namespace Keep.Tools.Reflection
       return names;
     }
 
-    public static IEnumerable<string> _GetMethodNames(this object typeOrObject)
+    public static IEnumerable<string> _Methods(this object typeOrObject)
     {
-      var type = (typeOrObject is Type) ? (Type)typeOrObject : typeOrObject.GetType();
+      var type = typeOrObject as Type ?? typeOrObject.GetType();
       return type.GetMethods().Select(x => x.Name);
     }
 
-    public static bool _Has(this object target, string propertyOrMethodName)
+    public static bool _Has(this object target, string key)
     {
-      return _HasProperty(target, propertyOrMethodName)
-          || _HasMethod(target, propertyOrMethodName);
+      var property = _Define(target, key);
+      return property != null;
     }
 
-    public static bool _Has(this object target, string propertyOrMethodName, Type propertyOrMethodType)
+    public static bool _Has(this object target, string key, Type keyType)
     {
-      return _HasProperty(target, propertyOrMethodName, propertyOrMethodType)
-          || _HasMethod(target, propertyOrMethodName, propertyOrMethodType);
+      var member = _Define(target, key);
+      return member != null
+          && keyType.IsAssignableFrom(_TypeOf(member, key));
     }
 
-    public static bool _Has<T>(this object target, string propertyOrMethodName)
+    public static bool _Has<T>(this object target, string key)
     {
-      return _HasProperty<T>(target, propertyOrMethodName)
-          || _HasMethod<T>(target, propertyOrMethodName);
+      var member = _Define(target, key);
+      return member != null
+          && typeof(T).IsAssignableFrom(_TypeOf(member, key));
     }
 
-    public static bool _CanWrite(this object target, string propertyName)
+    public static bool _HasMethod(this object target, string method, params Type[] argTypes)
     {
-      var property = _GetPropertyInfo(target, propertyName);
-      return property?.CanWrite == true;
+      if (argTypes.Length == 0)
+        argTypes = null;
+
+      var type = target.GetType();
+      var member = LocateMethod(type, method, InsensitiveFlags, argTypes, leniente: true);
+      return member != null;
     }
 
-    public static bool _CanWrite(this object target, string propertyName, Type propertyType)
+    public static bool _HasMethod<TReturn>(this object target, string method, params Type[] argTypes)
     {
-      var property = _GetPropertyInfo(target, propertyName);
-      return property?.CanWrite == true
-          && propertyType.IsAssignableFrom(property.PropertyType);
+      if (argTypes.Length == 0)
+        argTypes = null;
+
+      var type = target.GetType();
+      var member = LocateMethod(type, method, InsensitiveFlags, argTypes, leniente: true);
+      return member != null && typeof(TReturn).IsAssignableFrom(member.ReturnType);
     }
 
-    public static bool _CanWrite<T>(this object target, string propertyName)
+    public static bool _CanWrite(this object target, string key)
     {
-      var property = _GetPropertyInfo(target, propertyName);
-      return property?.CanWrite == true
-          && typeof(T).IsAssignableFrom(property.PropertyType);
+      var member = _Define(target, key);
+      return
+        (member as PropertyInfo)?.CanWrite == true ||
+        (member as FieldInfo)?.IsInitOnly == false;
     }
 
-    public static object _Get(this object target, string propertyName)
+    public static bool _CanWrite(this object target, string key, Type keyType)
     {
-      var property = _GetPropertyInfo(target, propertyName);
-      return property?.GetValue(target);
+      return _CanWrite(target, key)
+          && keyType.IsAssignableFrom(_TypeOf(target, key));
     }
 
-    public static T _Get<T>(this object target, string propertyName)
+    public static bool _CanWrite<T>(this object target, string key)
     {
-      var property = _GetPropertyInfo(target, propertyName);
-      var value = property?.GetValue(target);
+      return _CanWrite(target, key, typeof(T));
+    }
+
+    public static object _Get(this object target, string key)
+    {
+      var member = _Define(target, key);
+      return (member as PropertyInfo)?.GetValue(target)
+          ?? (member as FieldInfo)?.GetValue(target);
+    }
+
+    public static T _Get<T>(this object target, string key)
+    {
+      var member = _Define(target, key);
+
+      var value = (member as PropertyInfo)?.GetValue(target)
+               ?? (member as FieldInfo)?.GetValue(target);
+
       if (value == null)
-        return default(T);
+        return default;
 
-      if (typeof(T).IsAssignableFrom(property.PropertyType))
+      var memberType = _TypeOf(target, key);
+
+      if (typeof(T).IsAssignableFrom(memberType))
         return (T)value;
 
       try
@@ -207,27 +246,27 @@ namespace Keep.Tools.Reflection
       catch (FormatException ex)
       {
         throw new FormatException(
-          $"Era esperado um valor para a propriedade {property.Name} compatível com \"{property.PropertyType.FullName}\" mas foi obtido: \"{value}\""
+          $"Era esperado um valor para a propriedade {member.Name} compatível com \"{memberType.FullName}\" mas foi obtido: \"{value}\""
           , ex);
       }
     }
 
-    public static HashMap _GetMap(this object target, params string[] propertyNames)
+    public static HashMap _Map(this object target, params string[] keys)
     {
-      return _GetMap(target, (IEnumerable<string>)propertyNames);
+      return _Map(target, (IEnumerable<string>)keys);
     }
 
-    public static HashMap _GetMap(this object target, IEnumerable<string> propertyNames)
+    public static HashMap _Map(this object target, IEnumerable<string> keys)
     {
-      if (propertyNames!.Any() != true)
+      if (keys!.Any() != true)
       {
-        propertyNames = _GetPropertyNames(target);
+        keys = _Keys(target);
       }
 
       var map = new HashMap();
-      foreach (var propertyName in propertyNames)
+      foreach (var propertyName in keys)
       {
-        if (target._HasProperty(propertyName))
+        if (target._Has(propertyName))
         {
           map[propertyName] = target._Get(propertyName);
         }
@@ -235,19 +274,23 @@ namespace Keep.Tools.Reflection
       return map;
     }
 
-    public static void _Set(this object target, string propertyName, object value)
+    public static void _Set(this object target, string key, object value)
     {
-      var property = _GetPropertyInfo(target, propertyName);
-      if (property == null)
-        throw new NullReferenceException($"A propriedade não existe: {target.GetType().FullName}.{propertyName}");
-      if (!property.CanWrite)
-        throw new NullReferenceException($"A propriedade é somente leitura: {target.GetType().FullName}.{propertyName}");
+      var member = _Define(target, key);
+
+      if (member == null)
+        throw new NullReferenceException($"A propriedade não existe: {target.GetType().FullName}.{key}");
+      if (!_CanWrite(target, key))
+        throw new NullReferenceException($"A propriedade é somente leitura: {target.GetType().FullName}.{key}");
 
       if (value == null)
       {
-        property.SetValue(target, null);
+        (member as PropertyInfo)?.SetValue(target, null);
+        (member as FieldInfo)?.SetValue(target, null);
         return;
       }
+
+      var memberType = _TypeOf(target, key);
 
       /// TODO: REVER
       //// Tratamento especial para o tipo Any do Keep.Tools.
@@ -259,77 +302,80 @@ namespace Keep.Tools.Reflection
       //  }
       //}
 
-      if (property.PropertyType.IsAssignableFrom(value.GetType()))
+      if (memberType.IsAssignableFrom(value.GetType()))
       {
-        property.SetValue(target, value);
+        (member as PropertyInfo)?.SetValue(target, value);
+        (member as FieldInfo)?.SetValue(target, value);
         return;
       }
 
       try
       {
-        var convertedValue = Change.To(value, property.PropertyType);
-        property.SetValue(target, convertedValue);
+        var convertedValue = Change.To(value, memberType);
+        (member as PropertyInfo)?.SetValue(target, value);
+        (member as FieldInfo)?.SetValue(target, value);
       }
       catch (FormatException ex)
       {
         throw new FormatException(
-          $"Era esperado um valor para a propriedade {property.Name} compatível com \"{property.PropertyType.FullName}\" mas foi obtido: \"{value}\""
+          $"Era esperado um valor para a propriedade {member.Name} compatível com \"{memberType.FullName}\" mas foi obtido: \"{value}\""
           , ex);
       }
     }
 
-    public static object _SetNew(this object target, string propertyName, params object[] args)
+    public static object _SetNew(this object target, string key, params object[] args)
     {
-      var type = _GetPropertyInfo(target, propertyName)?.PropertyType;
+      var type = _TypeOf(target, key);
       if (type == null)
-        throw new NullReferenceException($"A propriedade não existe: {target.GetType().FullName}.{propertyName}");
+        throw new NullReferenceException($"A propriedade não existe: {target.GetType().FullName}.{key}");
 
       var value = Activator.CreateInstance(type, args);
-      _Set(target, propertyName, value);
+      _Set(target, key, value);
 
       return value;
     }
 
-    public static T _SetNew<T>(this object target, string propertyName, params object[] args)
+    public static T _SetNew<T>(this object target, string key, params object[] args)
     {
-      return (T)_SetNew(target, propertyName, args);
+      return (T)_SetNew(target, key, args);
     }
 
-    public static bool _TrySet(this object target, string propertyName, object value)
+    public static Ret _TrySet(this object target, string key, object value)
     {
-      if (!_Has(target, propertyName))
+      if (!_Has(target, key))
         return false;
 
       try
       {
-        _Set(target, propertyName, value);
+        _Set(target, key, value);
         return true;
       }
-      catch
+      catch (Exception ex)
       {
-        return false;
+        return ex;
       }
     }
 
-    public static object _Call(this object target, string methodName, params object[] args)
+    public static object _Call(this object target, string action, params object[] args)
     {
       var type = target.GetType();
       var argTypes = args.Select(x => x?.GetType() ?? typeof(object)).ToArray();
-      var method = LocateMethod(type, methodName, CaseInsensitiveFlags, argTypes, leniente: true);
+      var method = LocateMethod(type, action, InsensitiveFlags, argTypes, leniente: true);
 
       if (method == null)
         throw new FormatException(
-          $"Não existe uma versão do método {type.FullName.Split(',').First()}.{methodName} compatível com os parâmetros indicados compatível: {string.Join(", ", argTypes.Select(x => x.FullName))}"
+          $"Não existe uma versão do método {type.FullName.Split(',').First()}.{action} compatível com os parâmetros indicados compatível: {string.Join(", ", argTypes.Select(x => x.FullName))}"
         );
 
       args = args.Take(method.GetParameters().Length).ToArray();
+
       var result = method.Invoke(target, args);
       return result;
     }
 
-    public static TResult _Call<TResult>(this object target, string methodName, params object[] args)
+    public static TResult _Call<TResult>(this object target, string method, params object[] args)
     {
-      var value = _Call(target, methodName, args);
+      var value = _Call(target, method, args);
       try
       {
         var convertedValue = Change.To<TResult>(value);
@@ -338,49 +384,9 @@ namespace Keep.Tools.Reflection
       catch (FormatException ex)
       {
         throw new FormatException(
-          $"O resultado do método {methodName} não é compatível com o tipo esperado { typeof(TResult).FullName}: \"{value}\""
+          $"O resultado do método {method} não é compatível com o tipo esperado { typeof(TResult).FullName}: \"{value}\""
           , ex);
       }
-    }
-
-    public static bool _HasProperty(this object target, string propertyName)
-    {
-      var property = _GetPropertyInfo(target, propertyName);
-      return property != null;
-    }
-
-    public static bool _HasProperty(this object target, string propertyName, Type propertyType)
-    {
-      var property = _GetPropertyInfo(target, propertyName);
-      return property != null
-          && propertyType.IsAssignableFrom(property.PropertyType);
-    }
-
-    public static bool _HasProperty<T>(this object target, string propertyName)
-    {
-      var property = _GetPropertyInfo(target, propertyName);
-      return property != null
-          && typeof(T).IsAssignableFrom(property.PropertyType);
-    }
-
-    public static bool _HasMethod(this object target, string methodName, params Type[] argTypes)
-    {
-      if (argTypes.Length == 0)
-        argTypes = null;
-
-      var type = target.GetType();
-      var method = LocateMethod(type, methodName, CaseInsensitiveFlags, argTypes, leniente: true);
-      return method != null;
-    }
-
-    public static bool _HasMethod<TReturn>(this object target, string methodName, params Type[] argTypes)
-    {
-      if (argTypes.Length == 0)
-        argTypes = null;
-
-      var type = target.GetType();
-      var method = LocateMethod(type, methodName, CaseInsensitiveFlags, argTypes, leniente: true);
-      return method != null && typeof(TReturn).IsAssignableFrom(method.ReturnType);
     }
 
     public static T _CopyFrom<T>(this T target, object source, CopyOptions options = CopyOptions.None)
@@ -392,22 +398,26 @@ namespace Keep.Tools.Reflection
 
       foreach (var sourceProperty in source.GetType().GetProperties())
       {
-        var targetProperty = _GetPropertyInfo(target, sourceProperty.Name);
-        if (targetProperty != null)
+        var targetMember = _Define(target, sourceProperty.Name);
+        if (targetMember == null)
+          continue;
+
+        object sourceValue = sourceProperty.GetValue(source);
+        object targetValue = null;
+
+        if (ignoreNull && sourceValue == null)
+          continue;
+
+        if (sourceValue != null)
         {
-          object sourceValue = sourceProperty.GetValue(source);
-          object targetValue = null;
+          var memberType = (targetMember as PropertyInfo)?.PropertyType
+                        ?? (targetMember as FieldInfo)?.FieldType;
 
-          if (ignoreNull && sourceValue == null)
-            continue;
-
-          if (sourceValue != null)
-          {
-            targetValue = Change.To(sourceValue, targetProperty.PropertyType);
-          }
-
-          targetProperty.SetValue(target, targetValue);
+          targetValue = Change.To(sourceValue, memberType);
         }
+
+        (targetMember as PropertyInfo)?.SetValue(target, targetValue);
+        (targetMember as FieldInfo)?.SetValue(target, targetValue);
       }
 
       return target;

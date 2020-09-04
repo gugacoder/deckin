@@ -86,7 +86,7 @@ namespace Keep.Paper.Helpers
 
     public IdentityBuilder AddClaim(object claimsToMap)
     {
-      var properties = claimsToMap._GetMap();
+      var properties = claimsToMap._Map();
       (customClaims ??= new HashMap()).AddMany(properties);
       return this;
     }
