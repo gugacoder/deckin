@@ -24,6 +24,6 @@ namespace Keep.Paper.Api.Types
     public int? AutoRefresh { get; set; }
 
     [JsonProperty(Order = 30)]
-    public Pagination Page { get; set; }
+    public Pagination Pagination { get; set; }
   }
 }

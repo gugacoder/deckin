@@ -60,7 +60,7 @@ namespace Director.Paginas
           Design = new GridDesign
           {
             //AutoRefresh = 1, // segundos
-            Page = pagination
+            Pagination = pagination
           }
         },
 

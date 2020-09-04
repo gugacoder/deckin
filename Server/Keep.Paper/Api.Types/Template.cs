@@ -1,4 +1,6 @@
 ﻿using System;
+using Keep.Tools.Collections;
+
 namespace Keep.Paper.Api.Types
 {
   public abstract class Template
@@ -9,7 +11,7 @@ namespace Keep.Paper.Api.Types
 
     public string Title { get; set; }
 
-    public bool? Enabled { get; set; }
+    public bool Disabled { get; set; }
 
     public TDesign Design { get; set; }
 
@@ -17,5 +19,9 @@ namespace Keep.Paper.Api.Types
     {
       public GridDesign Grid { get; set; }
     }
+
+    public bool HideUndeclaredFields { get; set; }
+
+    public Collection<Field> Fields { get; set; }
   }
 }

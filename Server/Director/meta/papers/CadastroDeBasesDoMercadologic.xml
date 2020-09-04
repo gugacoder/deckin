@@ -2,10 +2,15 @@
 <QueryTemplate xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <Catalog>Mercadologic</Catalog>
   <Name>Empresas</Name>
-  <Enabled>true</Enabled>
+  <!--<Disabled/>-->
   <Title>Cadastro de Bases do Mercadologic</Title>
   <Design>
-    <Grid />
+    <Grid>
+      <AutoRefresh>2</AutoRefresh>
+      <Pagination>
+        <Limit>0</Limit>
+      </Pagination>
+    </Grid>
   </Design>
   <Connection>Director</Connection>
   <Query><![CDATA[
@@ -25,9 +30,9 @@
       from TBempresa_mercadologic
      inner join TBempresa
              on TBempresa.DFcod_empresa = TBempresa_mercadologic.DFcod_empresa
-     where TBempresa_mercadologic.DFcod_empresa matches @cod_empresa
+     where TBempresa_mercadologic.DFcod_empresa matches if set @cod_empresa
   ]]></Query>
-  <!--
+  <!--<HideUndeclaredFields />-->
   <Fields>
     <Field>
       <View>
@@ -44,9 +49,8 @@
     <Field>
       <View>
         <Name>DFservidor</Name>
-        <Title>ServiEntityEntitydor</Title>
+        <Title>Servidor</Title>
       </View>
     </Field>
   </Fields>
-  -->
 </QueryTemplate>

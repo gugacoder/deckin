@@ -14,11 +14,11 @@ namespace Keep.Tools.Sequel.Runner
 
     object Current { get; }
 
-    Task<bool> ReadAsync(CancellationToken stopToken);
+    Task<bool> ReadAsync(CancellationToken stopToken = default);
 
-    Task<bool> NextResultAsync(CancellationToken stopToken);
+    Task<bool> NextResultAsync(CancellationToken stopToken = default);
 
-    Task ResetAsync(CancellationToken stopToken);
+    Task ResetAsync(CancellationToken stopToken = default);
 
     void Cancel();
 

@@ -19,5 +19,8 @@ namespace Keep.Paper.Api.Types
 
     [JsonProperty(Order = 30)]
     public Design Design { get; set; }
+
+    [JsonProperty(Order = 40)]
+    public bool? Hidden { get; set; }
   }
 }

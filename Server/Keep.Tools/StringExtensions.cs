@@ -464,29 +464,86 @@ namespace Keep.Tools
       return invariant.CompareInfo.IndexOf(text, pattern, options) >= 0;
     }
 
+    public static bool ContainsAny(this string text, params string[] patterns)
+    {
+      if (text == null)
+        return false;
+
+      return patterns.Any(pattern => text.Contains(pattern));
+    }
+
+    public static bool ContainsAnyIgnoreCase(this string text, params string[] patterns)
+    {
+      if (text == null)
+        return false;
+
+      var invariant = CultureInfo.InvariantCulture;
+      var options = CompareOptions.IgnoreCase;
+
+      return patterns.Any(pattern =>
+        invariant.CompareInfo.IndexOf(text, pattern, options) >= 0
+      );
+    }
+
     public static int IndexOfIgnoreCase(this string text, string pattern)
     {
       if (text == null)
         return -1;
 
-      var invariant = System.Globalization.CultureInfo.InvariantCulture;
+      var invariant = CultureInfo.InvariantCulture;
       return invariant.CompareInfo.IndexOf(text, pattern);
     }
 
-    public static bool StartsWithIgnoreCase(this string text, string other)
+    public static bool StartsWithIgnoreCase(this string text, string term)
     {
       if (text == null)
         return false;
 
-      return text.StartsWith(other, StringComparison.InvariantCultureIgnoreCase);
+      var flag = StringComparison.InvariantCultureIgnoreCase;
+      return text.StartsWith(term, flag);
     }
 
-    public static bool EndsWithIgnoreCase(this string text, string other)
+    public static bool StartsWithAny(this string text, params string[] terms)
     {
       if (text == null)
         return false;
 
-      return text.EndsWith(other, StringComparison.InvariantCultureIgnoreCase);
+      return terms.Any(term => text.StartsWith(term));
+    }
+
+    public static bool StartsWithAnyIgnoreCase(this string text, params string[] terms)
+    {
+      if (text == null)
+        return false;
+
+      var flag = StringComparison.InvariantCultureIgnoreCase;
+      return terms.Any(term => text.StartsWith(term, flag));
+    }
+
+    public static bool EndsWithIgnoreCase(this string text, string term)
+    {
+      if (text == null)
+        return false;
+
+      var flag = StringComparison.InvariantCultureIgnoreCase;
+      return text.EndsWith(term, flag);
+    }
+
+    public static bool EndsWithAny(this string text, params string[] terms)
+    {
+      if (text == null)
+        return false;
+
+      return terms.Any(term => text.EndsWith(term));
+    }
+
+    public static bool EndsWithAnyIgnoreCase(this string text, params string[] terms)
+    {
+      if (text == null)
+        return false;
+
+      var flag = StringComparison.InvariantCultureIgnoreCase;
+      return terms.Any(term => text.EndsWith(term, flag));
     }
 
     public static bool IsNullOrEmpty(this string text)

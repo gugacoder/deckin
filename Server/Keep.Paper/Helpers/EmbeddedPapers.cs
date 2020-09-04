@@ -9,6 +9,7 @@ using Keep.Paper.Api;
 using Keep.Paper.Api.Types;
 using Keep.Paper.Papers;
 using Keep.Tools;
+using Keep.Tools.Collections;
 using Keep.Tools.Xml;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -67,7 +68,7 @@ namespace Keep.Paper.Helpers
         using var reader = new StreamReader(stream);
 
         var text = await reader.ReadToEndAsync();
-        var xml = text.ToXElement();
+        var xml = CanonicalizeXml(text.ToXElement());
 
         var templateName = xml.Name;
         var templateTypeName = $"{typeof(Template).Namespace}.{templateName}";
@@ -90,6 +91,22 @@ namespace Keep.Paper.Helpers
         );
         return null;
       }
+    }
+
+    private XElement CanonicalizeXml(XElement xml)
+    {
+      //
+      // Modificando tag vazia para representar um booliano.
+      // Isso:
+      //    <Tag/>
+      // Se torna isso:
+      //    <Tag>true</Tag>
+      //
+      xml.Descendants()
+        .Where(x => x.IsEmpty)
+        .ForEach(tag => tag.Value = "true");
+
+      return xml;
     }
 
     private PaperType CreatePaperType(Template template)

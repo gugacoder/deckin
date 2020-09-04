@@ -99,8 +99,8 @@ namespace Director.Paginas
           Design = new
           {
             Kind = Design.Grid,
-            AutoRefresh = 1, // segundos
-            Page = new
+            AutoRefresh = 2, // segundos
+            Pagination = new
             {
               limit
             }

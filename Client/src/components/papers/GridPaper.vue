@@ -267,6 +267,7 @@
               th(
                 style="z-index: 0"
                 v-for="header in props.headers"
+                :key="header.name"
               )
                 | {{ header.text }}
       

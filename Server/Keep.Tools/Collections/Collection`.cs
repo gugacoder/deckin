@@ -109,6 +109,37 @@ namespace Keep.Tools.Collections
       lock (@lock) OnCommitAdd(store, item.AsSingle(), index);
     }
 
+    public virtual void Replace(T item, T other)
+    {
+      if (IsReadOnly)
+        throw new UnmodifiableException("A coleção não pode ser modificada.");
+
+      if (Equals(item, other))
+        return;
+
+      lock (@lock)
+      {
+        int index;
+        while ((index = list.IndexOf(item)) >= 0)
+        {
+          list.RemoveAt(index);
+          OnCommitAdd(store, other.AsSingle(), index);
+        }
+      }
+    }
+
+    public virtual void ReplaceAt(int index, T other)
+    {
+      if (IsReadOnly)
+        throw new UnmodifiableException("A coleção não pode ser modificada.");
+
+      lock (@lock)
+      {
+        list.RemoveAt(index);
+        OnCommitAdd(store, other.AsSingle(), index);
+      }
+    }
+
     public virtual T PeekFirst()
     {
       return this[0];
