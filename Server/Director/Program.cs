@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Keep.Paper.Api;
@@ -21,6 +22,7 @@ namespace Director
   {
     public static void Main(string[] args)
     {
+      //Debug.WriteLine(Keep.Paper.Api.Crypto.Decrypt("enc:nHHTLteDt83YgzMgvJvgFQ=="));
       new WindowsServiceLauncher()
         .Configure(opts =>
         {

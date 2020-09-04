@@ -143,9 +143,9 @@ namespace Keep.Paper.Data
 
     private string BuildConnectionString(HashMap<string> parameters)
     {
-      if (parameters["password"] != null)
+      if (!string.IsNullOrEmpty(parameters["pwd"]))
       {
-        parameters["password"] = Api.Crypto.Decrypt(parameters["password"]);
+        parameters["pwd"] = Api.Crypto.Decrypt(parameters["pwd"]);
       }
       return string.Join(";",
         parameters.Select(entry => $"{entry.Key}={entry.Value}"));

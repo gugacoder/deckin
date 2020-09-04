@@ -16,7 +16,7 @@ namespace Keep.Paper.Api
       }
       else
       {
-        var hash = Tools.Crypto.Decrypt(input, Key);
+        var hash = Tools.Crypto.Encrypt(input, Key);
         return $"enc:{hash}";
       }
     }
