@@ -16,6 +16,12 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_26B21BD6F04C4D86BEEBCCAADD4E6B02"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_E6A1194003094FDD846089A133ADEEC6"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -55,7 +61,7 @@
         "DisplayName" = "8:Release"
         "IsDebugOnly" = "11:FALSE"
         "IsReleaseOnly" = "11:TRUE"
-        "OutputFilename" = "8:..\\..\\Dist\\Setup\\Setup.msi"
+        "OutputFilename" = "8:\\\\mac\\Home\\Sources\\gugacoder\\deckin\\Dist\\Setup\\Setup.msi"
         "PackageFilesAs" = "3:2"
         "PackageFileSize" = "3:-2147483648"
         "CabType" = "3:1"
@@ -168,6 +174,26 @@
         }
         "File"
         {
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_26B21BD6F04C4D86BEEBCCAADD4E6B02"
+            {
+            "SourcePath" = "8:\\\\Mac\\Home\\Sources\\gugacoder\\deckin\\Server\\Director\\appsettings.json"
+            "TargetName" = "8:appsettings.json"
+            "Tag" = "8:"
+            "Folder" = "8:_4F1322F749A54BCAB5DC799525B00ED1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:TRUE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
         }
         "FileType"
         {
@@ -746,7 +772,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_E6A1194003094FDD846089A133ADEEC6"
             {
-            "SourcePath" = "8:..\\Director\\obj\\Debug\\netcoreapp3.1\\Director.exe"
+            "SourcePath" = "8:\\\\mac\\Home\\Sources\\gugacoder\\deckin\\Server\\Director\\obj\\Debug\\netcoreapp3.1\\Director.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_4F1322F749A54BCAB5DC799525B00ED1"
