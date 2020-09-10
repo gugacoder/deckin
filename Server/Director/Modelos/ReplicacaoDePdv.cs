@@ -148,27 +148,47 @@ namespace Director.Modelos
 
         foreach (var tabela in tabelas)
         {
-          await ReplicarTabelaAsync(cnDirector, cnPdv, pdv, tabela, dataLimite,
-            stopToken);
+          try
+          {
+            // Apagando registros de tentativa anterior de importação.
+            //
+            using (var tx = cnDirector.BeginTransaction())
+            {
+              await
+                $@"delete from mlogic.TBintegracao_{tabela}
+                    where DFintegrado = 0"
+                  .AsSql()
+                  .ExecuteAsync(cnDirector, tx, stopToken: stopToken);
+
+              await tx.CommitAsync(stopToken);
+            }
+
+            await ReplicarTabelaAsync(cnDirector, cnPdv, pdv, tabela, dataLimite,
+              stopToken);
+
+            // Marcando registros como integrados com sucesso
+            //
+            using (var tx = cnDirector.BeginTransaction())
+            {
+              await
+                $@"update mlogic.TBintegracao_{tabela}
+                      set DFintegrado = 1
+                    where DFintegrado = 0"
+                  .AsSql()
+                  .ExecuteAsync(cnDirector, tx, stopToken: stopToken);
+
+              await tx.CommitAsync(stopToken);
+            }
+          }
+          catch (Exception ex)
+          {
+            audit.LogDanger(
+              To.Text(
+                $"A replicação da tabela {tabela} do PDV {pdv.DFdescricao} para o Director falhou.",
+                ex),
+              GetType());
+          }
         }
-
-        // Marcando registros como integrados com sucesso
-        //
-        using (var tx = cnDirector.BeginTransaction())
-        {
-          await
-            string.Join(";\n", tabelas.Select(tabela =>
-             $@"update mlogic.TBintegracao_{tabela}
-                   set DFintegrado = 1
-                 where DFintegrado = 0"
-              ))
-              .AsSql()
-              .Echo()
-              .ExecuteAsync(cnDirector, tx, stopToken: stopToken);
-
-          await tx.CommitAsync(stopToken);
-        }
-
 
         audit.LogSuccess(
           $"Replicação do PDV {pdv.DFdescricao} para o Director concluída.",
@@ -205,6 +225,11 @@ namespace Director.Modelos
             $"Obtendo registros da tabela {tabela}...",
             GetType());
 
+          // @dataLimite
+          // A data limite é usada para garantir que serão integrados apenas os
+          // registros criados até o momento do início da integração de dados.
+          // Os registros depois dessa data serão intgrados na próxima
+          // execução da integração.
           var reader = await
             @"select *
                 from integracao.@{tabela}
@@ -272,12 +297,7 @@ namespace Director.Modelos
                 @"insert into mlogic.TBintegracao_@{tabela}
                     (@{campos}, DFdata_integracao)
                   select
-                    @{valores}, current_timestamp
-                  where not exists (
-                    select 1 from mlogic.TBintegracao_@{tabela}
-                    where DFcod_empresa = @codEmpresa
-                      and DFcod_registro = @codRegistro
-                  )"
+                    @{valores}, current_timestamp"
                   .AsSql()
                   .Set(new { tabela, campos, valores, codRegistro, codEmpresa })
                   .Set(registro)
