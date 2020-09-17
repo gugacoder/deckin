@@ -650,12 +650,13 @@ namespace Keep.Tools.Sequel
       value = value is Var ? ((Var)value).RawValue : value;
 
       if (value == null)
-      {
         return null;
-      }
 
       if (value is string text)
       {
+        if (string.IsNullOrEmpty(text))
+          return null;
+
         var hasWildcard =
           text?.Contains("%") == true || text?.Contains("*") == true ||
           text?.Contains("_") == true || text?.Contains("?") == true;
@@ -790,7 +791,7 @@ namespace Keep.Tools.Sequel
       matches = regex.Matches(sql);
       foreach (var match in matches.Cast<Match>())
       {
-        var isSet = replacement != null;
+        var isSet = !string.IsNullOrEmpty(replacement);
         var negate = match.Groups[2].Value.Contains("not");
         if (negate)
           isSet = !isSet;
@@ -819,7 +820,7 @@ namespace Keep.Tools.Sequel
       {
         string newSentence = null;
 
-        if (replacement == null)
+        if (string.IsNullOrEmpty(replacement))
         {
           // quando "if set" está presente, se a condicao for nula, o resultado é verdadeiro:
           //   1=1

@@ -80,12 +80,53 @@ namespace Keep.Paper.Papers
         Design = design
       };
 
-      await FillDataAsync(entity, options, pagination, stopToken);
+      await FetchDataAsync(entity, options, pagination, stopToken);
+
+      SetFilter(entity, options);
 
       return entity;
     }
 
-    private async Task FillDataAsync(Types.Entity entity, object options,
+    private void SetFilter(Types.Entity entity, object options)
+    {
+      var filter = (action as GridAction)?.Filter;
+      if (filter == null)
+        return;
+
+      var targetAction = new Types.Action
+      {
+        Data = options,
+        View = new Types.View
+        {
+          Name = "filter"
+        },
+        Fields = new Collection<Types.Field>()
+      };
+
+      foreach (var field in filter)
+      {
+        var targetField = new Types.Field
+        {
+          Kind = field.Type,
+          View = new Types.View
+          {
+            Design = new Types.Design
+            {
+              Kind = field.Type
+            }
+          }
+        };
+
+        targetField.View._CopyFrom(field);
+        targetField.View.Design._CopyFrom(field);
+
+        targetAction.Fields.Add(targetField);
+      }
+
+      (entity.Actions ??= new Collection<Types.Action>()).Add(targetAction);
+    }
+
+    private async Task FetchDataAsync(Types.Entity entity, object options,
       Pagination pagination, CancellationToken stopToken)
     {
       var connectionName = action.Connection ?? template?.Connection;
@@ -95,6 +136,7 @@ namespace Keep.Paper.Papers
       using var cn = await connector.ConnectAsync(connectionName, stopToken);
       using var reader = await sql
         .AsSql()
+        .Set(options)
         .Set(pagination)
         .ReadAsync(cn, null, stopToken);
 
@@ -112,7 +154,7 @@ namespace Keep.Paper.Papers
           var fieldMap = mappedFields[i];
           var fieldName = fieldMap["sourceField"];
           var fieldType = reader.Current.GetFieldType(i);
-          var fieldSpec = action.Fields.FirstOrDefault(x => x.Name.EqualsIgnoreCase(fieldName));
+          var fieldSpec = action.Fields?.FirstOrDefault(x => x.Name.EqualsIgnoreCase(fieldName));
 
           var kind = GetKind(fieldType);
 
@@ -128,8 +170,11 @@ namespace Keep.Paper.Papers
             field.View.Design?._TrySet(entry.Key, entry.Value);
           }
 
-          field.View._CopyFrom(fieldSpec, except: new[] { "name" });
-          field.View.Design?._CopyFrom(fieldSpec, except: new[] { "name" });
+          if (fieldSpec != null)
+          {
+            field.View._CopyFrom(fieldSpec, except: new[] { "name" });
+            field.View.Design?._CopyFrom(fieldSpec, except: new[] { "name" });
+          }
 
           entity.Fields.Add(field);
         }

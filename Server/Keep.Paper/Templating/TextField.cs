@@ -21,6 +21,8 @@ namespace Keep.Paper.Templating
 {
   public class TextField : Field
   {
+    public override string Type { get; set; } = FieldKind.Text;
+
     public bool Wysiwyg { get; set; }
     public bool Multiline { get; set; }
   }

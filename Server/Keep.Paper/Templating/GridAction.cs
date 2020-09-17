@@ -21,6 +21,8 @@ namespace Keep.Paper.Templating
 {
   public class GridAction : Action
   {
+    private FieldCollection _filter;
+
     public override string Type { get; set; } = "Grid";
 
     public int? AutoRefresh { get; set; }
@@ -28,5 +30,11 @@ namespace Keep.Paper.Templating
     public int? Offset { get; set; }
 
     public int? Limit { get; set; }
+
+    public FieldCollection Filter
+    {
+      get => _filter;
+      set => _filter = Adopt(value);
+    }
   }
 }

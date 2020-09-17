@@ -21,14 +21,32 @@
                  on TBempresa.DFcod_empresa = TBusuario.DFcod_empresa
           left join TBnivel
                  on TBnivel.DFid_nivel_usuario = TBusuario.DFnivel_usuario
+         where TBusuario.DFid_usuario matches if set @DFid_usuario
+           and TBusuario.DFnome_usuario matches if set @DFnome_usuario
+           and TBempresa.DFcod_empresa matches if set @DFcod_empresa
+           and TBempresa.DFnome_fantasia matches if set @DFnome_fantasia
+           and TBnivel.DFid_nivel_usuario matches if set @DFid_nivel_usuario
+           and TBnivel.DFdescricao matches if set @DFnivel_usuario
       ]]></Query>
       <Filter>
-        <IntField
+        <TextField
           Name="DFid_usuario"
-          Hidden="true" />
-        <IntField
+          Title="Usuário" />
+        <TextField
+          Name="DFnome_usuario"
+          Title="Nome de Usuário" />
+        <TextField
+          Name="DFcod_empresa"
+          Title="Empresa" />
+        <TextField
+          Name="DFnome_fantasia"
+          Title="Nome da Empresa" />
+        <TextField
           Name="DFid_nivel_usuario"
-          Title="ID Nível Usuário" />
+          Title="Nível" />
+        <TextField
+          Name="DFnivel_usuario"
+          Title="Nome do Nível" />
       </Filter>
     </GridAction>
   </Actions>
