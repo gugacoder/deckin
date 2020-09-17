@@ -1,0 +1,118 @@
+﻿d<?xml version="1.0" encoding="UTF-8"?>
+<ScrudTemplate xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <Catalog>Catalog</Catalog>
+  <Name>Name</Name>
+  <!--<Disabled/>-->
+  <Title>Title</Title>
+  <Fields>
+    <Field>
+      <View>
+        <Name>id_post</Name>
+        <Pk />
+        <Column>id</Column>
+        <Design i:type="Integer" />
+        <Hidden />
+      </View>
+    </Field>
+    <Field>
+      <View>
+        <Name>title</Name>
+        <Title>Title</Title>
+        <Design i:type="Text" />
+      </View>
+    </Field>
+    <Field>
+      <View>
+        <Name>body</Name>
+        <Title>Post</Title>
+        <Design i:type="Text">
+          <Multiline />
+          <Lines>10</Lines>
+          <Wysiwyg />
+        </Design>
+        <Extent>Large</Extent>
+      </View>
+    </Field>
+  </Fields>
+  <DefaultConnection>Director</DefaultConnection>
+  <!--<DefaultEntity>post</DefaultEntity>-->
+  <Papers>
+    <Search>
+      <!--
+      <Design i:type="Grid" />
+      <Query><![CDATA[
+        select * from post
+         where title matches @title
+           and body matches @body
+      ]]></Query>
+      -->
+    </Search>
+    <Create>
+      <!--
+      <Design i:type="Form" />
+      <Query><![CDATA[
+        insert into post (@{fields}) values (@{values})
+      ]]></Query>
+      -->
+    </Create>
+    <Read>
+      <!--
+      <Design i:type="Card" />
+      <Query><![CDATA[
+        select * from post where id = @post_id
+      ]]></Query>
+      -->
+    </Read>
+    <Update>
+      <!--
+      <Design i:type="Form" />
+      <Query><![CDATA[
+        update post set @{setters} where id = @post_id
+      ]]></Query>
+      -->
+    </Update>
+    <Delete>
+      <!--
+      <Design i:type="Static">
+        <Popup />
+        <IgnoreUndeclaredFields />
+        <Fields>
+          <Field i:type="Label">
+            Você está prestes a exlcuir este registro.\n
+            Tem certeza?
+          </Field>
+          <Field i:type="Cancel" />
+          <Field i:type="Submit">
+            <Title>Excluir</Title>
+          </Field>
+        </Fields>
+      </Design>
+      <Query><![CDATA[
+        delete from post where id = @post_id
+      ]]></Query>
+      -->
+    </Delete>
+    <Paper>
+      <Name>Record</Name>
+      <Title>Registro</Title>
+      <Action>Detalhar o registro</Action>
+      <Popup />
+      <Design i:type="Card" />
+      <Query><![CDATA[
+        select * from post where id = @post_id
+      ]]></Query>
+      <Field Inherit="Merge">
+        <View>
+          <Name>id_post</Name>
+          <Design i:type="Integer" />
+        </View>
+      </Field>
+      <Linkage Inherit="Override">
+        <From>./Search:*</From>
+        <From>./Create</From>
+        <From>./Read/@{post_id}:title</From>
+        <To>./Search</To>
+      </Linkage>
+    </Paper>
+  </Papers>
+</ScrudTemplate>

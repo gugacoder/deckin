@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<QueryTemplate
+  Title="Usuários"
+  Disabled="false"
+  Connection="Director">
+  <Actions>
+    <GridAction
+      Title="Usuários"
+      Limit="100"
+      AutoRefresh="2">
+      <Query><![CDATA[
+        select top (@limit)
+               TBusuario.DFid_usuario
+             , TBusuario.DFnome_usuario
+             , TBempresa.DFcod_empresa
+             , TBempresa.DFnome_fantasia
+             , TBnivel.DFid_nivel_usuario
+             , TBnivel.DFdescricao
+          from TBusuario
+          left join TBempresa
+                 on TBempresa.DFcod_empresa = TBusuario.DFcod_empresa
+          left join TBnivel
+                 on TBnivel.DFid_nivel_usuario = TBusuario.DFnivel_usuario
+      ]]></Query>
+      <Filter>
+        <IntField
+          Name="DFid_usuario"
+          Hidden="true" />
+        <IntField
+          Name="DFid_nivel_usuario"
+          Title="ID Nível Usuário" />
+      </Filter>
+    </GridAction>
+  </Actions>
+</QueryTemplate>
+<!--
+<QueryTemplate
+  Catalog="Sandbox"
+  Name="Sample"
+  Title="Sample Template"
+  Disabled="false"
+  Connection="Director">
+  <Actions>
+    <GridAction
+      Name="Search"
+      Title="Posts"
+      Verb="Pesquisar Posts">
+      <Query><![CDATA[
+        SELECT post.id
+             , post.title
+             , post.body
+             , post.author_id
+             , author.name as author
+          FROM __post__ as post
+         INNER JOIN __author__ as author
+                 on author.id = post.author_id
+         WHERE (post.title matches if set @title or post.title matches if set @search)
+           AND (post.body matches if set @body or post.body matches if set @search)
+           AND (author.name if set matches @author or author.name matches if set @search)
+      ]]></Query>
+      <Fields>
+        <IntField
+          Name="id"
+          Hidden="true" />
+        <TextField
+          Name="title"
+          Title="Título" />
+        <TextField
+          Name="body"
+          Title="Texto"
+          Multiline="true"
+          Wysiwyg="true" />
+        <IntField
+          Name="author_id"
+          Hidden="true" />
+        <TextField
+          Name="author"
+          Title="Autor" />
+      </Fields>
+      <Actions>
+        <FilterAction>
+          <Fields>
+            <TextField
+              Name="search"
+              Title="Pesquisar"
+              Rel="Search" />
+            <TextField
+              Name="title"
+              Title="Título" />
+            <TextField
+              Name="body"
+              Title="Texto" />
+            <TextField
+              Name="author"
+              Title="Autor" />
+          </Fields>
+        </FilterAction>
+      </Actions>
+      <Linkage>
+        <LinkTo
+          Href="../Detail/@{id}"
+          Rel="Detail" />
+      </Linkage>
+    </GridAction>
+    <CardAction
+      Name="Detail"
+      Title="Post"
+      Verb="Ver o Post"
+      Popup="true">
+      <Query><![CDATA[
+        SELECT post.id
+             , post.title
+             , post.body
+             , post.author_id
+             , author.name as author
+          FROM __post__ as post
+         INNER JOIN __author__ as author
+                 on author.id = post.author_id
+         WHERE post.id = @id
+      ]]></Query>
+      <Fields>
+        <IntField
+          Name="id"
+          Hidden="true" />
+        <TextField
+          Name="title"
+          Title="Título" />
+        <TextField
+          Name="body"
+          Title="Texto"
+          Multiline="true"
+          Wysiwyg="true" />
+        <IntField
+          Name="author_id"
+          Hidden="true" />
+        <TextField
+          Name="author"
+          Title="Autor" />
+      </Fields>
+      <Linkage>
+        <LinkTo
+          Href="../Search" />
+      </Linkage>
+    </CardAction>
+  </Actions>
+</QueryTemplate>
+-->

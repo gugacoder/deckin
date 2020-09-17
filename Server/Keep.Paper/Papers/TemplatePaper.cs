@@ -30,7 +30,7 @@ namespace Keep.Paper.Papers
       var template = (QueryTemplate)this.template;
 
       int limit = pagination?.Limit
-        ?? template.Design?.Grid?.Pagination?.Limit
+        ?? (template.Design as GridDesign)?.Pagination?.Limit
         ?? (int)PageLimit.UpTo50;
 
       if (options is IDictionary map)
@@ -85,7 +85,7 @@ namespace Keep.Paper.Papers
         embedded.Add(new { data });
       }
 
-      if (template.HideUndeclaredFields)
+      if (template.IgnoreUndeclaredFields)
       {
         fields.ForEach(field => field.View.Hidden = true);
       }
@@ -125,7 +125,7 @@ namespace Keep.Paper.Papers
           Design = new
           {
             Kind = Api.Design.Grid,
-            AutoRefresh = template.Design?.Grid?.AutoRefresh ?? 0,
+            AutoRefresh = (template.Design as GridDesign)?.AutoRefresh ?? 0,
             Page = new { limit }
           }
         },

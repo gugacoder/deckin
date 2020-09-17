@@ -10,6 +10,23 @@ namespace Keep.Paper.Client
 {
   public class FileBrowser
   {
+    private string separator;
+    private string invalidSeparator;
+
+    public FileBrowser()
+    {
+      this.separator = DetectSeparator();
+      this.invalidSeparator = (this.separator == "/") ? "\\" : "/";
+    }
+
+    private string DetectSeparator()
+    {
+      var assembly = GetType().Assembly;
+      var manifests = assembly.GetManifestResourceNames();
+      var useSlash = manifests.Any(x => x.Contains("/"));
+      return useSlash ? "/" : "\\";
+    }
+
     public static string GetName(string filepath)
     {
       var path = GetPath(filepath);
@@ -21,12 +38,19 @@ namespace Keep.Paper.Client
       return $"/{filepath.Replace("\\", "/")}";
     }
 
-    private string GetResourceFolder(string folder)
+    private string GetResourcePath(string filepath)
     {
-      folder = folder.Replace("/", "\\");
-      if (!folder.EndsWith("\\")) folder += "\\";
-      if (folder.StartsWith("\\")) folder = folder.Substring(1);
-      return folder;
+      filepath = filepath.Replace(invalidSeparator, separator);
+      if (filepath.StartsWith(separator)) filepath = filepath.Substring(1);
+      return filepath;
+    }
+
+    private string GetResourceFolder(string filepath)
+    {
+      filepath = filepath.Replace(invalidSeparator, separator);
+      if (!filepath.EndsWith(separator)) filepath += separator;
+      if (filepath.StartsWith(separator)) filepath = filepath.Substring(1);
+      return filepath;
     }
 
     public IEnumerable<string> EnumerateFolders(string folder)
@@ -43,18 +67,22 @@ namespace Keep.Paper.Client
       folder = GetResourceFolder(folder);
       folder = folder.Replace("\\", "\\\\");
 
-      var pattern = new Regex($"^({folder}[^\\\\]+\\\\)");
+      var pattern = (separator == "/")
+        ? $"^({folder}[^\\\\]+\\\\)"
+        : $"^({folder}[^/]+/)";
+
+      var regex = new Regex(pattern);
 
       var assembly = GetType().Assembly;
       var files = assembly.GetManifestResourceNames();
 
       foreach (var file in files)
       {
-        var match = pattern.Match(file);
+        var match = regex.Match(file);
         if (match.Success) yield return GetPath(match.Groups[1].Value);
       }
     }
-    
+
     public IEnumerable<string> EnumerateFiles(string folder)
     {
       if (!FolderExists(folder))
@@ -64,14 +92,18 @@ namespace Keep.Paper.Client
       folder = GetResourceFolder(folder);
       folder = folder.Replace("\\", "\\\\");
 
-      var pattern = new Regex($"^{folder}[^\\\\]+$");
+      var pattern = (separator == "/")
+        ? $"^{folder}[^\\\\]+$"
+        : $"^{folder}[^/]+$";
+
+      var regex = new Regex(pattern);
 
       var assembly = GetType().Assembly;
       var files = assembly.GetManifestResourceNames();
 
       foreach (var file in files)
       {
-        if (pattern.IsMatch(file)) yield return GetPath(file);
+        if (regex.IsMatch(file)) yield return GetPath(file);
       }
     }
 
@@ -84,14 +116,14 @@ namespace Keep.Paper.Client
       folder = GetResourceFolder(folder);
       folder = folder.Replace("\\", "\\\\");
 
-      var pattern = new Regex($"^{folder}.*$");
+      var regex = new Regex($"^{folder}.*$");
 
       var assembly = GetType().Assembly;
       var files = assembly.GetManifestResourceNames();
-      
+
       foreach (var file in files)
       {
-        if (pattern.IsMatch(file)) yield return GetPath(file);
+        if (regex.IsMatch(file)) yield return GetPath(file);
       }
     }
 
@@ -103,14 +135,14 @@ namespace Keep.Paper.Client
           return false;
 
         folder = GetResourceFolder(folder);
-
         folder = folder.Replace("\\", "\\\\");
-        var pattern = new Regex($"^{folder}.+");
+
+        var regex = new Regex($"^{folder}.+");
 
         var assembly = GetType().Assembly;
         var files = assembly.GetManifestResourceNames();
 
-        return files.Any(pattern.IsMatch);
+        return files.Any(regex.IsMatch);
       }
       catch
       {
@@ -125,8 +157,7 @@ namespace Keep.Paper.Client
         if (string.IsNullOrEmpty(filepath))
           return false;
 
-        filepath = filepath.Replace("/", "\\");
-        if (filepath.StartsWith("\\")) filepath = filepath.Substring(1);
+        filepath = GetResourcePath(filepath);
 
         var assembly = GetType().Assembly;
 
@@ -141,8 +172,7 @@ namespace Keep.Paper.Client
 
     public Stream OpenFile(string filepath)
     {
-      filepath = filepath.Replace("/", "\\");
-      if (filepath.StartsWith("\\")) filepath = filepath.Substring(1);
+      filepath = GetResourcePath(filepath);
 
       var assembly = GetType().Assembly;
 
@@ -156,8 +186,7 @@ namespace Keep.Paper.Client
 
     public TextReader OpenText(string filepath)
     {
-      filepath = filepath.Replace("/", "\\");
-      if (filepath.StartsWith("\\")) filepath = filepath.Substring(1);
+      filepath = GetResourcePath(filepath);
 
       var assembly = GetType().Assembly;
 
@@ -174,8 +203,7 @@ namespace Keep.Paper.Client
 
     public byte[] ReadFile(string filepath)
     {
-      filepath = filepath.Replace("/", "\\");
-      if (filepath.StartsWith("\\")) filepath = filepath.Substring(1);
+      filepath = GetResourcePath(filepath);
 
       var assembly = GetType().Assembly;
 
@@ -194,8 +222,7 @@ namespace Keep.Paper.Client
 
     public async Task<byte[]> ReadFileAsync(string filepath)
     {
-      filepath = filepath.Replace("/", "\\");
-      if (filepath.StartsWith("\\")) filepath = filepath.Substring(1);
+      filepath = GetResourcePath(filepath);
 
       var assembly = GetType().Assembly;
 
@@ -214,8 +241,7 @@ namespace Keep.Paper.Client
 
     public string ReadText(string filepath)
     {
-      filepath = filepath.Replace("/", "\\");
-      if (filepath.StartsWith("\\")) filepath = filepath.Substring(1);
+      filepath = GetResourcePath(filepath);
 
       var assembly = GetType().Assembly;
 
@@ -225,15 +251,14 @@ namespace Keep.Paper.Client
           $"O arquivo não existe: {GetPath(filepath)}");
 
       using var reader = new StreamReader(stream);
-      
+
       var text = reader.ReadToEnd();
       return text;
     }
 
     public async Task<string> ReadTextAsync(string filepath)
     {
-      filepath = filepath.Replace("/", "\\");
-      if (filepath.StartsWith("\\")) filepath = filepath.Substring(1);
+      filepath = GetResourcePath(filepath);
 
       var assembly = GetType().Assembly;
 
@@ -250,8 +275,7 @@ namespace Keep.Paper.Client
 
     public void CopyFileTo(string filepath, Stream output)
     {
-      filepath = filepath.Replace("/", "\\");
-      if (filepath.StartsWith("\\")) filepath = filepath.Substring(1);
+      filepath = GetResourcePath(filepath);
 
       var assembly = GetType().Assembly;
 
@@ -265,8 +289,7 @@ namespace Keep.Paper.Client
 
     public async Task CopyFileToAsync(string filepath, Stream output)
     {
-      filepath = filepath.Replace("/", "\\");
-      if (filepath.StartsWith("\\")) filepath = filepath.Substring(1);
+      filepath = GetResourcePath(filepath);
 
       var assembly = GetType().Assembly;
 
@@ -280,8 +303,7 @@ namespace Keep.Paper.Client
 
     public void CopyTextTo(string filepath, TextWriter writer)
     {
-      filepath = filepath.Replace("/", "\\");
-      if (filepath.StartsWith("\\")) filepath = filepath.Substring(1);
+      filepath = GetResourcePath(filepath);
 
       var assembly = GetType().Assembly;
 
@@ -294,11 +316,10 @@ namespace Keep.Paper.Client
 
       reader.CopyTo(writer);
     }
-    
+
     public async Task CopyTextToAsync(string filepath, TextWriter writer)
     {
-      filepath = filepath.Replace("/", "\\");
-      if (filepath.StartsWith("\\")) filepath = filepath.Substring(1);
+      filepath = GetResourcePath(filepath);
 
       var assembly = GetType().Assembly;
 

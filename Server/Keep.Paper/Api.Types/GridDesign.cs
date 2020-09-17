@@ -25,5 +25,13 @@ namespace Keep.Paper.Api.Types
 
     [JsonProperty(Order = 30)]
     public Pagination Pagination { get; set; }
+
+    [Obsolete("Substituído pela propriedade Pagination.")]
+    [JsonProperty(Order = 30)]
+    public Pagination Page
+    {
+      get => Pagination;
+      set => Pagination = value;
+    }
   }
 }

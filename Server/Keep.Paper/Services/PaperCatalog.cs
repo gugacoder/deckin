@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Keep.Paper.Api;
 using Keep.Paper.Helpers;
 using Keep.Paper.Papers;
+using Keep.Paper.Templating;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
@@ -13,24 +15,23 @@ namespace Keep.Paper.Services
 {
   internal class PaperCatalog : IPaperCatalog
   {
-    private readonly PaperType[] paperTypes;
+    private readonly List<PaperType> paperTypes;
     private readonly HashMap<PaperType> specialTypes;
+    private readonly IServiceProvider provider;
 
     public PaperCatalog(IServiceProvider provider)
     {
-      var embeddedPapers =
-        ActivatorUtilities.CreateInstance<EmbeddedPapers>(provider);
-
-      var exposedTypes = ExposedTypes
-        .GetTypes<IPaper>()
-        .Select(type => new PaperType(type))
-        .ToArray();
-
-      var embeddedTypes = embeddedPapers.GetTypes();
-
-      this.paperTypes = exposedTypes.Concat(embeddedTypes).ToArray();
-
+      this.provider = provider;
+      this.paperTypes = new List<PaperType>();
       this.specialTypes = new HashMap<PaperType>();
+
+      FillAsync().Await();
+    }
+
+    public async Task FillAsync()
+    {
+      this.paperTypes.AddRange(await GetExposedPaperTypes());
+      this.paperTypes.AddRange(await GetEmbeddedPaperTypes());
 
       var homePaper =
         this.paperTypes.FirstOrDefault(x => x.Type._HasAttribute<HomePaperAttribute>())
@@ -42,6 +43,27 @@ namespace Keep.Paper.Services
 
       SetType(PaperName.Home, homePaper);
       SetType(PaperName.Login, loginPaper);
+    }
+
+    private async Task<PaperType[]> GetExposedPaperTypes()
+    {
+      var types = ExposedTypes
+        .GetTypes<IPaper>()
+        .Select(type => new PaperType(type))
+        .ToArray();
+
+      return await Task.FromResult(types);
+    }
+
+    private async Task<PaperType[]> GetEmbeddedPaperTypes()
+    {
+      var loader = ActivatorUtilities.CreateInstance<TemplateLoader>(provider);
+      var processor = ActivatorUtilities.CreateInstance<TemplateProcessor>(provider);
+
+      var templates = await loader.LoadTemplatesAsync().ToArrayAsync();
+      var types = templates.SelectMany(processor.ParsePapers).ToArray();
+
+      return types;
     }
 
     public PaperType GetType(string specialName)

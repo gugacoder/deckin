@@ -27,6 +27,11 @@ namespace Keep.Tools
       return (fault.Length > 0) ? $"{Status} - {fault}" : Status.ToString();
     }
 
+    public static implicit operator bool(Ret ret)
+    {
+      return ret.Value is bool bit ? bit : ret.Ok;
+    }
+
     public static implicit operator Ret(bool value)
     {
       return new Ret

@@ -34,5 +34,6 @@
     <Folder Include="Jobs\" />
     <Folder Include="Interceptors\" />
     <Folder Include="Api.Types\" />
+    <Folder Include="Templating\" />
   </ItemGroup>
 </Project>

@@ -10,8 +10,13 @@ using Keep.Tools;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
 using Keep.Tools.Xml;
-
-#nullable enable
+using Keep.Tools.Collections;
+using System.Xml.Linq;
+using System.Linq;
+using Keep.Tools.Reflection;
+using System.Collections;
+using System.Xml.Serialization;
+using Keep.Paper.Templating;
 
 namespace Director
 {
@@ -21,45 +26,23 @@ namespace Director
     {
       try
       {
-        //var types = EmbeddedPapers.GetTypes();
-        //foreach (var type in types)
-        //{
+        var file = "sample.xml";
+        var text = File.ReadAllText(file);
+        var xml = text.ToXElement();
 
-        //}
+        var errors = new List<string>();
+        var parser = new TemplateParser();
+        parser.ParseError += (o, e) => errors.Add(e.Message);
 
+        var template = parser.ParseTemplate(xml);
 
-        var assembly = typeof(Program).Assembly;
+        Debug.WriteLine(template.ToXElement());
+        Debug.WriteLine(string.Join("\n", errors.Select(x => $"- {x}")));
 
-        var resource = "papers/CadastroDeBasesDoMercadologic.xml";
-        using var stream = assembly.GetManifestResourceStream(resource) ?? Stream.Null;
+        var processor = new TemplateProcessor();
+        var pages = processor.ParseActions(template);
 
-        using var reader = new StreamReader(stream);
-
-
-        var xml = reader.ReadToEnd();
-        var entity = xml.ToXmlObject<Entity>();
-        Debug.WriteLine(entity.ToXElement());
-
-        //var x = new View
-        //{
-        //  Design = new GridDesign
-        //  {
-        //    AutoRefresh = 1
-        //  }
-        //};
-        //Debug.WriteLine(x.ToXElement());
-
-        //var xml = @"
-        //  <View xmlns:i=""http://www.w3.org/2001/XMLSchema-instance"">
-        //    <Design i:type=""GridDesign"">
-        //      <AutoRefresh>1</AutoRefresh>
-        //      <Kind>grid</Kind>
-        //    </Design>
-        //  </View>";
-
-        //var view = xml.ToXmlObject<View>();
-        //Debug.WriteLine(view.ToXElement());
-
+        Debug.WriteLine(pages.Count);
       }
       catch (Exception ex)
       {

@@ -13,14 +13,9 @@ namespace Keep.Paper.Api.Types
 
     public bool Disabled { get; set; }
 
-    public TDesign Design { get; set; }
+    public Design Design { get; set; }
 
-    public class TDesign
-    {
-      public GridDesign Grid { get; set; }
-    }
-
-    public bool HideUndeclaredFields { get; set; }
+    public bool IgnoreUndeclaredFields { get; set; }
 
     public Collection<Field> Fields { get; set; }
 

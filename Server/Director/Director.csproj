@@ -45,4 +45,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="meta\papers\CadastroDeBasesDoMercadologic %28copy%29.xml">
+      <LogicalName>papers\CadastroDeBasesDoMercadologic.xml</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

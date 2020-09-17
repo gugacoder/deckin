@@ -44,11 +44,8 @@ namespace Director.Modelos
         return;
 
       var pdvs = await ObterPdvsAtivosAsync(stopToken);
-      var tarefas = pdvs.Select(
-        pdv =>
-        {
-          return ReplicarAsync(parametros, pdv, stopToken);
-        }
+      var tarefas = pdvs.Select(pdv =>
+        ReplicarAsync(parametros, pdv, stopToken)
       ).ToArray();
 
       await Task.WhenAll(tarefas);

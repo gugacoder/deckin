@@ -58,7 +58,9 @@ namespace Keep.Paper.Controllers
               $"O paper {paperName} do catálogo {catalogName} não existe.");
 
         var getter = paperType.Type.GetMethod(actionName)
-                  ?? paperType.Type.GetMethod($"{actionName}Async");
+                  ?? paperType.Type.GetMethod($"{actionName}Async")
+                  ?? paperType.Type.GetMethods().FirstOrDefault(m =>
+                        m._HasAttribute<FallbackAttribute>());
         if (getter == null)
           return Fail(Fault.NotFound,
               $"O paper {paperName} do catálogo {catalogName} existe mas " +

@@ -312,8 +312,8 @@ namespace Keep.Tools.Reflection
       try
       {
         var convertedValue = Change.To(value, memberType);
-        (member as PropertyInfo)?.SetValue(target, value);
-        (member as FieldInfo)?.SetValue(target, value);
+        (member as PropertyInfo)?.SetValue(target, convertedValue);
+        (member as FieldInfo)?.SetValue(target, convertedValue);
       }
       catch (FormatException ex)
       {
@@ -389,15 +389,24 @@ namespace Keep.Tools.Reflection
       }
     }
 
-    public static T _CopyFrom<T>(this T target, object source, CopyOptions options = CopyOptions.None)
+    public static T _CopyFrom<T>(this T target, object source,
+      CopyOptions options = CopyOptions.None, string[] except = null)
     {
       if (target == null || source == null)
         return target;
+
+      if (except == null)
+      {
+        except = new string[0];
+      }
 
       var ignoreNull = options.HasFlag(CopyOptions.IgnoreNull);
 
       foreach (var sourceProperty in source.GetType().GetProperties())
       {
+        if (sourceProperty.Name.EqualsAnyIgnoreCase(except))
+          continue;
+
         var targetMember = _Define(target, sourceProperty.Name);
         if (targetMember == null)
           continue;
@@ -421,6 +430,12 @@ namespace Keep.Tools.Reflection
       }
 
       return target;
+    }
+
+    public static void _CopyTo<T>(this T source, object target,
+      CopyOptions options = CopyOptions.None, string[] except = null)
+    {
+      _CopyFrom(target, source, options);
     }
   }
 }

@@ -4,13 +4,11 @@
   <Name>Empresas</Name>
   <!--<Disabled/>-->
   <Title>Cadastro de Bases do Mercadologic</Title>
-  <Design>
-    <Grid>
-      <AutoRefresh>2</AutoRefresh>
-      <Pagination>
-        <Limit>0</Limit>
-      </Pagination>
-    </Grid>
+  <Design i:type="GridDesign">
+    <!--    <AutoRefresh>2</AutoRefresh>-->
+    <Pagination>
+      <Limit>0</Limit>
+    </Pagination>
   </Design>
   <Connection>Director</Connection>
   <Query><![CDATA[
