@@ -7,7 +7,7 @@ namespace Keep.Paper.Api
     public const string Dashboard = "dashboard";
 
     // A Form for Data Input and Validation
-    public const string Action = "action";
+    public const string Form = "form";
 
     // A Form for User Login
     public const string Login = "login";

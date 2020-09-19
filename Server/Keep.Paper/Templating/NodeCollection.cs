@@ -35,8 +35,8 @@ namespace Keep.Paper.Templating
       base.OnCommitAdd(store, items, index);
     }
 
-    protected T Adopt<T>(T child)
-      where T : INode
+    protected TChild Adopt<TChild>(TChild child)
+      where TChild : INode
     {
       if (child != null)
       {

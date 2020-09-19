@@ -60,7 +60,7 @@ namespace Keep.Paper.Papers
         {
           RedirectTo = new
           {
-            Kind = FieldKind.Uri,
+            Kind = FieldDesign.Uri,
             View = new
             {
               Hidden = true
@@ -68,7 +68,7 @@ namespace Keep.Paper.Papers
           },
           Username = new
           {
-            Kind = FieldKind.Username,
+            Kind = FieldDesign.Username,
             View = new
             {
               Title = "Usuário",
@@ -77,7 +77,7 @@ namespace Keep.Paper.Papers
           },
           Password = new
           {
-            Kind = FieldKind.Password,
+            Kind = FieldDesign.Password,
             View = new
             {
               Title = "Senha",

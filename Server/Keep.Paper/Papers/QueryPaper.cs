@@ -34,7 +34,7 @@ namespace Keep.Paper.Papers
     }
 
     [Fallback]
-    public async Task<Types.Entity> ResolveAsync(object options, Pagination pagination)
+    public async Task<Types.IEntity> ResolveAsync(object options, Pagination pagination)
     {
       var defaultOffset = (action as GridAction)?.Offset ?? 0;
       var defaultLimit = (action as GridAction)?.Limit ?? (int)PageLimit.UpTo50;
@@ -48,37 +48,21 @@ namespace Keep.Paper.Papers
       //var paperTitle = template.Title ?? template.Name?.ToProperCase();
       //var actionTitle = action.Title ?? action.Name?.ToProperCase() ?? paperTitle;
 
-      var entity = new Types.Entity();
-      entity.Kind = Kind.Paper;
+      Types.View entity;
+
+      if (action is GridAction)
+        entity = new Types.GridView();
+      else
+        entity = new Types.CustomView();
+
+      action._CopyTo(entity);
+
       entity.Links = new Collection<Types.Link>();
       entity.Links.Add(new Types.Link
       {
         Rel = Rel.Self,
         Href = info.Path
       });
-
-      Types.Design design;
-      if (action is GridAction gridAction)
-      {
-        design = new Types.GridDesign
-        {
-          AutoRefresh = gridAction.AutoRefresh,
-          Pagination = pagination
-        };
-      }
-      else
-      {
-        design = new Types.Design
-        {
-          Kind = action.Type
-        };
-      }
-
-      entity.View = new Types.View
-      {
-        Title = action.Title ?? template.Title,
-        Design = design
-      };
 
       await FetchDataAsync(entity, options, pagination, stopToken);
 
@@ -87,7 +71,7 @@ namespace Keep.Paper.Papers
       return entity;
     }
 
-    private void SetFilter(Types.Entity entity, object options)
+    private void SetFilter(Types.View view, object options)
     {
       var filter = (action as GridAction)?.Filter;
       if (filter == null)
@@ -95,38 +79,27 @@ namespace Keep.Paper.Papers
 
       var targetAction = new Types.Action
       {
+        Name = "filter",
         Data = options,
-        View = new Types.View
-        {
-          Name = "filter"
-        },
         Fields = new Collection<Types.Field>()
       };
 
       foreach (var field in filter)
       {
-        var targetField = new Types.Field
+        var targetField = new Types.CustomField
         {
-          Kind = field.Type,
-          View = new Types.View
-          {
-            Design = new Types.Design
-            {
-              Kind = field.Type
-            }
-          }
+          Design = field.Type,
         };
 
-        targetField.View._CopyFrom(field);
-        targetField.View.Design._CopyFrom(field);
+        field._CopyTo(targetField);
 
         targetAction.Fields.Add(targetField);
       }
 
-      (entity.Actions ??= new Collection<Types.Action>()).Add(targetAction);
+      (view.Actions ??= new Collection<Types.Action>()).Add(targetAction);
     }
 
-    private async Task FetchDataAsync(Types.Entity entity, object options,
+    private async Task FetchDataAsync(Types.View view, object options,
       Pagination pagination, CancellationToken stopToken)
     {
       var connectionName = action.Connection ?? template?.Connection;
@@ -144,8 +117,8 @@ namespace Keep.Paper.Papers
 
       if (ok)
       {
-        entity.Fields = new Collection<Types.Field>();
-        entity.Embedded = new Collection<Types.Entity>();
+        view.Fields = new Collection<Types.Field>();
+        view.Embedded = new Collection<Types.Entity>();
 
         var mappedFields = MapFields(reader.Current.GetFieldNames()).ToArray();
 
@@ -156,27 +129,17 @@ namespace Keep.Paper.Papers
           var fieldType = reader.Current.GetFieldType(i);
           var fieldSpec = action.Fields?.FirstOrDefault(x => x.Name.EqualsIgnoreCase(fieldName));
 
-          var kind = GetKind(fieldType);
-
-          var field = new Types.Field
-          {
-            Kind = kind,
-            View = new Types.View()
-          };
+          var field = CreateField(fieldType);
 
           foreach (var entry in fieldMap)
           {
-            field.View._TrySet(entry.Key, entry.Value);
-            field.View.Design?._TrySet(entry.Key, entry.Value);
+            field._TrySet(entry.Key, entry.Value);
           }
 
-          if (fieldSpec != null)
-          {
-            field.View._CopyFrom(fieldSpec, except: new[] { "name" });
-            field.View.Design?._CopyFrom(fieldSpec, except: new[] { "name" });
-          }
 
-          entity.Fields.Add(field);
+          fieldSpec?._CopyTo(field);
+
+          view.Fields.Add(field);
         }
 
         while (ok)
@@ -190,22 +153,22 @@ namespace Keep.Paper.Papers
             data.Add(fieldName, fieldValue);
           }
 
-          entity.Embedded.Add(new Types.Entity { Data = data });
+          view.Embedded.Add(new Types.Entity { Data = data });
 
           ok = await reader.ReadAsync();
         }
       }
     }
 
-    private string GetKind(Type fieldType)
+    private Types.Field CreateField(Type fieldType)
     {
       if (fieldType == typeof(int))
-        return FieldKind.Number;
+        return new Types.IntField();
 
       if (fieldType == typeof(DateTime))
-        return FieldKind.Date;
+        return new Types.DateField();
 
-      return FieldKind.Text;
+      return new Types.TextField();
     }
 
     private IEnumerable<HashMap<string>> MapFields(string[] fieldNames)

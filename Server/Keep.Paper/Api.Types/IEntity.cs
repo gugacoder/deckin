@@ -9,11 +9,13 @@ namespace Keep.Paper.Api.Types
   {
     string Kind { get; }
 
+    string Name { get; }
+
     object Meta { get; }
 
-    object Data { get; }
+    string Design { get; }
 
-    View View { get; }
+    object Data { get; }
 
     Collection<Field> Fields { get; }
 

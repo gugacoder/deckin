@@ -23,7 +23,7 @@ namespace Director.Paginas
       this.dbDirector = dbDirector;
     }
 
-    public async Task<Entity> Index(Filtro filtro, Pagination pagination)
+    public async Task<IEntity> Index(Filtro filtro, Pagination pagination)
     {
       pagination.Limit ??= (int)PageLimit.UpTo50;
 
@@ -50,19 +50,11 @@ namespace Director.Paginas
         .Echo()
         .SelectAsync<TBempresa_mercadologic>(cnDirector);
 
-      return new Entity
+      return new GridView
       {
-        Kind = Kind.Paper,
-
-        View = new View
-        {
-          Title = "Empresa do Mercadologic",
-          Design = new GridDesign
-          {
-            //AutoRefresh = 1, // segundos
-            Pagination = pagination
-          }
-        },
+        Title = "Empresa do Mercadologic",
+        //AutoRefresh = 1, // segundos
+        Pagination = pagination,
 
         Embedded = empresas.ToCollection(empresa => new Entity
         {
@@ -71,77 +63,46 @@ namespace Director.Paginas
 
         Fields = new Collection<Field>
         {
-          new Field
+          new IntField
           {
-            Kind = FieldKind.Number,
-            View = new View
-            {
-              Name = "DFcod_empresa",
-              Title = "Empresa",
-            }
+            Name = "DFcod_empresa",
+            Title = "Empresa",
           },
-          new Field
+          new TextField
           {
-            Kind = FieldKind.Text,
-            View = new View
-            {
-              Name = "DFnome_fantasia",
-              Title = "Nome da Empresa",
-            }
+            Name = "DFnome_fantasia",
+            Title = "Nome da Empresa",
           },
-          new Field
+          new TextField
           {
-            Kind = FieldKind.Text,
-            View = new View
-            {
-              Name = "DFprovider",
-              Title = "Provider",
-            }
+            Name = "DFprovider",
+            Title = "Provider",
           },
-          new Field
+          new TextField
           {
-            Kind = FieldKind.Text,
-            View = new View
-            {
-              Name = "DFdriver",
-              Title = "Driver",
-            }
+            Name = "DFdriver",
+            Title = "Driver",
           },
-          new Field
+          new TextField
           {
-            Kind = FieldKind.Text,
-            View = new View
-            {
-              Name = "DFservidor",
-              Title = "Servidor",
-            }
+            Name = "DFservidor",
+            Title = "Servidor",
           },
-          new Field
+          new IntField
           {
-            Kind = FieldKind.Number,
-            View = new View
-            {
-              Name = "DFporta",
-              Title = "Porta",
-            }
+            Name = "DFporta",
+            Title = "Porta",
           },
-          new Field
+          new TextField
           {
-            Kind = FieldKind.Text,
-            View = new View
-            {
-              Name = "DFdatabase",
-              Title = "Database",
-            }
+            Name = "DFdatabase",
+            Title = "Database",
           },
-          new Field
+          new TextField
           {
-            Kind = FieldKind.Username,
-            View = new View
-            {
-              Name = "DFusuario",
-              Title = "Usuário",
-            }
+            Name = "DFusuario",
+            Title = "Usuário",
+            Username = true
           }
         },
 
@@ -149,29 +110,18 @@ namespace Director.Paginas
         {
           new Keep.Paper.Api.Types.Action
           {
-            View = new View
-            {
-              Name = ActionName.Filter
-            },
+            Name = ActionName.Filter,
             Fields = new Collection<Field>
             {
-              new Field
+              new IntField
               {
-                Kind = FieldKind.Number,
-                View = new View
-                {
-                  Name = "DFcod_empresa",
-                  Title = "Empresa"
-                }
+                Name = "DFcod_empresa",
+                Title = "Empresa"
               },
-              new Field
+              new TextField
               {
-                Kind = FieldKind.Text,
-                View = new View
-                {
-                  Name = "DFnome_fantasia",
-                  Title = "Nome da Empresa"
-                }
+                Name = "DFnome_fantasia",
+                Title = "Nome da Empresa"
               }
             },
             Links = new Collection<Link>

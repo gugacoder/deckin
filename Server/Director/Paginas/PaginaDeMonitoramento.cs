@@ -175,7 +175,7 @@ namespace Director.Paginas
               //},
               new
               {
-                Kind = FieldKind.Date,
+                Kind = FieldDesign.Date,
                 View = new
                 {
                   Name = nameof(Filtro.De).ToCamelCase(),
@@ -184,7 +184,7 @@ namespace Director.Paginas
               },
               new
               {
-                Kind = FieldKind.Date,
+                Kind = FieldDesign.Date,
                 View = new
                 {
                   Name = nameof(Filtro.Ate).ToCamelCase(),
@@ -193,7 +193,7 @@ namespace Director.Paginas
               },
               new
               {
-                Kind = FieldKind.Text,
+                Kind = FieldDesign.Text,
                 View = new
                 {
                   Name = nameof(Filtro.Origem).ToCamelCase()
@@ -201,7 +201,7 @@ namespace Director.Paginas
               },
               new
               {
-                Kind = FieldKind.Text,
+                Kind = FieldDesign.Text,
                 View = new
                 {
                   Name = nameof(Filtro.Evento).ToCamelCase()
@@ -209,7 +209,7 @@ namespace Director.Paginas
               },
               new
               {
-                Kind = FieldKind.Text,
+                Kind = FieldDesign.Text,
                 View = new
                 {
                   Name = nameof(Filtro.Mensagem).ToCamelCase()

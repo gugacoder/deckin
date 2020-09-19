@@ -3,6 +3,9 @@ namespace Keep.Paper.Api
 {
   public static class Kind
   {
+    [Obsolete("Replaced by `view`.")]
+    public const string Paper = "paper";
+
     /// <summary>
     /// Entidade de transporte de informação trivial.
     /// </summary>
@@ -14,9 +17,19 @@ namespace Keep.Paper.Api
     public const string Fault = "fault";
 
     /// <summary>
-    /// Entidade de transporte de especificação de paper.
+    /// Entidade de transporte de especificação de visão.
     /// </summary>
-    public const string Paper = "paper";
+    public const string View = "view";
+
+    /// <summary>
+    /// Entidade de transporte de especificação de ação.
+    /// </summary>
+    public const string Action = "action";
+
+    /// <summary>
+    /// Entidade de transporte de especificação de campo.
+    /// </summary>
+    public const string Field = "field";
 
     /// <summary>
     /// A entidade representa um dado qualquer.

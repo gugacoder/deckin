@@ -21,7 +21,7 @@ namespace Keep.Paper.Templating
 {
   public class IntField : Field
   {
-    public override string Type { get; set; } = FieldKind.Number;
+    public override string Type { get; set; } = FieldDesign.Int;
 
     public int? Max { get; set; }
     public int? Min { get; set; }
