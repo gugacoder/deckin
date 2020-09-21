@@ -13,6 +13,8 @@ namespace Keep.Paper.Api.Types
   [Serializable]
   public class Entity : Types.IEntity
   {
+    private string _dataType;
+
     [JsonProperty(Order = -1090)]
     public virtual string Kind { get; set; }
 
@@ -26,7 +28,24 @@ namespace Keep.Paper.Api.Types
     public virtual string Design { get; set; }
 
     [JsonProperty(Order = 1000)]
-    public virtual object Data { get; set; }
+    public virtual string DataType
+    {
+      get => _dataType ?? Api.Name.DataType(Data?.GetType());
+      set => _dataType = value;
+    }
+
+    [JsonProperty(Order = 1010)]
+    public virtual object Data
+    {
+      get => ProtectedData;
+      set => ProtectedData = value;
+    }
+
+    /// <summary>
+    /// Permite a reescrita do método Data ainda mantendo compatibilidade com
+    /// a interface de Entity.
+    /// </summary>
+    protected virtual object ProtectedData { get; set; }
 
     [XmlArray]
     [JsonProperty(Order = 1010)]

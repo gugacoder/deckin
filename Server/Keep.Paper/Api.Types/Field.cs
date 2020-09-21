@@ -19,7 +19,7 @@ namespace Keep.Paper.Api.Types
     [JsonProperty(Order = -1080)]
     public virtual string Name { get; set; }
 
-    object IEntity.Meta { get; }
+    object Types.IEntity.Meta { get; }
 
     [JsonProperty(Order = -1060)]
     public virtual string Design => ProtectedDesign;
@@ -37,9 +37,12 @@ namespace Keep.Paper.Api.Types
     public virtual string Extent { get; set; }
 
     [JsonProperty(Order = -50)]
-    public virtual Types.Options Options { get; set; }
+    public virtual Collection<Types.FieldOption> Options { get; set; }
 
     [JsonProperty(Order = 1000)]
+    public virtual string DataType { get; set; }
+
+    [JsonProperty(Order = 1010)]
     public virtual object Data { get; set; }
 
     Collection<Types.Field> IEntity.Fields { get; }

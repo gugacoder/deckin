@@ -3,37 +3,24 @@ namespace Keep.Paper.Api
 {
   public static class Kind
   {
-    [Obsolete("Replaced by `view`.")]
+    [Obsolete("Replaced by `action`.")]
     public const string Paper = "paper";
-
-    /// <summary>
-    /// Entidade de transporte de informação trivial.
-    /// </summary>
+    [Obsolete("Replaced by `action`.")]
     public const string Info = "info";
-
-    /// <summary>
-    /// Entidade de transporte de informação sobre falha.
-    /// </summary>
+    [Obsolete("Replaced by `status`.")]
+    public const string Validation = "validation";
+    [Obsolete("Replaced by `status`.")]
     public const string Fault = "fault";
 
     /// <summary>
-    /// Entidade de transporte de especificação de ação.
+    /// Representação de mensagens de falha, status ou validação.
     /// </summary>
+    public const string Status = "status";
+
     public const string Action = "action";
 
-    /// <summary>
-    /// Entidade de transporte de especificação de campo.
-    /// </summary>
     public const string Field = "field";
 
-    /// <summary>
-    /// A entidade representa um dado qualquer.
-    /// </summary>
     public const string Data = "data";
-
-    /// <summary>
-    /// Entidade de transporte de validação de dados e formulários.
-    /// </summary>
-    public const string Validation = "validation";
   }
 }

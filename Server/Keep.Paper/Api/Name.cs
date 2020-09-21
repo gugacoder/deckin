@@ -1,12 +1,26 @@
 ﻿using System;
+using System.CodeDom;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Keep.Tools;
+using Microsoft.CSharp;
 
 namespace Keep.Paper.Api
 {
   public static class Name
   {
+    public static string DataType(Type type)
+    {
+      if (type == null)
+        return null;
+
+      // FIXME: BUG: Em caso de Nullable<T> deveria retornar "T?"
+      using var provider = new CSharpCodeProvider();
+      var @ref = new CodeTypeReference(type);
+      var name = provider.GetTypeOutput(@ref);
+      return name;
+    }
+
     public static string Catalog(Type type)
     {
       var name = ExtractNameFromAttribute<CatalogNameAttribute>(type);

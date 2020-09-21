@@ -13,6 +13,8 @@ namespace Keep.Paper.Api.Types
 
     string Name { get; }
 
+    string DataType { get; }
+
     object Data { get; }
 
     Collection<Types.Field> Fields { get; }

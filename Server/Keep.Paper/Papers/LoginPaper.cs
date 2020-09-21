@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Keep.Paper.Api;
+using Types = Keep.Paper.Api.Types;
 using Keep.Paper.Domain;
 using Keep.Paper.Models;
 using Keep.Paper.Helpers;
@@ -35,68 +36,49 @@ namespace Keep.Paper.Papers
       this.paperCatalog = paperCatalog;
     }
 
-    public object Index(Options options)
+    public Types.LoginAction Index(Options options)
     {
-      var redirectTo = options?.RedirectTo;
-      if (redirectTo == null)
+      if (options == null)
       {
-        var homePaper = paperCatalog.GetType(PaperName.Home);
-        redirectTo = Href.To(HttpContext, homePaper.Type, "Index");
+        options = new Options();
       }
-      return new
+
+      if (options.RedirectTo == null)
       {
-        Kind = Kind.Paper,
-        Data = new
+        var target = paperCatalog.GetType(PaperName.Home);
+        options.RedirectTo = Href.To(HttpContext, target.Type, "Index");
+      }
+
+      return new Types.LoginAction
+      {
+        Title = Title,
+        Extent = Extent.Small,
+        Data = options,
+        Target = new Types.Link
         {
-          redirectTo
+          Title = "Autenticar",
+          Href = Href.To(HttpContext, GetType(), nameof(AuthenticateAsync))
         },
-        View = new
+        Fields = new Tools.Collections.Collection<Types.Field>
         {
-          Title,
-          Design = Design.Login,
-          Extent = Extent.Small
-        },
-        Fields = new
-        {
-          RedirectTo = new
+          new Types.UriField
           {
-            Kind = FieldDesign.Uri,
-            View = new
-            {
-              Hidden = true
-            }
+            Name = "RedirectTo",
+            Hidden = true
           },
-          Username = new
+          new Types.TextField
           {
-            Kind = FieldDesign.Username,
-            View = new
-            {
-              Title = "Usuário",
-              Required = true
-            }
+            Name = "Username",
+            Title = "Usuário",
+            Username = true,
+            Required = true
           },
-          Password = new
+          new Types.TextField
           {
-            Kind = FieldDesign.Password,
-            View = new
-            {
-              Title = "Senha",
-              Required = true
-            }
-          }
-        },
-        Links = new object[]
-        {
-          new
-          {
-            Rel = Rel.Self,
-            Href = Href.To(HttpContext, GetType(), Name.Action())
-          },
-          new
-          {
-            Rel = Rel.Action,
-            Title = "Autenticar",
-            Href = Href.To(HttpContext, GetType(), nameof(AuthenticateAsync))
+            Name = "Password",
+            Title = "Usuário",
+            Password = true,
+            Required = true
           },
         }
       };

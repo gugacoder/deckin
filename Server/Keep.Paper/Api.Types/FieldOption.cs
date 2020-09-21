@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Api.Types
 {
   [Serializable]
-  public class Option
+  public class FieldOption
   {
     [JsonProperty(Order = 10)]
     public string Key { get; set; }
