@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Api.Types
 {
   [Serializable]
-  public class Entity : IEntity
+  public class Entity : Types.IEntity
   {
     [JsonProperty(Order = -1090)]
     public virtual string Kind { get; set; }
@@ -30,18 +30,18 @@ namespace Keep.Paper.Api.Types
 
     [XmlArray]
     [JsonProperty(Order = 1010)]
-    public virtual Collection<Field> Fields { get; set; }
+    public virtual Collection<Types.Field> Fields { get; set; }
 
     [XmlArray]
     [JsonProperty(Order = 1020)]
-    public virtual Collection<Action> Actions { get; set; }
+    public virtual Collection<Types.Action> Actions { get; set; }
 
     [XmlArray]
     [JsonProperty(Order = 1030)]
-    public virtual Collection<Entity> Embedded { get; set; }
+    public virtual Collection<Types.Entity> Embedded { get; set; }
 
     [XmlArray]
     [JsonProperty(Order = 1040)]
-    public virtual Collection<Link> Links { get; set; }
+    public virtual Collection<Types.Link> Links { get; set; }
   }
 }

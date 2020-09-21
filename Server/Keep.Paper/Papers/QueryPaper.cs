@@ -48,12 +48,12 @@ namespace Keep.Paper.Papers
       //var paperTitle = template.Title ?? template.Name?.ToProperCase();
       //var actionTitle = action.Title ?? action.Name?.ToProperCase() ?? paperTitle;
 
-      Types.View entity;
+      Types.Action entity;
 
       if (action is GridAction)
-        entity = new Types.GridView();
+        entity = new Types.GridAction();
       else
-        entity = new Types.CustomView();
+        entity = new Types.CustomAction();
 
       action._CopyTo(entity);
 
@@ -71,13 +71,13 @@ namespace Keep.Paper.Papers
       return entity;
     }
 
-    private void SetFilter(Types.View view, object options)
+    private void SetFilter(Types.Action view, object options)
     {
       var filter = (action as GridAction)?.Filter;
       if (filter == null)
         return;
 
-      var targetAction = new Types.Action
+      var targetAction = new Types.CustomAction
       {
         Name = "filter",
         Data = options,
@@ -99,7 +99,7 @@ namespace Keep.Paper.Papers
       (view.Actions ??= new Collection<Types.Action>()).Add(targetAction);
     }
 
-    private async Task FetchDataAsync(Types.View view, object options,
+    private async Task FetchDataAsync(Types.Action view, object options,
       Pagination pagination, CancellationToken stopToken)
     {
       var connectionName = action.Connection ?? template?.Connection;

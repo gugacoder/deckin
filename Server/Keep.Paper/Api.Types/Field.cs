@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Api.Types
 {
   [Serializable]
-  public abstract class Field : IFieldEntity
+  public abstract class Field : Types.IEntity
   {
     protected virtual string ProtectedKind { get; set; } = Api.Kind.Field;
     protected virtual string ProtectedDesign { get; set; }
@@ -37,14 +37,14 @@ namespace Keep.Paper.Api.Types
     public virtual string Extent { get; set; }
 
     [JsonProperty(Order = -50)]
-    public virtual Options Options { get; set; }
+    public virtual Types.Options Options { get; set; }
 
     [JsonProperty(Order = 1000)]
     public virtual object Data { get; set; }
 
-    Collection<Field> IEntity.Fields { get; }
-    Collection<Action> IEntity.Actions { get; }
-    Collection<Entity> IEntity.Embedded { get; }
-    Collection<Link> IEntity.Links { get; }
+    Collection<Types.Field> IEntity.Fields { get; }
+    Collection<Types.Action> IEntity.Actions { get; }
+    Collection<Types.Entity> IEntity.Embedded { get; }
+    Collection<Types.Link> IEntity.Links { get; }
   }
 }

@@ -11,10 +11,10 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Api.Types
 {
   [Serializable]
-  public class CustomView : View
+  public class CustomAction : Action
   {
     [JsonProperty(Order = -1090)]
-    public override string Kind { get; } = Api.Kind.View;
+    public override string Kind { get; } = Api.Kind.Action;
 
     [JsonProperty(Order = -1060)]
     public new string Design

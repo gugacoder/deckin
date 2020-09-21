@@ -50,13 +50,13 @@ namespace Director.Paginas
         .Echo()
         .SelectAsync<TBempresa_mercadologic>(cnDirector);
 
-      return new GridView
+      return new GridAction
       {
         Title = "Empresa do Mercadologic",
         //AutoRefresh = 1, // segundos
         Pagination = pagination,
 
-        Embedded = empresas.ToCollection(empresa => new Entity
+        Embedded = empresas.ToCollection(empresa => (Entity)new Entity
         {
           Data = empresa
         }),
@@ -108,7 +108,7 @@ namespace Director.Paginas
 
         Actions = new Collection<Keep.Paper.Api.Types.Action>
         {
-          new Keep.Paper.Api.Types.Action
+          new Keep.Paper.Api.Types.CustomAction
           {
             Name = ActionName.Filter,
             Fields = new Collection<Field>

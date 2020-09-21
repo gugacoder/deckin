@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Api.Types
 {
   [Serializable]
-  public class GridView : View
+  public class GridAction : Action
   {
     [JsonProperty(Order = -1060)]
     public override string Design { get; } = Api.Design.Grid;

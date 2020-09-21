@@ -17,11 +17,6 @@ namespace Keep.Paper.Api
     public const string Fault = "fault";
 
     /// <summary>
-    /// Entidade de transporte de especificação de visão.
-    /// </summary>
-    public const string View = "view";
-
-    /// <summary>
     /// Entidade de transporte de especificação de ação.
     /// </summary>
     public const string Action = "action";
