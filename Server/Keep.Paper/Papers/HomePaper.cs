@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Linq;
 using Keep.Paper.Api;
+using Types = Keep.Paper.Api.Types;
 using Keep.Paper.Services;
 using Keep.Tools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Keep.Tools.Collections;
 
 namespace Keep.Paper.Papers
 {
@@ -18,34 +20,29 @@ namespace Keep.Paper.Papers
       this.paperCatalog = paperCatalog;
     }
 
-    public object Index()
+    public Types.Action Index()
     {
       var papers = (
         from catalog in paperCatalog.EnumerateCatalogs()
         from paper in paperCatalog.EnumeratePapers(catalog)
         let paperType = paperCatalog.GetType(catalog, paper)
-        select new
+        select new Types.Entity
         {
           Rel = Rel.Item,
-          Href = Href.To(HttpContext, paperType.Type, "Index")
-        }).ToArray();
-
-      return new
-      {
-        Kind = Kind.Paper,
-        View = new
-        {
-          Title = "Catálogo",
-          Design = Design.Dashboard
-        },
-        Embedded = papers,
-        Links = new object[]
-        {
-          new {
-            Rel = Rel.Self,
-            Href = Href.To(HttpContext, GetType(), "Index")
+          Links = new Collection<Types.Link>
+          {
+            new Types.Link
+            {
+              Rel = Rel.Self,
+              Href = Href.To(HttpContext, paperType.Type, "Index")
+            }
           }
-        }
+        }).ToCollection<Types.IEntity>();
+
+      return new Types.DashboardAction
+      {
+        Title = "Início",
+        Embedded = papers
       };
     }
   }

@@ -360,6 +360,28 @@ namespace Keep.Tools.Collections
 
     #endregion
 
+    #region Implementação de IExtendedCollection
+
+    void IExtendedCollection.AddAt(int index, object item)
+      => this.AddAt(index, (T)item);
+
+    void IExtendedCollection.AddMany(IEnumerable items)
+      => this.AddMany(items.Cast<T>());
+
+    void IExtendedCollection.AddMany(params object[] items)
+      => this.AddMany(items.Cast<T>());
+
+    void IExtendedCollection.RemoveMany(IEnumerable items)
+      => this.RemoveMany(items.Cast<T>());
+
+    void IExtendedCollection.RemoveWhen(Predicate<object> match)
+      => this.RemoveWhen(item => match.Invoke(item));
+
+    void IExtendedCollection.ForEach(Action<object> action)
+      => this.ForEach(item => action.Invoke(item));
+
+    #endregion
+
     /// <summary>
     /// Repositório de estocagem dos itens da coleção.
     /// Usado como ponto de acesso ao estoque de itens durante sobrescrita de

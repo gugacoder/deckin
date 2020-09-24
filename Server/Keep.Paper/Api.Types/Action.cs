@@ -28,9 +28,12 @@ namespace Keep.Paper.Api.Types
     public virtual string Name { get; set; }
 
     [JsonProperty(Order = -1070)]
-    public virtual object Meta { get; set; }
+    public virtual string Rel { get; set; }
 
     [JsonProperty(Order = -1060)]
+    public virtual object Meta { get; set; }
+
+    [JsonProperty(Order = -1050)]
     public virtual string Design => ProtectedDesign;
 
     [JsonProperty(Order = -90)]
@@ -42,19 +45,19 @@ namespace Keep.Paper.Api.Types
     [JsonProperty(Order = 1000)]
     public virtual Link Target
     {
-      get => Links?.FirstOrDefault(x => Rel.Action.EqualsIgnoreCase(x.Rel));
+      get => Links?.FirstOrDefault(x => Api.Rel.Action.EqualsIgnoreCase(x.Rel));
       set
       {
         if (Links != null)
         {
-          Links.RemoveWhen(x => Rel.Action.EqualsIgnoreCase(x.Rel));
+          Links.RemoveWhen(x => Api.Rel.Action.EqualsIgnoreCase(x.Rel));
         }
 
         _target = value;
 
         if (value != null)
         {
-          value.Rel = Rel.Action;
+          value.Rel = Api.Rel.Action;
           (Links ??= new Collection<Link>()).Add(value);
         }
       }
@@ -80,7 +83,7 @@ namespace Keep.Paper.Api.Types
 
     [XmlArray]
     [JsonProperty(Order = 1030)]
-    public virtual Collection<Types.Entity> Embedded { get; set; }
+    public virtual Collection<Types.IEntity> Embedded { get; set; }
 
     [XmlArray]
     [JsonProperty(Order = 1040)]
@@ -95,7 +98,7 @@ namespace Keep.Paper.Api.Types
         {
           _links ??= new Collection<Link>();
 
-          var hasTarget = _links.Any(x => Rel.Action.EqualsIgnoreCase(x.Rel));
+          var hasTarget = _links.Any(x => Api.Rel.Action.EqualsIgnoreCase(x.Rel));
           if (hasTarget)
           {
             _target = null;
@@ -108,3 +111,4 @@ namespace Keep.Paper.Api.Types
       }
     }
   }
+}

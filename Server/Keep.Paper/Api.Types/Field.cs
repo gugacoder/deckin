@@ -19,9 +19,12 @@ namespace Keep.Paper.Api.Types
     [JsonProperty(Order = -1080)]
     public virtual string Name { get; set; }
 
+    [JsonProperty(Order = -1070)]
+    public virtual string Rel { get; set; }
+
     object Types.IEntity.Meta { get; }
 
-    [JsonProperty(Order = -1060)]
+    [JsonProperty(Order = -1050)]
     public virtual string Design => ProtectedDesign;
 
     [JsonProperty(Order = -90)]
@@ -47,7 +50,7 @@ namespace Keep.Paper.Api.Types
 
     Collection<Types.Field> IEntity.Fields { get; }
     Collection<Types.Action> IEntity.Actions { get; }
-    Collection<Types.Entity> IEntity.Embedded { get; }
+    Collection<Types.IEntity> IEntity.Embedded { get; }
     Collection<Types.Link> IEntity.Links { get; }
   }
 }

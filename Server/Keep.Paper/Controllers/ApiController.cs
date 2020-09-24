@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using Keep.Paper.Api;
+using Types = Keep.Paper.Api.Types;
 using Keep.Paper.Formatters;
 using Keep.Tools;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -12,21 +13,10 @@ namespace Keep.Paper.Controllers
   public class ApiController : Controller
   {
     [Route("{*path}")]
-    public IActionResult FallThrough() => Ok(new
+    public IActionResult FallThrough() => Ok(new Types.Status
     {
-      Kind = Kind.Fault,
-      Data = new
-      {
-        Fault = Fault.NotFound,
-        Reason = "The requested path does not match any valid resource."
-      },
-      Links = new object[]
-      {
-        new {
-          Rel = Rel.Self,
-          Href = HttpContext.Request.GetDisplayUrl()
-        }
-      }
+      Fault = Fault.NotFound,
+      Reason = "The requested path does not match any valid resource."
     });
   }
 }

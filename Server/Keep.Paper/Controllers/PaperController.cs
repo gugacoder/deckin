@@ -8,6 +8,7 @@ using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 using Keep.Paper.Api;
+using Types = Keep.Paper.Api.Types;
 using Keep.Paper.Formatters;
 using Keep.Paper.Interceptors;
 using Keep.Paper.Papers;
@@ -73,7 +74,7 @@ namespace Keep.Paper.Controllers
 
         var ret = await TryCreateParametersAsync(getter, actionArgs, Request.Body);
         if (!ret.Ok)
-          return Fail(Fault.ServerFailure, ret.Fault.Message);
+          return Fail(Fault.Failure, ret.Fault.Message);
 
         var getterParameters = ret.Value;
 
@@ -142,32 +143,41 @@ namespace Keep.Paper.Controllers
         //  status = customStatus;
         //}
 
+        if (result is Types.IEntity entity)
+        {
+          EnsureSelfLink(entity);
+        }
+
         return StatusCode(Response.StatusCode, result);
       }
       catch (Exception ex)
       {
-        return StatusCode(StatusCodes.Status500InternalServerError, new
-        {
-          Kind = Kind.Fault,
-          Data = new
-          {
-            Fault = Fault.ServerFailure,
-            Reason = ex.GetCauseMessages()
-#if DEBUG
-            ,
-            Trace = ex.GetStackTrace()
-#endif
-          },
-          Links = new
-          {
-            Self = new
-            {
-              Href = Href.To(HttpContext, catalogName, paperName, actionName,
-                  actionKeys)
-            }
-          }
-        });
+        var status = Api.Types.Status.FromException(ex);
+        return StatusCode(StatusCodes.Status500InternalServerError, status);
       }
+    }
+
+    private void EnsureSelfLink(Types.IEntity result)
+    {
+      if (result.Links == null)
+      {
+        if (!result._CanWrite(nameof(result.Links)))
+          return;
+
+        result._SetNew(nameof(result.Links));
+      }
+
+      var links = result.Links;
+
+      var hasSelf = links.Any(link => link.Rel.EqualsIgnoreCase(Rel.Self));
+      if (hasSelf)
+        return;
+
+      links.Add(new Types.Link
+      {
+        Rel = Rel.Self,
+        Href = HttpContext.Request.Path
+      });
     }
 
     private IEnumerable<ChainAsync> BuidPipeline(Type paperType)
@@ -214,21 +224,13 @@ namespace Keep.Paper.Controllers
 
     private IActionResult Fail(string fault, params string[] messages)
     {
-      return Ok(new
+      var message = messages.First();
+      var detail = messages.Skip(1);
+      return Ok(new Types.Status
       {
-        Kind = Kind.Fault,
-        Data = new
-        {
-          Fault = fault,
-          Reason = messages
-        },
-        Links = new[]
-        {
-          new {
-            Rel = Rel.Self,
-            Href = Href.MakeRelative(HttpContext.Request.GetDisplayUrl())
-          }
-        }
+        Fault = fault,
+        Reason = message,
+        Detail = detail.Any() ? To.Text(detail) : null
       }); ;
     }
 

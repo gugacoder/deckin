@@ -56,7 +56,7 @@ namespace Director.Paginas
         //AutoRefresh = 1, // segundos
         Pagination = pagination,
 
-        Embedded = empresas.ToCollection(empresa => (Entity)new Entity
+        Embedded = empresas.ToCollection(empresa => (IEntity)new Entity
         {
           Data = empresa
         }),

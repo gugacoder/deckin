@@ -9,9 +9,11 @@ namespace Keep.Paper.Api.Types
   {
     string Kind { get; }
 
-    object Meta { get; }
-
     string Name { get; }
+
+    string Rel { get; }
+
+    object Meta { get; }
 
     string DataType { get; }
 
@@ -21,7 +23,7 @@ namespace Keep.Paper.Api.Types
 
     Collection<Types.Action> Actions { get; }
 
-    Collection<Types.Entity> Embedded { get; }
+    Collection<Types.IEntity> Embedded { get; }
 
     Collection<Types.Link> Links { get; }
   }

@@ -12,6 +12,7 @@ using System.Net;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using Keep.Paper.Services;
+using Keep.Tools.Collections;
 
 namespace Keep.Paper.Papers
 {
@@ -100,30 +101,22 @@ namespace Keep.Paper.Papers
         var ret = await model.AuthenticateAsync(credential);
         if (!ret.Ok)
         {
-          return new
+          return new Types.Status
           {
-            Kind = Kind.Validation,
-            Data = new
+            Fault = Fault.InvalidData,
+            Embedded = new Collection<Types.IEntity>
             {
-              Issues = new[] {
-                new {
-                  Field = nameof(credential.Username).ToCamelCase(),
-                  Message = ret.Fault.Message ?? "Usuário e senha não conferem.",
-                  Severity = Severities.Warning
-                },
-                new {
-                  Field = nameof(credential.Password).ToCamelCase(),
-                  Message = ret.Fault.Message ?? "Usuário e senha não conferem.",
-                  Severity = Severities.Warning
-                }
-              }
-            },
-            Links = new object[]
-            {
-              new
+              new Types.Status
               {
-                Rel = Rel.Self,
-                Href = Href.To(HttpContext, GetType(), Name.Action())
+                Field = nameof(credential.Username).ToCamelCase(),
+                Reason = ret.Fault.Message ?? "Usuário e senha não conferem.",
+                Severity = Severities.Warning
+              },
+              new Types.Status
+              {
+                Field = nameof(credential.Password).ToCamelCase(),
+                Reason = ret.Fault.Message ?? "Usuário e senha não conferem.",
+                Severity = Severities.Warning
               }
             }
           };
@@ -154,27 +147,7 @@ namespace Keep.Paper.Papers
       }
       catch (Exception ex)
       {
-        return new
-        {
-          Kind = Kind.Fault,
-          Data = new
-          {
-            Fault = Fault.ServerFailure,
-            Reason = ex.GetCauseMessages()
-#if DEBUG
-            ,
-            Trace = ex.GetStackTrace()
-#endif
-          },
-          Links = new object[]
-          {
-            new
-            {
-              Rel = Rel.Self,
-              Href = Href.To(HttpContext, GetType(), Name.Action())
-            }
-          }
-        };
+        return Types.Status.FromException(ex);
       }
     }
   }

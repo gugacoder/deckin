@@ -118,7 +118,7 @@ namespace Keep.Paper.Papers
       if (ok)
       {
         view.Fields = new Collection<Types.Field>();
-        view.Embedded = new Collection<Types.Entity>();
+        view.Embedded = new Collection<Types.IEntity>();
 
         var mappedFields = MapFields(reader.Current.GetFieldNames()).ToArray();
 

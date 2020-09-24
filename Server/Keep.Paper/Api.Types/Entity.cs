@@ -22,9 +22,12 @@ namespace Keep.Paper.Api.Types
     public virtual string Name { get; set; }
 
     [JsonProperty(Order = -1070)]
-    public virtual object Meta { get; set; }
+    public virtual string Rel { get; set; }
 
     [JsonProperty(Order = -1060)]
+    public virtual object Meta { get; set; }
+
+    [JsonProperty(Order = -1050)]
     public virtual string Design { get; set; }
 
     [JsonProperty(Order = 1000)]
@@ -57,7 +60,7 @@ namespace Keep.Paper.Api.Types
 
     [XmlArray]
     [JsonProperty(Order = 1030)]
-    public virtual Collection<Types.Entity> Embedded { get; set; }
+    public virtual Collection<Types.IEntity> Embedded { get; set; }
 
     [XmlArray]
     [JsonProperty(Order = 1040)]

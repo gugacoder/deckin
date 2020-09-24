@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Api.Types
 {
   public class Entity<T> : Entity
-    where T : class
   {
     private T _data;
 

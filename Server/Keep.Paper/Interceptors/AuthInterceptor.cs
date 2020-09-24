@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Threading.Tasks;
 using Keep.Paper.Api;
+using Types = Keep.Paper.Api.Types;
 using Keep.Paper.Papers;
 using Keep.Paper.Services;
 using Keep.Tools;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Keep.Tools.Collections;
 
 namespace Keep.Paper.Interceptors
 {
@@ -73,30 +75,22 @@ namespace Keep.Paper.Interceptors
     {
       var loginPaper = paperCatalog.GetType(PaperName.Login);
       var ctx = this.HttpContext;
-      return new
+
+      return new Types.Status
       {
-        Kind = Kind.Fault,
-        Data = new
+        Fault = Fault.Unauthorized,
+        Reason = "Acesso restrito a usuários autenticados.",
+        Links = new Collection<Types.Link>
         {
-          Fault = Fault.Unauthorized,
-          Reason = new[]{
-            "Acesso restrito a usuários autenticados."
-          }
-        },
-        Links = new object[]
-        {
-          new
+          new Types.Link
           {
-            Rel = Rel.Self,
-            Href = HttpContext.Request.GetDisplayUrl()
-          },
-          new
-          {
-            LoginPaper.Title,
+            Title = LoginPaper.Title,
             Rel = Rel.Forward,
             Href = Href.To(ctx, loginPaper.Type, "Index"),
-            Data = new {
-              Form = new {
+            Data = new Types.Payload<LoginPaper.Options>
+            {
+              Form = new LoginPaper.Options
+              {
                 RedirectTo = targetPaperHref
               }
             }
