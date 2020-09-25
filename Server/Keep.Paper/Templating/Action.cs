@@ -50,6 +50,8 @@ namespace Keep.Paper.Templating
       set => _verb = value;
     }
 
+    public string EntityName { get; set; }
+
     public bool Disabled { get; set; }
 
     public bool Popup { get; set; }

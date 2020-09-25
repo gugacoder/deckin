@@ -11,10 +11,10 @@ namespace Keep.Paper.Api.Types
     /// <summary>
     /// Intervalo de autoatualização de dados em segundos.
     /// </summary>
-    [JsonProperty(Order = 10)]
+    [JsonProperty(Order = 100)]
     public int? AutoRefresh { get; set; }
 
-    [JsonProperty(Order = 20)]
+    [JsonProperty(Order = 200)]
     public Pagination Pagination { get; set; }
   }
 }

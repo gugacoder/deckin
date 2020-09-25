@@ -1,4 +1,5 @@
 ﻿using System;
+using Keep.Tools;
 using Newtonsoft.Json;
 
 namespace Keep.Paper.Api.Types
@@ -15,7 +16,7 @@ namespace Keep.Paper.Api.Types
     }
 
     protected override string SanitizeTypeName(string typeName)
-      => typeName?.Replace(nameof(View), "");
+      => typeName?.Replace(nameof(View), "").ToCamelCase();
 
     protected virtual string BaseName { get; set; }
     protected virtual string BaseTitle { get; set; }
@@ -31,7 +32,7 @@ namespace Keep.Paper.Api.Types
     [JsonProperty(Order = -1080)]
     public virtual Link Target { get => BaseTarget; set => BaseTarget = value; }
 
-    [JsonProperty(Order = -1070)]
+    [JsonProperty(Order = -1075)]
     public virtual string Extent { get => BaseExtent; set => BaseExtent = value; }
   }
 }

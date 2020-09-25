@@ -7,7 +7,8 @@
     <GridAction
       Title="Usuários"
       Limit="100"
-      AutoRefresh="2">
+      AutoRefresh="2"
+      EntityName="Usuario">
       <Query><![CDATA[
         select top (@limit)
                TBusuario.DFid_usuario

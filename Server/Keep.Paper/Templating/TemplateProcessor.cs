@@ -64,7 +64,7 @@ namespace Keep.Paper.Templating
         var spec = new ActionSpec();
         spec.Info = info;
         spec.Factory = provider =>
-         ActivatorUtilities.CreateInstance<QueryPaper>(provider, info, action);
+         ActivatorUtilities.CreateInstance<QueryTemplatePaper>(provider, info, action);
 
         yield return spec;
       }
@@ -93,13 +93,13 @@ namespace Keep.Paper.Templating
         var paperType = new PaperType();
         paperType.Catalog = template.Catalog ?? template.AssemblyName ?? "Default";
         paperType.Name = $"{template.Name}.{action.Name}";
-        paperType.Type = typeof(QueryPaper);
+        paperType.Type = typeof(QueryTemplatePaper);
 
         var info = new ActionInfo();
         info.Path = $"/Api/1/Papers/{paperType.Catalog}/{paperType.Name}/Index";
 
         paperType.Factory = provider =>
-         ActivatorUtilities.CreateInstance<QueryPaper>(provider, info, action);
+         ActivatorUtilities.CreateInstance<QueryTemplatePaper>(provider, info, action);
 
         Debug.WriteLine(info.Path);
 

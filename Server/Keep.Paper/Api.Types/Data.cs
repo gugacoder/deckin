@@ -6,6 +6,7 @@ using System.Linq;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
+using Newtonsoft.Json;
 
 namespace Keep.Paper.Api.Types
 {
@@ -14,8 +15,7 @@ namespace Keep.Paper.Api.Types
     private readonly List<object> sources;
     private readonly HashMap custom;
     private static readonly string[] reservedKeys;
-
-    private string typeName;
+    private string _typeName;
 
     protected virtual string SanitizeTypeName(string typeName) => typeName;
 
@@ -28,21 +28,35 @@ namespace Keep.Paper.Api.Types
     {
       this.sources = new List<object> { this };
       this.custom = new HashMap();
-
-      var name = this.GetType().Name.Split(',', ';').First();
-      this.typeName = SanitizeTypeName(name);
+      SetDefaultTypeName();
     }
 
     public Data(params object[] sources)
     {
-      this.sources = new List<object>();
+      this.sources = new List<object>(sources);
       this.custom = new HashMap();
+      SetDefaultTypeName();
+    }
 
-      this.sources.AddRange(sources);
+    private string TypeName
+    {
+      get => _typeName;
+      set => _typeName = (value == null || string.IsNullOrWhiteSpace(value))
+                ? null : SanitizeTypeName(value.Trim());
+    }
+
+    private void SetDefaultTypeName()
+    {
+      TypeName = null;
 
       var source = sources?.FirstOrDefault();
-      var name = source?.GetType().Name.Split(',', ';').First();
-      this.typeName = (name != null) ? SanitizeTypeName(name) : null;
+      if (source != null)
+        return;
+
+      if (source is IDictionary && !(source is Data))
+        return;
+
+      TypeName = source.GetType().Name.Split(',', ';').First();
     }
 
     public static Data<T> For<T>(T source) => new Data<T>(source);
@@ -63,7 +77,7 @@ namespace Keep.Paper.Api.Types
 
     private IEnumerable<string> EnumerateKeys()
     {
-      if (typeName != null) yield return "@type";
+      if (TypeName != null) yield return "@type";
 
       foreach (var source in sources)
       {
@@ -78,9 +92,16 @@ namespace Keep.Paper.Api.Types
         }
         else
         {
-          var keys = (source is Data)
-            ? source._Keys().Except(reservedKeys)
-            : source._Keys();
+          var keys =
+            from key in source._Keys()
+            let attr = source._Attribute<JsonPropertyAttribute>(key)
+            orderby attr?.Order ?? 0
+            select key;
+
+          if (source is Data)
+          {
+            keys = keys.Except(reservedKeys);
+          }
 
           foreach (var key in keys)
           {
@@ -115,7 +136,7 @@ namespace Keep.Paper.Api.Types
       var keyName = (string)key;
 
       if (keyName.EqualsIgnoreCase("@type"))
-        return typeName;
+        return TypeName;
 
       foreach (var source in sources)
       {
@@ -154,7 +175,7 @@ namespace Keep.Paper.Api.Types
 
       if (keyName.EqualsIgnoreCase("@type"))
       {
-        typeName = (value != null) ? SanitizeTypeName((string)value) : null;
+        TypeName = (value != null) ? SanitizeTypeName((string)value) : null;
         return;
       }
 
@@ -184,7 +205,7 @@ namespace Keep.Paper.Api.Types
 
       if (keyName.EqualsIgnoreCase("@type"))
       {
-        typeName = null;
+        TypeName = null;
         return true;
       }
 
@@ -204,7 +225,7 @@ namespace Keep.Paper.Api.Types
 
     public void Clear()
     {
-      typeName = null;
+      TypeName = null;
       foreach (var source in sources)
       {
         source._Keys().ForEach(key => source._TrySet(key, null));

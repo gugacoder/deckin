@@ -1,9 +1,9 @@
 ﻿using System;
+using Keep.Tools;
 using Newtonsoft.Json;
 
 namespace Keep.Paper.Api.Types
 {
-
   public class Widget : Data
   {
     public Widget()
@@ -16,7 +16,7 @@ namespace Keep.Paper.Api.Types
     }
 
     protected override string SanitizeTypeName(string typeName)
-      => typeName?.Replace(nameof(Widget), "");
+      => typeName?.Replace(nameof(Widget), "").ToCamelCase();
 
     protected virtual string BaseName { get; set; }
     protected virtual string BaseTitle { get; set; }

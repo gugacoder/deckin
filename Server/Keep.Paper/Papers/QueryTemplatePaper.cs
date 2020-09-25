@@ -18,14 +18,14 @@ using System.Text.RegularExpressions;
 
 namespace Keep.Paper.Papers
 {
-  public class QueryPaper : AbstractPaper
+  public class QueryTemplatePaper : AbstractPaper
   {
     private readonly IActionInfo info;
     private readonly Templating.Action action;
     private readonly IDbConnector connector;
     private readonly QueryTemplate template;
 
-    public QueryPaper(IActionInfo info, Templating.Action action, IDbConnector connector)
+    public QueryTemplatePaper(IActionInfo info, Templating.Action action, IDbConnector connector)
     {
       this.info = info;
       this.action = action;
@@ -94,7 +94,7 @@ namespace Keep.Paper.Papers
           Props = new Types.Widget(field.Type)
         };
 
-        field._CopyTo(targetField);
+        field._CopyTo(targetField.Props);
 
         targetAction.Fields.Add(targetField);
       }
@@ -134,13 +134,8 @@ namespace Keep.Paper.Papers
 
           var field = CreateField(fieldType);
 
-          foreach (var entry in fieldMap)
-          {
-            field._TrySet(entry.Key, entry.Value);
-          }
-
-
-          fieldSpec?._CopyTo(field);
+          fieldMap.ForEach(entry => field.Props._TrySet(entry.Key, entry.Value));
+          fieldSpec?._CopyTo(field.Props);
 
           view.Fields.Add(field);
         }
@@ -158,7 +153,7 @@ namespace Keep.Paper.Papers
 
           view.Embedded.Add(new Types.Entity
           {
-            Data = new Types.Data(data)
+            Data = new Types.Data(data).SetType(action.EntityName)
           });
 
           ok = await reader.ReadAsync();
