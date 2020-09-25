@@ -12,11 +12,7 @@ namespace Keep.Paper.Api.Types
 
     public Collection Data { get; set; }
 
-    public Collection<Payload<TForm>> Chunk
-    {
-      get => throw new NotImplementedException();
-      set => throw new NotImplementedException();
-    }
+    public Collection<Payload<TForm>> Chunk { get; set; }
 
     object IPayload.Form
     {

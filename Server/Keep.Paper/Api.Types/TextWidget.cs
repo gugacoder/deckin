@@ -4,11 +4,8 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Api.Types
 {
   [Serializable]
-  public class TextField : Field
+  public class TextWidget : Widget
   {
-    [JsonProperty(Order = -1060)]
-    public override string Design => Api.FieldDesign.Text;
-
     [JsonProperty(Order = 10)]
     public bool? Username { get; set; }
 

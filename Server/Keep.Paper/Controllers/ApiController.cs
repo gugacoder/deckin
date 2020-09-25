@@ -15,8 +15,11 @@ namespace Keep.Paper.Controllers
     [Route("{*path}")]
     public IActionResult FallThrough() => Ok(new Types.Status
     {
-      Fault = Fault.NotFound,
-      Reason = "The requested path does not match any valid resource."
+      Props = new Types.Status.Info
+      {
+        Fault = Fault.NotFound,
+        Reason = "The requested path does not match any valid resource."
+      }
     });
   }
 }

@@ -20,7 +20,5 @@ namespace Keep.Paper.Api
     public const string Action = "action";
 
     public const string Field = "field";
-
-    public const string Data = "data";
   }
 }

@@ -6,11 +6,8 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Api.Types
 {
   [Serializable]
-  public class GridAction : Action
+  public class GridView : View
   {
-    [JsonProperty(Order = -1060)]
-    public override string Design { get; } = Api.Design.Grid;
-
     /// <summary>
     /// Intervalo de autoatualização de dados em segundos.
     /// </summary>

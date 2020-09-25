@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Xml.Linq;
@@ -11,14 +12,15 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Api.Types
 {
   [Serializable]
-  public class Entity<T> : Entity
+  public class Action<TProps> : Action
+    where TProps : View
   {
-    protected override Data BaseData
+    protected override Data BaseProps
     {
-      get => this.Data;
-      set => this.Data = (Data<T>)value;
+      get => this.Props;
+      set => this.Props = (TProps)value;
     }
 
-    public virtual new Data<T> Data { get; set; }
+    public new TProps Props { get; set; }
   }
 }

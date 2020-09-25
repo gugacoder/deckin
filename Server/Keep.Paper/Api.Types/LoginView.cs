@@ -6,9 +6,7 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Api.Types
 {
   [Serializable]
-  public class FormAction : Action
+  public class LoginView : View
   {
-    [JsonProperty(Order = -1060)]
-    public override string Design { get; } = Api.Design.Form;
   }
 }

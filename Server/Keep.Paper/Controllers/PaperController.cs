@@ -143,7 +143,7 @@ namespace Keep.Paper.Controllers
         //  status = customStatus;
         //}
 
-        if (result is Types.IEntity entity)
+        if (result is Types.Entity entity)
         {
           EnsureSelfLink(entity);
         }
@@ -157,7 +157,7 @@ namespace Keep.Paper.Controllers
       }
     }
 
-    private void EnsureSelfLink(Types.IEntity result)
+    private void EnsureSelfLink(Types.Entity result)
     {
       if (result.Links == null)
       {
@@ -228,9 +228,12 @@ namespace Keep.Paper.Controllers
       var detail = messages.Skip(1);
       return Ok(new Types.Status
       {
-        Fault = fault,
-        Reason = message,
-        Detail = detail.Any() ? To.Text(detail) : null
+        Props = new Types.Status.Info
+        {
+          Fault = fault,
+          Reason = message,
+          Detail = detail.Any() ? To.Text(detail) : null
+        }
       }); ;
     }
 

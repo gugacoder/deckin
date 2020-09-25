@@ -37,11 +37,14 @@ namespace Keep.Paper.Papers
               Href = Href.To(HttpContext, paperType.Type, "Index")
             }
           }
-        }).ToCollection<Types.IEntity>();
+        }).ToCollection<Types.Entity>();
 
-      return new Types.DashboardAction
+      return new Types.Action
       {
-        Title = "Início",
+        Props = new Types.DashboardView
+        {
+          Title = "Início"
+        },
         Embedded = papers
       };
     }

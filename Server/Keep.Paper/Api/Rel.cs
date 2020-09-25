@@ -12,6 +12,9 @@ namespace Keep.Paper.Api
     // Marca um elemento como membro de menu
     public const string Menu = "menu";
 
+    // Marca um objeto como sendo um dado ou um item de uma coleção de dados.
+    public const string Data = "data";
+
     // Marca um objeto como sendo o item de uma coleção de objetos.
     public const string Item = "item";
 

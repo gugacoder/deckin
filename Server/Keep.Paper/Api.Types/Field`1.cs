@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Xml.Linq;
@@ -11,16 +12,15 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Api.Types
 {
   [Serializable]
-  public class CustomAction : Action
+  public class Field<TProps> : Field
+    where TProps : Widget
   {
-    [JsonProperty(Order = -1090)]
-    public override string Kind { get; } = Api.Kind.Action;
-
-    [JsonProperty(Order = -1060)]
-    public new string Design
+    protected override Data BaseProps
     {
-      get => ProtectedDesign;
-      set => ProtectedDesign = value;
+      get => this.Props;
+      set => this.Props = (TProps)value;
     }
+
+    public new TProps Props { get; set; }
   }
 }

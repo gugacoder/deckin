@@ -37,7 +37,7 @@ namespace Keep.Paper.Papers
       this.paperCatalog = paperCatalog;
     }
 
-    public Types.LoginAction Index(Options options)
+    public Types.Action<Types.LoginView> Index(Options options)
     {
       if (options == null)
       {
@@ -50,36 +50,48 @@ namespace Keep.Paper.Papers
         options.RedirectTo = Href.To(HttpContext, target.Type, "Index");
       }
 
-      return new Types.LoginAction
+      return new Types.Action<Types.LoginView>
       {
-        Title = Title,
-        Extent = Extent.Small,
-        Data = options,
-        Target = new Types.Link
+        Props = new Types.LoginView
         {
-          Title = "Autenticar",
-          Href = Href.To(HttpContext, GetType(), nameof(AuthenticateAsync))
+          Title = Title,
+          Extent = Extent.Small,
+          Target = new Types.Link
+          {
+            Title = "Autenticar",
+            Href = Href.To(HttpContext, GetType(), nameof(AuthenticateAsync))
+          }
         },
-        Fields = new Tools.Collections.Collection<Types.Field>
+        Data = new Types.Data(options),
+        Fields = new Collection<Types.Field>
         {
-          new Types.UriField
+          new Types.Field
           {
-            Name = "RedirectTo",
-            Hidden = true
+            Props = new Types.UriWidget
+            {
+              Name = "RedirectTo",
+              Hidden = true
+            }
           },
-          new Types.TextField
+          new Types.Field
           {
-            Name = "Username",
-            Title = "Usuário",
-            Username = true,
-            Required = true
+            Props = new Types.TextWidget
+            {
+              Name = "Username",
+              Title = "Usuário",
+              Username = true,
+              Required = true
+            }
           },
-          new Types.TextField
+          new Types.Field
           {
-            Name = "Password",
-            Title = "Usuário",
-            Password = true,
-            Required = true
+            Props = new Types.TextWidget
+            {
+              Name = "Password",
+              Title = "Usuário",
+              Password = true,
+              Required = true
+            }
           },
         }
       };
@@ -103,20 +115,29 @@ namespace Keep.Paper.Papers
         {
           return new Types.Status
           {
-            Fault = Fault.InvalidData,
-            Embedded = new Collection<Types.IEntity>
+            Props = new Types.Status.Info
+            {
+              Fault = Fault.InvalidData
+            },
+            Embedded = new Collection<Types.Entity>
             {
               new Types.Status
               {
-                Field = nameof(credential.Username).ToCamelCase(),
-                Reason = ret.Fault.Message ?? "Usuário e senha não conferem.",
-                Severity = Severities.Warning
+                Props = new Types.Status.Info
+                {
+                  Field = nameof(credential.Username).ToCamelCase(),
+                  Reason = ret.Fault.Message ?? "Usuário e senha não conferem.",
+                  Severity = Severities.Warning
+                }
               },
               new Types.Status
               {
-                Field = nameof(credential.Password).ToCamelCase(),
-                Reason = ret.Fault.Message ?? "Usuário e senha não conferem.",
-                Severity = Severities.Warning
+                Props = new Types.Status.Info
+                {
+                  Field = nameof(credential.Password).ToCamelCase(),
+                  Reason = ret.Fault.Message ?? "Usuário e senha não conferem.",
+                  Severity = Severities.Warning
+                }
               }
             }
           };

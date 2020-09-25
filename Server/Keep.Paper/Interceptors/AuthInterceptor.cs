@@ -78,8 +78,11 @@ namespace Keep.Paper.Interceptors
 
       return new Types.Status
       {
-        Fault = Fault.Unauthorized,
-        Reason = "Acesso restrito a usuários autenticados.",
+        Props = new Types.Status.Info
+        {
+          Fault = Fault.Unauthorized,
+          Reason = "Acesso restrito a usuários autenticados."
+        },
         Links = new Collection<Types.Link>
         {
           new Types.Link

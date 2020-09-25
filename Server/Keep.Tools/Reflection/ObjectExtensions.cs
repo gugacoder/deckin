@@ -199,6 +199,9 @@ namespace Keep.Tools.Reflection
 
     public static bool _CanWrite(this object target, string key)
     {
+      if (!_Has(target, key))
+        return false;
+
       var member = _Define(target, key);
       return
         (member as PropertyInfo)?.CanWrite == true ||

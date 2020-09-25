@@ -107,6 +107,14 @@ namespace Keep.Tools.Collections
     }
 
     /// <summary>
+    /// Retorna os itens diferentes ignorando variação de caixa.
+    /// </summary>
+    public static IQueryable<string> DistinctIgnoreCase(this IQueryable<string> enumerable)
+    {
+      return enumerable.Distinct(StringComparer.CurrentCultureIgnoreCase);
+    }
+
+    /// <summary>
     /// Emite os itens de uma coleção como um novo enumerado.
     /// Equivale à forma "enumerable.SelectMany(x => x)"
     /// </summary>

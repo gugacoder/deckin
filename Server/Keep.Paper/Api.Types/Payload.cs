@@ -12,11 +12,7 @@ namespace Keep.Paper.Api.Types
 
     public Collection Data { get; set; }
 
-    public Collection<Payload> Chunk
-    {
-      get => throw new NotImplementedException();
-      set => throw new NotImplementedException();
-    }
+    public Collection<Payload> Chunk { get; set; }
 
     IEnumerable IPayload.Data
     {

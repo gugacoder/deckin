@@ -34,7 +34,7 @@ namespace Keep.Paper.Papers
     }
 
     [Fallback]
-    public async Task<Types.IEntity> ResolveAsync(object options, Pagination pagination)
+    public async Task<Types.Entity> ResolveAsync(object options, Pagination pagination)
     {
       var defaultOffset = (action as GridAction)?.Offset ?? 0;
       var defaultLimit = (action as GridAction)?.Limit ?? (int)PageLimit.UpTo50;
@@ -48,14 +48,14 @@ namespace Keep.Paper.Papers
       //var paperTitle = template.Title ?? template.Name?.ToProperCase();
       //var actionTitle = action.Title ?? action.Name?.ToProperCase() ?? paperTitle;
 
-      Types.Action entity;
+      var entity = new Types.Action();
 
       if (action is GridAction)
-        entity = new Types.GridAction();
+        entity.Props = new Types.GridView();
       else
-        entity = new Types.CustomAction();
+        entity.Props = new Types.View();
 
-      action._CopyTo(entity);
+      action._CopyTo(entity.Props);
 
       entity.Links = new Collection<Types.Link>();
       entity.Links.Add(new Types.Link
@@ -77,18 +77,21 @@ namespace Keep.Paper.Papers
       if (filter == null)
         return;
 
-      var targetAction = new Types.CustomAction
+      var targetAction = new Types.Action
       {
-        Name = "filter",
-        Data = options,
+        Props = new Types.View
+        {
+          Name = "filter"
+        },
+        Data = new Types.Data(options),
         Fields = new Collection<Types.Field>()
       };
 
       foreach (var field in filter)
       {
-        var targetField = new Types.CustomField
+        var targetField = new Types.Field
         {
-          Design = field.Type,
+          Props = new Types.Widget(field.Type)
         };
 
         field._CopyTo(targetField);
@@ -118,7 +121,7 @@ namespace Keep.Paper.Papers
       if (ok)
       {
         view.Fields = new Collection<Types.Field>();
-        view.Embedded = new Collection<Types.IEntity>();
+        view.Embedded = new Collection<Types.Entity>();
 
         var mappedFields = MapFields(reader.Current.GetFieldNames()).ToArray();
 
@@ -153,7 +156,10 @@ namespace Keep.Paper.Papers
             data.Add(fieldName, fieldValue);
           }
 
-          view.Embedded.Add(new Types.Entity { Data = data });
+          view.Embedded.Add(new Types.Entity
+          {
+            Data = new Types.Data(data)
+          });
 
           ok = await reader.ReadAsync();
         }
@@ -163,12 +169,12 @@ namespace Keep.Paper.Papers
     private Types.Field CreateField(Type fieldType)
     {
       if (fieldType == typeof(int))
-        return new Types.IntField();
+        return new Types.Field { Props = new Types.IntWidget() };
 
       if (fieldType == typeof(DateTime))
-        return new Types.DateField();
+        return new Types.Field { Props = new Types.DateWidget() };
 
-      return new Types.TextField();
+      return new Types.Field { Props = new Types.TextWidget() };
     }
 
     private IEnumerable<HashMap<string>> MapFields(string[] fieldNames)

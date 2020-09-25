@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Api.Types
 {
   [Serializable]
-  public class LoginAction : FormAction
+  public class FormView : View
   {
   }
 }

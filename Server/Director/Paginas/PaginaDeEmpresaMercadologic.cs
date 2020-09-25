@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 using Director.Conectores;
 using Director.Dominio.dbo;
 using Keep.Paper.Api;
+using Types = Keep.Paper.Api.Types;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
-using Keep.Paper.Api.Types;
 
 namespace Director.Paginas
 {
@@ -23,7 +23,7 @@ namespace Director.Paginas
       this.dbDirector = dbDirector;
     }
 
-    public async Task<IEntity> Index(Filtro filtro, Pagination pagination)
+    public async Task<Types.Action> Index(Filtro filtro, Pagination pagination)
     {
       pagination.Limit ??= (int)PageLimit.UpTo50;
 
@@ -50,83 +50,117 @@ namespace Director.Paginas
         .Echo()
         .SelectAsync<TBempresa_mercadologic>(cnDirector);
 
-      return new GridAction
+      return new Types.Action<Types.GridView>
       {
-        Title = "Empresa do Mercadologic",
-        //AutoRefresh = 1, // segundos
-        Pagination = pagination,
-
-        Embedded = empresas.ToCollection(empresa => (IEntity)new Entity
+        Props = new Types.GridView
         {
-          Data = empresa
+          Title = "Empresa do Mercadologic",
+          //AutoRefresh = 1, // segundos
+          Pagination = pagination,
+        },
+        Embedded = empresas.ToCollection(empresa => new Types.Entity
+        {
+          Data = new Types.Data(empresa)
         }),
-
-        Fields = new Collection<Field>
+        Fields = new Collection<Types.Field>
         {
-          new IntField
+          new Types.Field
           {
-            Name = "DFcod_empresa",
-            Title = "Empresa",
+            Props = new Types.IntWidget
+            {
+              Name = "DFcod_empresa",
+              Title = "Empresa"
+            }
           },
-          new TextField
+          new Types.Field
           {
-            Name = "DFnome_fantasia",
-            Title = "Nome da Empresa",
+            Props = new Types.TextWidget
+            {
+              Name = "DFnome_fantasia",
+              Title = "Nome da Empresa"
+            }
           },
-          new TextField
+          new Types.Field
           {
-            Name = "DFprovider",
-            Title = "Provider",
+            Props = new Types.TextWidget
+            {
+              Name = "DFprovider",
+              Title = "Provider"
+            }
           },
-          new TextField
+          new Types.Field
           {
-            Name = "DFdriver",
-            Title = "Driver",
+            Props = new Types.TextWidget
+            {
+              Name = "DFdriver",
+              Title = "Driver"
+            }
           },
-          new TextField
+          new Types.Field
           {
-            Name = "DFservidor",
-            Title = "Servidor",
+            Props = new Types.TextWidget
+            {
+              Name = "DFservidor",
+              Title = "Servidor"
+            }
           },
-          new IntField
+          new Types.Field
           {
-            Name = "DFporta",
-            Title = "Porta",
+            Props = new Types.IntWidget
+            {
+              Name = "DFporta",
+              Title = "Porta"
+            }
           },
-          new TextField
+          new Types.Field
           {
-            Name = "DFdatabase",
-            Title = "Database",
+            Props = new Types.TextWidget
+            {
+              Name = "DFdatabase",
+              Title = "Database"
+            }
           },
-          new TextField
+          new Types.Field
           {
-            Name = "DFusuario",
-            Title = "Usuário",
-            Username = true
+            Props = new Types.TextWidget
+            {
+              Name = "DFusuario",
+              Title = "Usuário",
+              Username = true
+            }
           }
         },
 
-        Actions = new Collection<Keep.Paper.Api.Types.Action>
+        Actions = new Collection<Types.Action>
         {
-          new Keep.Paper.Api.Types.CustomAction
+          new Types.Action
           {
-            Name = ActionName.Filter,
-            Fields = new Collection<Field>
+            Props = new Types.View
             {
-              new IntField
+              Name = ActionName.Filter
+            },
+            Fields = new Collection<Types.Field>
+            {
+              new Types.Field
               {
-                Name = "DFcod_empresa",
-                Title = "Empresa"
+                Props = new Types.IntWidget
+                {
+                  Name = "DFcod_empresa",
+                  Title = "Empresa"
+                }
               },
-              new TextField
+              new Types.Field
               {
-                Name = "DFnome_fantasia",
-                Title = "Nome da Empresa"
+                Props = new Types.TextWidget
+                {
+                  Name = "DFnome_fantasia",
+                  Title = "Nome da Empresa"
+                }
               }
             },
-            Links = new Collection<Link>
+            Links = new Collection<Types.Link>
             {
-              new Link
+              new Types.Link
               {
                 Rel = Rel.Action,
                 Title = "Filtro",
@@ -136,14 +170,14 @@ namespace Director.Paginas
           }
         },
 
-        Links = new Collection<Link>
+        Links = new Collection<Types.Link>
         {
-          new Link
+          new Types.Link
           {
             Rel = Rel.Self,
             Href = Href.To(HttpContext, GetType())
           },
-          new Link
+          new Types.Link
           {
             Rel = Rel.Workspace,
             Href = Href.To(HttpContext, typeof(AreaDeTrabalho))

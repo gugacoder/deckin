@@ -6,71 +6,58 @@ using Newtonsoft.Json;
 
 namespace Keep.Paper.Api.Types
 {
-  public class Status : Types.IEntity
+  public class Status : Entity
   {
-    protected virtual string ProtectedKind { get; set; } = Api.Kind.Status;
-    protected virtual string ProtectedDesign { get; set; }
-    protected virtual object ProtectedData { get; set; }
-
-    [JsonProperty(Order = -1090)]
-    public virtual string Kind => ProtectedKind;
-
-    [JsonProperty(Order = -1070)]
-    public virtual string Rel { get; set; }
-
-    [JsonProperty(Order = -1060)]
-    public virtual object Meta { get; set; }
-
-    [JsonProperty(Order = 10)]
-    public virtual string Fault { get; set; }
-
-    [JsonProperty(Order = 20)]
-    public virtual string Reason { get; set; }
-
-    [JsonProperty(Order = 30)]
-    public virtual string Detail { get; set; }
-
-    [JsonProperty(Order = 40)]
-    public virtual string Severity { get; set; }
-
-    [JsonProperty(Order = 50)]
-    public virtual string Field { get; set; }
-
-    [JsonProperty(Order = 60)]
-    public virtual string StackTrace { get; set; }
-
-    [JsonProperty(Order = 1010)]
-    public virtual string DataType { get; set; }
-
-    [JsonProperty(Order = 1020)]
-    public virtual object Data
+    public class Info : Data
     {
-      get => ProtectedData;
-      set => ProtectedData = value;
+      [JsonProperty(Order = 10)]
+      public virtual string Fault { get; set; }
+
+      [JsonProperty(Order = 20)]
+      public virtual string Reason { get; set; }
+
+      [JsonProperty(Order = 30)]
+      public virtual string Detail { get; set; }
+
+      [JsonProperty(Order = 40)]
+      public virtual string Severity { get; set; }
+
+      [JsonProperty(Order = 50)]
+      public virtual string Field { get; set; }
+
+      [JsonProperty(Order = 60)]
+      public virtual string StackTrace { get; set; }
     }
 
-    [XmlArray]
-    [JsonProperty(Order = 1030)]
-    public virtual Collection<Types.IEntity> Embedded { get; set; }
+    protected override string BaseKind
+    {
+      get => base.BaseKind ?? Api.Kind.Status;
+      set => base.BaseKind = value;
+    }
 
-    [XmlArray]
-    [JsonProperty(Order = 1040)]
-    public virtual Collection<Types.Link> Links { get; set; }
+    protected override Data BaseProps
+    {
+      get => this.Props;
+      set => this.Props = (Info)value;
+    }
 
-    string Types.IEntity.Name { get; }
-    Collection<Types.Field> IEntity.Fields { get; }
-    Collection<Types.Action> IEntity.Actions { get; }
+    public virtual new string Kind => base.Kind;
+
+    public virtual new Info Props { get; set; }
 
     public static object FromException(Exception ex)
       => new Status
       {
-        Fault = Api.Fault.Failure,
-        Reason = ex.Message,
-        Detail = ex.GetCauseMessage()
+        Props = new Info
+        {
+          Fault = Api.Fault.Failure,
+          Reason = ex.Message,
+          Detail = ex.GetCauseMessage()
 #if DEBUG
-          ,
-        StackTrace = ex.GetStackTrace()
+            ,
+          StackTrace = ex.GetStackTrace()
 #endif
+        }
       };
   }
 }

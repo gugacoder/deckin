@@ -4,11 +4,8 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Api.Types
 {
   [Serializable]
-  public class IntField : Field
+  public class IntWidget : Widget
   {
-    [JsonProperty(Order = -1060)]
-    public override string Design => Api.FieldDesign.Int;
-
     [JsonProperty(Order = 10)]
     public int? Max { get; set; }
 

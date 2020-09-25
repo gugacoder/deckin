@@ -151,6 +151,14 @@ namespace Keep.Tools.Collections
     }
 
     /// <summary>
+    /// Retorna os itens diferentes ignorando variação de caixa.
+    /// </summary>
+    public static IEnumerable<string> DistinctIgnoreCase(this IEnumerable<string> enumerable)
+    {
+      return enumerable.Distinct(StringComparer.CurrentCultureIgnoreCase);
+    }
+
+    /// <summary>
     /// Constrói um vetor com os elementros de um enumerado transformados.
     /// </summary>
     /// <typeparam name="TSource">O tipo do elemento do enumerado.</typeparam>

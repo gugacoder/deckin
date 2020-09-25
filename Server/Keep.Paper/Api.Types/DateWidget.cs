@@ -4,11 +4,8 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Api.Types
 {
   [Serializable]
-  public class DateField : Field
+  public class DateWidget : Widget
   {
-    [JsonProperty(Order = -1060)]
-    public override string Design => Api.FieldDesign.Date;
-
     [JsonProperty(Order = 10)]
     public DateTime? Max { get; set; }
 
