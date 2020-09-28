@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using Director.Servicos;
 using Keep.Paper.Api;
+using Types = Keep.Paper.Api.Types;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Microsoft.AspNetCore.Authorization;
@@ -52,7 +53,7 @@ namespace Director.Paginas
       this.auditoria = auditoria;
     }
 
-    public object Index(Filtro filtro, Pagination pagination)
+    public Types.Entity Index(Filtro filtro, Pagination pagination)
     {
       int limit = (pagination?.Limit == null)
         ? (int)PageLimit.UpTo50
@@ -85,70 +86,69 @@ namespace Director.Paginas
           .Take(limit > 0 ? limit : MaxLimit)
         ))
         .OrderByDescending(evento => evento.Data)
-        .Select(evento => new { Data = evento })
         .Take(limit > 0 ? limit : MaxLimit)
+        .Select(evento =>
+          new Types.Entity
+          {
+            Data = new Types.Data(evento)
+          }
+        )
       );
 
-      return new
+      return new Types.Action
       {
-        Kind = Kind.Paper,
-
-        View = new
+        Props = new Types.GridView
         {
           Title = "Eventos do Sistema",
-          Design = new
+          AutoRefresh = 2, // segundos
+          Pagination = new Pagination
           {
-            Kind = Design.Grid,
-            AutoRefresh = 2, // segundos
-            Pagination = new
-            {
-              limit
-            }
+            Limit = limit
           }
         },
 
-        Fields = new object[]
+        Fields = new Types.FieldCollection
         {
-          new
+          new Types.Field
           {
-            View = new
+            Props = new Types.Header
             {
               Name = nameof(Evento.Id).ToCamelCase(),
               Hidden = true
             }
           },
-          new
+          new Types.Field
           {
-            View = new
+            Props = new Types.Header
             {
               Name = nameof(Evento.Origem).ToCamelCase()
             }
           },
-          new
+          new Types.Field
           {
-            View = new
+            Props = new Types.Header
             {
               Name = nameof(Evento.Nome).ToCamelCase(),
               Title = "Evento"
             }
           },
-          new
+          new Types.Field
           {
-            View = new
+            Props = new Types.Header
             {
               Name = nameof(Evento.Data).ToCamelCase()
             }
           },
-          new
+          new Types.Field
           {
-            View = new
+            Props = new Types.Header
             {
               Name = nameof(Evento.Mensagem).ToCamelCase()
             }
           },
-          new
+          new Types.Field
           {
-            View = new
+            Props = new Types.Header
             {
               Name = nameof(Evento.Nivel).ToCamelCase(),
               Hidden = true,
@@ -157,12 +157,16 @@ namespace Director.Paginas
           }
         },
 
-        Actions = new
+        Actions = new Types.ActionCollection
         {
-          Filter = new
+          new Types.Action
           {
-            Data = filtro,
-            Fields = new object[]
+            Data = new Types.Data(filtro),
+            Props = new Types.View {
+              Name = "filter",
+              Title = "Filtro"
+            },
+            Fields = new Types.FieldCollection
             {
               //new
               //{
@@ -173,44 +177,39 @@ namespace Director.Paginas
               //    Range = true,
               //  }
               //},
-              new
+              new Types.Field
               {
-                Kind = FieldDesign.Date,
-                View = new
+                Props = new Types.DateWidget
                 {
                   Name = nameof(Filtro.De).ToCamelCase(),
                   Title = "De"
                 }
               },
-              new
+              new Types.Field
               {
-                Kind = FieldDesign.Date,
-                View = new
+                Props = new Types.DateWidget
                 {
                   Name = nameof(Filtro.Ate).ToCamelCase(),
                   Title = "Até"
                 }
               },
-              new
+              new Types.Field
               {
-                Kind = FieldDesign.Text,
-                View = new
+                Props = new Types.TextWidget
                 {
                   Name = nameof(Filtro.Origem).ToCamelCase()
                 }
               },
-              new
+              new Types.Field
               {
-                Kind = FieldDesign.Text,
-                View = new
+                Props = new Types.TextWidget
                 {
                   Name = nameof(Filtro.Evento).ToCamelCase()
                 }
               },
-              new
+              new Types.Field
               {
-                Kind = FieldDesign.Text,
-                View = new
+                Props = new Types.TextWidget
                 {
                   Name = nameof(Filtro.Mensagem).ToCamelCase()
                 }
@@ -219,12 +218,20 @@ namespace Director.Paginas
           }
         },
 
-        Embedded = events,
+        Embedded = new Types.EntityCollection(events),
 
-        Links = new
+        Links = new Types.LinkCollection
         {
-          Self = Href.To(HttpContext, GetType(), nameof(Index)),
-          Workspace = Href.To(HttpContext, typeof(AreaDeTrabalho))
+          new Types.Link
+          {
+            Rel = Rel.Self,
+            Href = Href.To(HttpContext, GetType(), nameof(Index)),
+          },
+          new Types.Link
+          {
+            Rel = Rel.Workspace,
+            Href = Href.To(HttpContext, typeof(AreaDeTrabalho))
+          }
         }
       };
     }

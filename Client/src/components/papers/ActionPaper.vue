@@ -115,7 +115,7 @@ export default {
 
   computed: {
     prominent () {
-      return this.paper.view.design.kind === 'login'
+      return this.paper.props['@type'] === 'login'
     },
     
     actionSlice () {

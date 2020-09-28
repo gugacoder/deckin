@@ -58,11 +58,13 @@ namespace Director.Paginas
           //AutoRefresh = 1, // segundos
           Pagination = pagination,
         },
-        Embedded = empresas.ToCollection(empresa => new Types.Entity
-        {
-          Data = new Types.Data(empresa)
-        }),
-        Fields = new Collection<Types.Field>
+        Embedded = new Types.EntityCollection(empresas.Select(empresa =>
+          new Types.Entity
+          {
+            Data = new Types.Data(empresa)
+          }
+        )),
+        Fields = new Types.FieldCollection
         {
           new Types.Field
           {
@@ -131,7 +133,7 @@ namespace Director.Paginas
           }
         },
 
-        Actions = new Collection<Types.Action>
+        Actions = new Types.ActionCollection
         {
           new Types.Action
           {
@@ -139,7 +141,7 @@ namespace Director.Paginas
             {
               Name = ActionName.Filter
             },
-            Fields = new Collection<Types.Field>
+            Fields = new Types.FieldCollection
             {
               new Types.Field
               {
@@ -158,7 +160,7 @@ namespace Director.Paginas
                 }
               }
             },
-            Links = new Collection<Types.Link>
+            Links = new Types.LinkCollection
             {
               new Types.Link
               {
@@ -170,7 +172,7 @@ namespace Director.Paginas
           }
         },
 
-        Links = new Collection<Types.Link>
+        Links = new Types.LinkCollection
         {
           new Types.Link
           {

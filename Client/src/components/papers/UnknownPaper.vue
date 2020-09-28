@@ -43,7 +43,7 @@
           | Entre em contato com o administrador do sistema se o problema
           | persistir.
           
-        sup.font-weight-thin {{ $route.path }} ( design: {{ paper.view.design || paper.kind }} )
+        sup.font-weight-thin {{ $route.path }} ( design: {{ paper.props['@type'] || paper.kind }} )
       
         template(
           v-slot:actions
@@ -54,6 +54,17 @@
             to="/Home"
           )
             | Voltar para o início
+          
+      v-expansion-panels(
+        flat
+      )
+        v-expansion-panel
+          v-expansion-panel-header
+            span.font-weight-thin Código Fonte
+            
+          v-expansion-panel-content
+            small
+              pre.font-weight-thin {{ paper }}
 </template>
 
 <script>

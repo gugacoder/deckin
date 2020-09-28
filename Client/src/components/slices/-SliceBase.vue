@@ -20,7 +20,7 @@ export default {
     },
 
     title () {
-      return this.paper.view.title
+      return this.paper.props.title
     },
   },
 }

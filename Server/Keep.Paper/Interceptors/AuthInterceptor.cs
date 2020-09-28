@@ -83,7 +83,7 @@ namespace Keep.Paper.Interceptors
           Fault = Fault.Unauthorized,
           Reason = "Acesso restrito a usuários autenticados."
         },
-        Links = new Collection<Types.Link>
+        Links = new Types.LinkCollection
         {
           new Types.Link
           {

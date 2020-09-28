@@ -49,6 +49,7 @@ namespace Keep.Paper.Papers
       //var actionTitle = action.Title ?? action.Name?.ToProperCase() ?? paperTitle;
 
       var entity = new Types.Action();
+      entity.Kind = Kind.Paper;
 
       if (action is GridAction)
         entity.Props = new Types.GridView();
@@ -57,7 +58,7 @@ namespace Keep.Paper.Papers
 
       action._CopyTo(entity.Props);
 
-      entity.Links = new Collection<Types.Link>();
+      entity.Links = new Types.LinkCollection();
       entity.Links.Add(new Types.Link
       {
         Rel = Rel.Self,
@@ -84,7 +85,7 @@ namespace Keep.Paper.Papers
           Name = "filter"
         },
         Data = new Types.Data(options),
-        Fields = new Collection<Types.Field>()
+        Fields = new Types.FieldCollection()
       };
 
       foreach (var field in filter)
@@ -99,7 +100,7 @@ namespace Keep.Paper.Papers
         targetAction.Fields.Add(targetField);
       }
 
-      (view.Actions ??= new Collection<Types.Action>()).Add(targetAction);
+      (view.Actions ??= new Types.ActionCollection()).Add(targetAction);
     }
 
     private async Task FetchDataAsync(Types.Action view, object options,
@@ -120,8 +121,8 @@ namespace Keep.Paper.Papers
 
       if (ok)
       {
-        view.Fields = new Collection<Types.Field>();
-        view.Embedded = new Collection<Types.Entity>();
+        view.Fields = new Types.FieldCollection();
+        view.Embedded = new Types.EntityCollection();
 
         var mappedFields = MapFields(reader.Current.GetFieldNames()).ToArray();
 

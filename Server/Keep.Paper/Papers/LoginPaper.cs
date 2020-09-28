@@ -63,13 +63,13 @@ namespace Keep.Paper.Papers
           }
         },
         Data = new Types.Data(options),
-        Fields = new Collection<Types.Field>
+        Fields = new Types.FieldCollection
         {
           new Types.Field
           {
             Props = new Types.UriWidget
             {
-              Name = "RedirectTo",
+              Name = nameof(Options.RedirectTo).ToCamelCase(),
               Hidden = true
             }
           },
@@ -77,7 +77,7 @@ namespace Keep.Paper.Papers
           {
             Props = new Types.TextWidget
             {
-              Name = "Username",
+              Name = nameof(Credential.Username).ToCamelCase(),
               Title = "Usuário",
               Username = true,
               Required = true
@@ -87,8 +87,8 @@ namespace Keep.Paper.Papers
           {
             Props = new Types.TextWidget
             {
-              Name = "Password",
-              Title = "Usuário",
+              Name = nameof(Credential.Password).ToCamelCase(),
+              Title = "Senha",
               Password = true,
               Required = true
             }
@@ -119,7 +119,7 @@ namespace Keep.Paper.Papers
             {
               Fault = Fault.InvalidData
             },
-            Embedded = new Collection<Types.Entity>
+            Embedded = new Types.EntityCollection
             {
               new Types.Status
               {

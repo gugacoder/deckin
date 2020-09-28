@@ -23,7 +23,7 @@ export function getPaperId (paper) {
 export function createPaperPromise (link) {
   return canonifyPaper({
     kind: 'promise',
-    view: {
+    props: {
       ...(link.title ? { title: link.title } : {})
     },
     links: [
@@ -52,7 +52,7 @@ export function canonifyPaper (paper) {
     rel: null,
     meta: null,
     data: null,
-    view: null,
+    props: null,
     fields: null,
     actions: null,
     embedded: null,
@@ -86,18 +86,9 @@ export function canonifyPaper (paper) {
     }
   })
 
-  // View, contém instruções de rederização do componente.
+  // props, contém instruções de rederização do componente.
   //
-  target.view = source.view || {}
-  // Corrigindo ou criando o objeto "design".
-  if (lodash.isString(target.view.design)) {
-    target.view.design = { kind: target.view.design }
-  }
-  if (!target.view.design) target.view.design = {}
-  // Corrigindo o design para tipo paper.
-  if (target.kind === 'paper') {
-    if (!target.view.design.kind) target.view.design.kind = 'data'
-  }
+  target.props = source.props || {}
 
   // Links, coleção dos links relacionados à entidade.
   //
@@ -155,14 +146,10 @@ export function canonifyPaper (paper) {
     field.kind = field.kind || 'info'
     // FIXME: O nome deveria ser checado contra conflito de nome
     field.data = field.data || {}
-    field.view = field.view || {}
+    field.props = field.props || {}
 
-    // FIXME: Decidir onde a propriedade NAME deve ser mantida
-    field.data.name = field.data.name || field.view.name
-    field.view.name = field.view.name || field.data.name
-
-    field.view.name = field.data.name || `_field${++index}`
-    field.view.title = field.view.title || field.data.name.toProperCase()
+    field.props.name = field.props.name || `_field${++index}`
+    field.props.title = field.props.title || field.props.name.toProperCase()
     // Se um valor não é indicado diretamente então criamos uma função
     // de referência para a propriedade de mesmo nome na coleção de dados.
     if (!field.data.value) {
@@ -201,9 +188,9 @@ export function canonifyPaper (paper) {
   if (!Array.isArray(target.actions)) {
     target.actions = Object.keys(source.actions).map(name => {
       let action = source.actions[name]
-      let title = (action.view || {}).title
+      let title = (action.props || {}).title
       let properties = {
-        view: {
+        props: {
           name,
           title
         }
@@ -216,14 +203,14 @@ export function canonifyPaper (paper) {
   target.actions = target.actions.map(action => {
     action.kind = action.kind || 'action'
     // FIXME: O nome deveria ser checado contra conflito de nome
-    action.view = action.view || {}
-    action.view.name = action.view.name || `_action${++index}`
+    action.props = action.props || {}
+    action.props.name = action.props.name || `_action${++index}`
     
     action = canonifyPaper(action)
 
-    if (action.view.name === 'filter') {
-      if (!action.view.title) {
-        action.view.title = 'Filtro'
+    if (action.props.name === 'filter') {
+      if (!action.props.title) {
+        action.props.title = 'Filtro'
       }
 
       let link = action.links.filter(link => link.rel === 'action')[0]
@@ -240,8 +227,8 @@ export function canonifyPaper (paper) {
       }
 
     } else {
-      if (!action.view.title) {
-        action.view.title = name.toProperCase()
+      if (!action.props.title) {
+        action.props.title = name.toProperCase()
       }
     }
 
@@ -259,8 +246,8 @@ export function canonifyPaper (paper) {
   //
 
   // Corrigindo a falta de campos em designs como Grid
-  if (target.kind === 'paper') {
-    if (target.view.design.kind === 'grid' && target.fields.length === 0) {
+  if (target.kind === 'action') {
+    if (target.props['@type'] === 'grid' && target.fields.length === 0) {
       let firstRecord = target.embedded[0]
       if (firstRecord) {
         target.fields = Object.keys(firstRecord.data).map(key => {
@@ -269,7 +256,7 @@ export function canonifyPaper (paper) {
             data: {
               name: key
             },
-            view: {
+            props: {
               title: key.toProperCase(),
               hidden: key.startsWith('_')
             }

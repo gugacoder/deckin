@@ -41,8 +41,11 @@ namespace Keep.Paper.Api.Types
     private string TypeName
     {
       get => _typeName;
-      set => _typeName = (value == null || string.IsNullOrWhiteSpace(value))
-                ? null : SanitizeTypeName(value.Trim());
+      set
+      {
+        var name = string.IsNullOrEmpty(value) ? null : SanitizeTypeName(value.Trim());
+        _typeName = string.IsNullOrEmpty(name) ? null : name;
+      }
     }
 
     private void SetDefaultTypeName()
@@ -50,10 +53,13 @@ namespace Keep.Paper.Api.Types
       TypeName = null;
 
       var source = sources?.FirstOrDefault();
-      if (source != null)
+      if (source == null)
         return;
 
       if (source is IDictionary && !(source is Data))
+        return;
+
+      if (Is.Anonymous(source))
         return;
 
       TypeName = source.GetType().Name.Split(',', ';').First();

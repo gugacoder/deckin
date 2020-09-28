@@ -14,6 +14,12 @@ namespace Keep.Paper.Api.Types
   [Serializable]
   public class Action : Entity
   {
+    protected override string BaseKind
+    {
+      get => base.BaseKind ?? Keep.Paper.Api.Kind.Action;
+      set => base.BaseKind = value;
+    }
+
     protected override Data BaseProps
     {
       get => this.Props;

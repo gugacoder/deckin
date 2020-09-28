@@ -60,7 +60,7 @@ export default {
 
     field () {
       let fields = this.paper.fields
-      let field = fields.filter(field => field.view.name === this.fieldName)[0]
+      let field = fields.filter(field => field.props.name === this.fieldName)[0]
       return field
     },
 
@@ -82,19 +82,19 @@ export default {
     },
 
     title () {
-      return this.field.view.title
+      return this.field.props.title
     },
 
     required () {
-      return this.field.view.required
+      return this.field.props.required
     },
 
     hint () {
-      return this.field.view.hint
+      return this.field.props.hint
     },
 
     hidden () {
-      return !!this.field.view.hidden
+      return !!this.field.props.hidden
     },
 
     rules () {
@@ -104,7 +104,7 @@ export default {
     },
 
     extent () {
-      let factor = this.field.view.extent || this.defaultExtent || 2
+      let factor = this.field.props.extent || this.defaultExtent || 2
       let suffix = this.$isMobile ? '-xs' : ''
       let extent = `x-extent-${factor}${suffix}`
       return extent

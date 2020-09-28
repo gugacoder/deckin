@@ -22,14 +22,14 @@ namespace Keep.Paper.Papers
 
     public Types.Action Index()
     {
-      var papers = (
+      var papers =
         from catalog in paperCatalog.EnumerateCatalogs()
         from paper in paperCatalog.EnumeratePapers(catalog)
         let paperType = paperCatalog.GetType(catalog, paper)
         select new Types.Entity
         {
           Rel = Rel.Item,
-          Links = new Collection<Types.Link>
+          Links = new Types.LinkCollection
           {
             new Types.Link
             {
@@ -37,7 +37,7 @@ namespace Keep.Paper.Papers
               Href = Href.To(HttpContext, paperType.Type, "Index")
             }
           }
-        }).ToCollection<Types.Entity>();
+        };
 
       return new Types.Action
       {
@@ -45,7 +45,7 @@ namespace Keep.Paper.Papers
         {
           Title = "Início"
         },
-        Embedded = papers
+        Embedded = new Types.EntityCollection(papers)
       };
     }
   }

@@ -21,8 +21,8 @@
           div.x-flex
             component(
               v-for="field in fields"
-              :key="field.view.name"
-              :ref="field.view.name"
+              :key="field.props.name"
+              :ref="field.props.name"
               v-bind="createWidget(field)"
             )
 
@@ -143,22 +143,24 @@ export default {
         return this.paper
       } else {
         let actions = this.paper.actions
-        let action = actions.filter(action => action.view.name === this.actionName)[0]
+        let action = actions.filter(action => action.props.name === this.actionName)[0]
         return action
       }
     },
 
     title () {
-      return this.action.view.title
+      return this.action.props.title
     },
 
     link () {
-      let links = this.action.links
-      let link = links.filter(link => link.rel === 'action')[0]
-      if (!link) {
-        link = links.filter(link => link.rel === 'self')[0]
-      }
-      return link || {}
+      if (this.action.props.target)
+        return this.action.props.target
+
+      let self = this.paper.getLink('self')
+      if (self)
+        return self
+
+      return { href: this.$browser.href(this) }
     },
 
     linkTitle () {
@@ -166,24 +168,24 @@ export default {
     },
 
     fields () {
-      return this.action.fields.filter(field => !field.view.hidden)
+      return this.action.fields.filter(field => !field.props.hidden)
     },
 
     paperExtent () {
-      return this.action.view.extent
+      return this.action.props.extent
     }
   },
 
   methods: {
     createWidget (field) {
-      let name = `${field.kind.toHyphenCase()}-widget`
+      let name = `${field.props['@type'].toHyphenCase()}-widget`
       if (!Vue.options.components[name]) {
         name = 'invalid-widget'
       }
       return {
         is: name,
         paper: this.action,
-        fieldName: field.view.name
+        fieldName: field.props.name
       }
     },
 
@@ -208,15 +210,13 @@ export default {
         data: []
       }
       
-      let link = this.paper.getLink('action')
-          || this.paper.getLink('self')
-          || { href: this.$browser.href(this) }
+      let link = this.link
 
       let { href, data } = link
       lodash.merge(payload.form, data)
 
       let paper = await this.$browser.request(href, payload) || unknownPaper
-
+      
       if (paper.kind === 'validation') {
         return this.showValidation(paper)
       }

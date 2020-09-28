@@ -71,7 +71,7 @@ function requestData (href, payload, identity) {
           links: [
             {
               rel: 'self',
-              href
+              href: CreatePaperHref(href)
             }
           ]
         })))
@@ -87,12 +87,19 @@ function requestData (href, payload, identity) {
         links: [
           {
             rel: 'self',
-            href
+            href: CreatePaperHref(href)
           }
         ]
       }))
     }
   })
+}
+
+function CreatePaperHref(href) {
+  if (href.includes('://')) {
+    href = '/' + href.split('/').slice(3).join('/')
+  }
+  return href
 }
 
 function getIdentity() {

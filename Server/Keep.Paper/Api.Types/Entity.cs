@@ -18,10 +18,10 @@ namespace Keep.Paper.Api.Types
     protected virtual Data BaseMeta { get; set; }
     protected virtual Data BaseProps { get; set; }
     protected virtual Data BaseData { get; set; }
-    protected virtual Collection<Field> BaseFields { get; set; }
-    protected virtual Collection<Action> BaseActions { get; set; }
-    protected virtual Collection<Entity> BaseEmbedded { get; set; }
-    protected virtual Collection<Link> BaseLinks { get; set; }
+    protected virtual FieldCollection BaseFields { get; set; }
+    protected virtual ActionCollection BaseActions { get; set; }
+    protected virtual EntityCollection BaseEmbedded { get; set; }
+    protected virtual LinkCollection BaseLinks { get; set; }
 
     [JsonProperty(Order = -1040)]
     public virtual string Kind { get => BaseKind; set => BaseKind = value; }
@@ -40,18 +40,18 @@ namespace Keep.Paper.Api.Types
 
     [XmlArray]
     [JsonProperty(Order = 1000)]
-    public virtual Collection<Field> Fields { get => BaseFields; set => BaseFields = value; }
+    public virtual FieldCollection Fields { get => BaseFields; set => BaseFields = value; }
 
     [XmlArray]
     [JsonProperty(Order = 1010)]
-    public virtual Collection<Action> Actions { get => BaseActions; set => BaseActions = value; }
+    public virtual ActionCollection Actions { get => BaseActions; set => BaseActions = value; }
 
     [XmlArray]
     [JsonProperty(Order = 1020)]
-    public virtual Collection<Entity> Embedded { get => BaseEmbedded; set => BaseEmbedded = value; }
+    public virtual EntityCollection Embedded { get => BaseEmbedded; set => BaseEmbedded = value; }
 
     [XmlArray]
     [JsonProperty(Order = 1030)]
-    public virtual Collection<Link> Links { get => BaseLinks; set => BaseLinks = value; }
+    public virtual LinkCollection Links { get => BaseLinks; set => BaseLinks = value; }
   }
 }

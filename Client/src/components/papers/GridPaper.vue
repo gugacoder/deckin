@@ -182,7 +182,7 @@
               :key="`pageSize-${size}`"
               link
               dense
-              @click="pagination.pageSize = size"
+              @click="setPageSize(size)"
             )
               v-list-item-title
                 span(
@@ -457,17 +457,17 @@ export default {
     filterSlice () {
       return {
         paper: this.filter.action
-        //paper: this.paper,
-        //actionName: 'filter'
+        // paper: this.paper,
+        // actionName: 'filter'
       }
     },
 
     cols () {
-      let headers = this.fields.filter(x => !x.view.hidden).map(field => ({
-        value: field.data.name,
-        text: field.view.title || field.data.name,
+      let headers = this.fields.filter(x => !x.props.hidden).map(field => ({
+        value: field.props.name,
+        text: field.props.title,
         sortable: false,
-        multiline: field.view.multiline
+        multiline: field.props.multiline
       }))
       return headers
     },
@@ -487,9 +487,9 @@ export default {
           data.key = this.paper.embedded.indexOf(x)
         }
         
-        let styleField = this.paper.fields.filter(x => x.view.useForStyle)[0]
+        let styleField = this.paper.fields.filter(x => x.props.useForStyle)[0]
         if (styleField) {
-          let style = data[styleField.data.name]
+          let style = data[styleField.props.name]
           data.style = `x-style-${style ? this.stylize(style) : null}`
         }
 
@@ -531,7 +531,7 @@ export default {
 
       // Auto refresh
       //
-      let seconds = this.paper.view.design.autoRefresh || 0
+      let seconds = this.paper.props.autoRefresh || 0
       if (!Number.isInteger(seconds) || seconds < 0) {
         seconds = 0
       }
@@ -540,7 +540,7 @@ export default {
 
       // Paginacao
       //
-      let page = this.paper.view.design.page
+      let page = this.paper.props.pagination
       this.pagination.enabled = !!page
       if (this.pagination.enabled)
       {
@@ -549,7 +549,7 @@ export default {
       }
 
       // Filtragem
-      this.filter.action = this.paper.actions.filter(a => a.view.name === 'filter')[0]
+      this.filter.action = this.paper.actions.filter(a => a.props.name === 'filter')[0]
     },
 
     setAutoRefresh(enabled) {
@@ -644,7 +644,7 @@ export default {
 
     updateData (paper) {
       switch (paper.kind) {
-        case 'paper': {
+        case 'action': {
           let incomingData = paper.embedded.filter(e => e.kind === 'data')
           let embedded = this.paper.embedded.filter(e => e.kind !== 'data')
           embedded.push(...incomingData)
@@ -719,7 +719,7 @@ export default {
         // TODO: Falta exibir a validação na interface...
       }
 
-      if (paper.kind === 'paper') {
+      if (paper.kind === 'action') {
         this.setPaper(paper)
       }
     },

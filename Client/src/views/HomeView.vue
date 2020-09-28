@@ -137,7 +137,8 @@ export default {
         //       serverVersion: "0.1.0"
         //     }
         //   };
-        let ok = (paper.kind === 'info') && paper.data.serverVersion
+        let ok = (paper.data['@type'] === 'SystemInfo')
+               && paper.data.serverVersion
         if (ok) {
           this.$router.push('/Home')
         } else {
