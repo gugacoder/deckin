@@ -21,7 +21,6 @@ namespace Keep.Paper.Templating
 {
   public class FilterAction : Action
   {
-    public override string Type { get; set; } = "Form";
     public override string Rel { get; set; } = "Filter";
   }
 }

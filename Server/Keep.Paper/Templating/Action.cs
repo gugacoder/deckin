@@ -26,9 +26,7 @@ namespace Keep.Paper.Templating
     private string _verb;
     private FieldCollection _fields;
     private Action _actions;
-    private LinkCollection _linkage;
-
-    public virtual string Type { get; set; }
+    private LinkCollection _links;
 
     public virtual string Rel { get; set; }
 
@@ -50,14 +48,11 @@ namespace Keep.Paper.Templating
       set => _verb = value;
     }
 
-    public string EntityName { get; set; }
-
     public bool Disabled { get; set; }
 
     public bool Popup { get; set; }
 
-    public string Connection { get; set; }
-    public string Query { get; set; }
+    public string Extent { get; set; }
 
     public FieldCollection Fields
     {
@@ -71,10 +66,10 @@ namespace Keep.Paper.Templating
       set => _actions = Adopt(value);
     }
 
-    public LinkCollection Linkage
+    public LinkCollection Links
     {
-      get => _linkage;
-      set => _linkage = Adopt(value);
+      get => _links;
+      set => _links = Adopt(value);
     }
   }
 }

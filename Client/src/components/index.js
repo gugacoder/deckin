@@ -15,14 +15,24 @@ const filepaths = require.context(
 
 filepaths.keys().forEach((filepath) => {
   const sourceCode = filepaths(filepath)
-  const targetName = filepath.split('/')
-    // Pegando o nome do arquivo
-    .slice(-1).pop()
-    // Removendo a extensão
-    .replace(/\.\w+$/, '')
-    // Hifenizando "foo-bar"
-    .toHyphenCase()
-  
+
+  if (!sourceCode.default)
+    return
+
+  const aliases = [
+    filepath.split('/')
+      // Pegando o nome do arquivo
+      .slice(-1).pop()
+      // Removendo a extensão
+      .replace(/\.\w+$/, '')
+      // Hifenizando "foo-bar"
+      .toHyphenCase()
+  ]
+
+  if (sourceCode.default.aliases) {
+    sourceCode.default.aliases.forEach(alias => aliases.push(alias))
+  }
+
   // Registrando o componente globalmente...
-  Vue.component(targetName, sourceCode.default || sourceCode)
+  aliases.forEach(alias => Vue.component(alias, sourceCode.default))
 })

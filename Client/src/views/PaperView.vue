@@ -73,9 +73,6 @@ export default {
         let design = (paper && (paper.props['@type'] || paper.kind)) || 'unknown'
         let designName = design.toHyphenCase()
         
-        // Páginas ainda não implementadas
-        if (designName === 'login') designName = 'action'
-
         name = `${designName}-paper`
         if (!Vue.options.components[name]) {
           name = 'unknown-paper'

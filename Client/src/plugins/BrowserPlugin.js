@@ -61,7 +61,9 @@ function requestData (href, payload, identity) {
 
       fetch(href, options)
         .then(response => response.json())
-        .then(entity => resolve(canonifyPaper(entity)))
+        .then(entity => canonifyPaper(entity))
+        .then(entity => ensureSelfLink(entity, href, payload))
+        .then(entity => resolve(entity))
         .catch(error => resolve(canonifyPaper({
           kind: 'fault',
           data: {
@@ -71,7 +73,8 @@ function requestData (href, payload, identity) {
           links: [
             {
               rel: 'self',
-              href: CreatePaperHref(href)
+              href: CreatePaperHref(href),
+              data: payload
             }
           ]
         })))
@@ -93,6 +96,18 @@ function requestData (href, payload, identity) {
       }))
     }
   })
+}
+
+function ensureSelfLink(entity, href /*, payload */) {
+  let self = entity.links.filter(link => link.rel === 'self')[0]
+  if (!self) {
+    entity.links.push({
+      rel: 'self',
+      href: CreatePaperHref(href),
+      //data: Object.assign({}, payload)
+    })
+  }
+  return entity
 }
 
 function CreatePaperHref(href) {

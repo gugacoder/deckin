@@ -23,7 +23,11 @@ namespace Keep.Paper.Templating
   {
     private FieldCollection _filter;
 
-    public override string Type { get; set; } = "Grid";
+    public string Connection { get; set; }
+
+    public string Query { get; set; }
+
+    public string EntityName { get; set; }
 
     public int? AutoRefresh { get; set; }
 

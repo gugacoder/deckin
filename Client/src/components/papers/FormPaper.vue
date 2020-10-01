@@ -1,5 +1,5 @@
 <template lang="pug"> 
-  v-app.action-paper.x-container
+  v-app.form-paper.x-container
     the-header(
       :prominent="prominent"
       :catalog="catalogName"
@@ -44,26 +44,37 @@
       v-container(
         fluid
       )
-        v-row(  
-          align="center"
-          justify="center"
-        )
-          v-col(
-            cols="12"
-            sm="8"
-            md="4"
+        //-
+          v-row(  
             align="center"
             justify="center"
           )
-            action-slice(
-              style="width: 320px;"
-              v-bind="actionSlice"
-              :flat="$isMobile"
-              flat
-              right
-              @alert="alert => this.alert = alert"
-              @paperReceived="paper => this.paper = paper"
+            v-col(
+              cols="12"
+              sm="8"
+              md="4"
+              align="center"
+              justify="center"
             )
+        action-slice(
+          v-bind="actionSlice"
+          :flat="$isMobile"
+          flat
+          right
+          @alert="alert => this.alert = alert"
+          @paperReceived="paper => this.paper = paper"
+        )
+          
+      v-expansion-panels(
+        flat
+      )
+        v-expansion-panel
+          v-expansion-panel-header
+            span.font-weight-thin Código Fonte
+            
+          v-expansion-panel-content
+            small
+              pre.font-weight-thin {{ paper }}
 </template>
 
 <style scoped>
@@ -88,7 +99,11 @@ import '@/helpers/StringHelper.js'
 export default {
   extends: PaperBase,
 
-  name: 'action-paper',
+  name: 'form-paper',
+  aliases: [
+    'login-paper',
+    'card-paper'
+  ],
 
   components: {
     TheHeader,
@@ -115,13 +130,14 @@ export default {
 
   computed: {
     prominent () {
-      return this.paper.props['@type'] === 'login'
+      return this.type === 'login'
     },
     
     actionSlice () {
       return {
         paper: this.paper,
         actionName: null,   // O próprio paper é a ação
+        readOnly: this.type === 'card'
       }
     },
   },

@@ -32,24 +32,66 @@
       <Filter>
         <TextField
           Name="DFid_usuario"
-          Title="Usuário" />
+          Title="Código de Usuário" />
         <TextField
           Name="DFnome_usuario"
           Title="Nome de Usuário" />
         <TextField
           Name="DFcod_empresa"
-          Title="Empresa" />
+          Title="Código da Empresa" />
         <TextField
           Name="DFnome_fantasia"
           Title="Nome da Empresa" />
         <TextField
           Name="DFid_nivel_usuario"
-          Title="Nível" />
+          Title="Código do Nível" />
         <TextField
           Name="DFnivel_usuario"
           Title="Nome do Nível" />
       </Filter>
     </GridAction>
+    <CardAction
+      Title="Usuário"
+      EntityName="Usuario"
+      Extent="lg-extent">
+      <Query><![CDATA[
+        select TBusuario.DFid_usuario
+             , TBusuario.DFnome_usuario
+             , TBempresa.DFcod_empresa
+             , TBempresa.DFnome_fantasia
+             , TBnivel.DFid_nivel_usuario
+             , TBnivel.DFdescricao
+          from TBusuario
+          left join TBempresa
+                 on TBempresa.DFcod_empresa = TBusuario.DFcod_empresa
+          left join TBnivel
+                 on TBnivel.DFid_nivel_usuario = TBusuario.DFnivel_usuario
+         where TBusuario.DFid_usuario = @key
+      ]]></Query>
+      <Fields>
+        <Field
+          Name="DFid_usuario"
+          Title="Código de Usuário"
+          Extent="sm-extent" />
+        <Field
+          Name="DFnome_usuario"
+          Title="Nome de Usuário" />
+        <Field
+          Name="DFcod_empresa"
+          Title="Código da Empresa"
+          Extent="sm-extent" />
+        <Field
+          Name="DFnome_fantasia"
+          Title="Nome da Empresa" />
+        <Field
+          Name="DFid_nivel_usuario"
+          Title="Código do Nível"
+          Extent="sm-extent" />
+        <Field
+          Name="DFnivel_usuario"
+          Title="Nome do Nível" />
+      </Fields>
+    </CardAction>
   </Actions>
 </QueryTemplate>
 <!--

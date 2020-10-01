@@ -10,9 +10,21 @@ namespace Keep.Tools
 {
   public static class Is
   {
+    public static bool OfType<T>(object graph)
+    {
+      var type = graph as Type ?? graph?.GetType();
+      return (type != null) && typeof(T).IsAssignableFrom(type);
+    }
+
+    public static bool OfType(Type expectedType, object graph)
+    {
+      var type = graph as Type ?? graph?.GetType();
+      return (type != null) && expectedType.IsAssignableFrom(type);
+    }
+
     public static bool Collection(object graph)
     {
-      var type = graph is Type t ? t : graph?.GetType();
+      var type = graph as Type ?? graph?.GetType();
       if (type == null)
         return false;
 
@@ -24,7 +36,7 @@ namespace Keep.Tools
 
     public static bool Anonymous(object graph)
     {
-      var type = graph is Type t ? t : graph?.GetType();
+      var type = graph as Type ?? graph?.GetType();
       if (type == null)
         return false;
 
@@ -47,7 +59,7 @@ namespace Keep.Tools
 
     public static bool Dictionary(object graph)
     {
-      var type = graph is Type t ? t : graph?.GetType();
+      var type = graph as Type ?? graph?.GetType();
       if (type == null)
         return false;
 
@@ -59,7 +71,7 @@ namespace Keep.Tools
 
     public static bool Ret(object graph)
     {
-      var type = graph is Type t ? t : graph?.GetType();
+      var type = graph as Type ?? graph?.GetType();
       if (type == null)
         return false;
 
@@ -74,7 +86,7 @@ namespace Keep.Tools
 
     public static bool Var(object graph)
     {
-      var type = graph is Type t ? t : graph?.GetType();
+      var type = graph as Type ?? graph?.GetType();
       if (type == null)
         return false;
 
@@ -89,7 +101,7 @@ namespace Keep.Tools
 
     public static bool Range(object graph)
     {
-      var type = graph is Type t ? t : graph?.GetType();
+      var type = graph as Type ?? graph?.GetType();
       if (type == null)
         return false;
 
@@ -104,7 +116,7 @@ namespace Keep.Tools
 
     public static bool Nullable(object graph)
     {
-      var type = graph is Type t ? t : graph?.GetType();
+      var type = graph as Type ?? graph?.GetType();
       if (type == null)
         return false;
 

@@ -21,6 +21,10 @@ namespace Keep.Paper.Templating
 {
   public class CardAction : Action
   {
-    public override string Type { get; set; } = "Card";
+    public string Connection { get; set; }
+
+    public string Query { get; set; }
+
+    public string EntityName { get; set; }
   }
 }

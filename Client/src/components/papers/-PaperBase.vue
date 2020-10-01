@@ -55,6 +55,10 @@ export default {
       return (this.paperKeys || '').split(';')
     },
 
+    type () {
+      return this.paper.props['@type']
+    },
+
     title () {
       return this.paper.props.title
     },

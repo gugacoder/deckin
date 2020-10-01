@@ -1,5 +1,6 @@
 <template lang="pug">
-  v-container.action-slice.pa-0(
+  v-container.form-slice.pa-0(
+    :class="paperExtent"
     fluid
   )
     v-form(
@@ -26,7 +27,9 @@
               v-bind="createWidget(field)"
             )
 
-        v-card-actions
+        v-card-actions(
+          v-if="!readOnly"
+        )
           slot(
             name="action"
           )
@@ -104,12 +107,20 @@ import '@/helpers/StringHelper.js'
 export default {
   extends: SliceBase,
 
-  name: 'action-slice',
+  name: 'form-slice',
+  aliases: [ 
+    // FIXME: Mantido apenas para compatibiliade com versões anterioes
+    'action-slice',
+  ],
   
   props: {
     // Quando não informado o próprio Paper é considerado a ação
     actionName: {
       type: String,
+    },
+
+    readOnly: {
+      type: Boolean,
     },
 
     flat: {
@@ -172,7 +183,8 @@ export default {
     },
 
     paperExtent () {
-      return this.action.props.extent
+      let extent = this.extent ?? this.action.props.extent
+      return extent
     }
   },
 
@@ -185,7 +197,8 @@ export default {
       return {
         is: name,
         paper: this.action,
-        fieldName: field.props.name
+        fieldName: field.props.name,
+        readOnly: this.readOnly
       }
     },
 

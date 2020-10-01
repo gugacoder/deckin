@@ -121,6 +121,17 @@
             
           v-expansion-panel-content
             small.font-weight-thin {{ stackTrace }}
+          
+      v-expansion-panels(
+        flat
+      )
+        v-expansion-panel
+          v-expansion-panel-header
+            span.font-weight-thin Código Fonte
+            
+          v-expansion-panel-content
+            small
+              pre.font-weight-thin {{ paper }}
 </template>
 
 <script>

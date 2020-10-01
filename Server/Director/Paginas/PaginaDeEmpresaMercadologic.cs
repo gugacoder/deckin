@@ -128,7 +128,7 @@ namespace Director.Paginas
             {
               Name = "DFusuario",
               Title = "Usuário",
-              Username = true
+              AutoComplete = AutoComplete.Username
             }
           }
         },

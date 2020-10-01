@@ -86,15 +86,19 @@ namespace Keep.Tools.Sequel
       if (parameters == null)
         return sql;
 
+      var target = ((ISettableContract)sql).EnsureParameters();
       var sample = parameters.NotNull().FirstOrDefault();
 
-      if (IsGraph(sample) || IsMap(sample))
+      if (sample is string)
+      {
+        UnwrapEnumerable(parameters, target);
+      }
+      else if (IsGraph(sample) || IsMap(sample))
       {
         var invalid = parameters.NotNull().Any(x => !IsGraph(x) && !IsMap(x));
         if (invalid)
           throw new Exception("Todos os parâmetros deveriam ser objetos ou mapas para extração de propriedades, mas foi encontrado: " + invalid.GetType().FullName);
 
-        var target = ((ISettableContract)sql).EnsureParameters();
         foreach (var graph in parameters)
         {
           if (graph is IDictionary map)
@@ -115,7 +119,7 @@ namespace Keep.Tools.Sequel
           throw new Exception("Era esperado uma lista de parâmetros simples na forma chave/valor mas foi encontrado: " + invalid.GetType().FullName);
         }
 
-        UnwrapParameters(parameters, ((ISettableContract)sql).EnsureParameters());
+        UnwrapParameters(parameters, target);
       }
       return sql;
     }
@@ -500,6 +504,38 @@ namespace Keep.Tools.Sequel
             $"(\"parametro=valor\") mas foi encontrado: {enumerator.Current}"
           );
         }
+      }
+    }
+
+    /// <summary>
+    /// Desmonta um vetor de parametros contendo em cada argumento par um nome
+    /// de parametro e no argumento ímpar subsequente o seu valor correspondente.
+    /// Exemplo: new[] { "id", 1, "nome", "Tananana" }
+    /// </summary>
+    /// <param name="args"></param>
+    /// <param name="target"></param>
+    private static void UnwrapEnumerable(object[] args,
+      IDictionary<string, object> target)
+    {
+      if ((args.Length % 2) != 0)
+      {
+        throw new Exception(
+          "Quantidade inválida de parâmetros. " +
+          "Era esperado um vetor contendo em cada posição par o nome de um " +
+          "parâmetro e em cada posição ímpar subsequente o seu valor " +
+          "correspondente. Exemplo: new[] { \"id\", 1, \"nome\", \"Tananana\" }");
+      }
+
+      for (var i = 0; i < args.Length; i += 2)
+      {
+        var key = args[i];
+        var value = args[i + 1];
+
+        if (!(key is string))
+          throw new Exception(
+            $"Era esperado um nome de parâmetro mas foi encontrado: {key ?? "(null)"}");
+
+        target[(string)key] = value;
       }
     }
   }

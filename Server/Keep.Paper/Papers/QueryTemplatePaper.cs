@@ -21,60 +21,172 @@ namespace Keep.Paper.Papers
   public class QueryTemplatePaper : AbstractPaper
   {
     private readonly IActionInfo info;
-    private readonly Templating.Action action;
+    private readonly QueryTemplate baseTemplate;
+    private readonly Templating.Action actionTemplate;
     private readonly IDbConnector connector;
-    private readonly QueryTemplate template;
 
-    public QueryTemplatePaper(IActionInfo info, Templating.Action action, IDbConnector connector)
+    public QueryTemplatePaper(IActionInfo info, Templating.Action action,
+      IDbConnector connector)
     {
       this.info = info;
-      this.action = action;
+      this.baseTemplate = action.Template as QueryTemplate;
+      this.actionTemplate = action;
       this.connector = connector;
-      this.template = action.Template as QueryTemplate;
     }
 
     [Fallback]
-    public async Task<Types.Entity> ResolveAsync(object options, Pagination pagination)
+    public async Task<Types.Entity> ResolveAsync(KeyCollection keys,
+      object options, Pagination pagination)
     {
-      var defaultOffset = (action as GridAction)?.Offset ?? 0;
-      var defaultLimit = (action as GridAction)?.Limit ?? (int)PageLimit.UpTo50;
+      var target = new Types.Action();
+
+      // FIXME: Deveria ser recebido via parametro
+      var stopToken = default(CancellationToken);
+
+      PreBuild(target);
+
+      if (actionTemplate is GridAction gridTemplate)
+      {
+        await BuildGridAsync(target, gridTemplate, keys, options, pagination, stopToken);
+      }
+      else if (actionTemplate is CardAction cardAction)
+      {
+        await BuildCardAsync(target, cardAction, keys, options, stopToken);
+      }
+
+      PostBuild(target);
+
+      return target;
+    }
+
+    private void PreBuild(Types.Action target)
+    {
+      // FIXME: Qual a forma correta de construir SELF considerando CATALOG, PAPER, ACTION e KEYS?
+      //target.Links ??= new Types.LinkCollection();
+      //target.Links.Add(new Types.Link
+      //{
+      //  Rel = Rel.Self,
+      //  Href = info.Path
+      //});
+    }
+
+    private void PostBuild(Types.Action target)
+    {
+      // Nada a fazer por enquanto...
+    }
+
+    #region Card Templating
+
+    private async Task BuildCardAsync(Types.Action target, CardAction template,
+      KeyCollection keys, object options, CancellationToken stopToken)
+    {
+      target.Props = new Types.CardView();
+
+      baseTemplate._CopyTo(target.Props);
+      template._CopyTo(target.Props);
+
+      await FetchCardDataAsync(target, template, keys, options, stopToken);
+    }
+
+    private async Task FetchCardDataAsync(Types.Action target, CardAction template,
+      KeyCollection keys, object options, CancellationToken stopToken)
+    {
+      var connectionName = template.Connection ?? baseTemplate.Connection;
+      var sql = template.Query;
+
+      using var cn = await connector.ConnectAsync(connectionName, stopToken);
+      using var reader = await sql
+        .AsSql()
+        .Set(options)
+        .Set(new { key = keys.FirstOrDefault() })
+        .Set(keys.SelectMany((key, i) => new[] { $"key{i}", key }).ToArray())
+        .ReadAsync(cn, null, stopToken);
+
+      var ok = await reader.ReadAsync();
+
+      if (ok)
+      {
+        target.Fields ??= new Types.FieldCollection();
+
+        var mappedFields = MapFields(reader.Current.GetFieldNames()).ToArray();
+
+        BuildFieldsFromQuery(target.Fields, reader, mappedFields);
+        BuildDataEntityFromQuery(target, reader, mappedFields);
+
+        target.Data.SetType(template.EntityName);
+      }
+    }
+
+    #endregion
+
+    #region Grid Templating
+
+    private async Task BuildGridAsync(Types.Action target, GridAction template,
+      KeyCollection keys, object options, Pagination pagination, CancellationToken stopToken)
+    {
+      var defaultOffset = template.Offset ?? 0;
+      var defaultLimit = template.Limit ?? (int)PageLimit.UpTo50;
 
       if (pagination == null) pagination = new Pagination();
       if (pagination.Offset == null) pagination.Offset = defaultOffset;
       if (pagination.Limit == null) pagination.Limit = defaultLimit;
 
-      var stopToken = default(CancellationToken);
+      target.Props = new Types.GridView();
 
-      //var paperTitle = template.Title ?? template.Name?.ToProperCase();
-      //var actionTitle = action.Title ?? action.Name?.ToProperCase() ?? paperTitle;
+      baseTemplate._CopyTo(target.Props);
+      template._CopyTo(target.Props);
 
-      var entity = new Types.Action();
-      entity.Kind = Kind.Paper;
+      await FetchGridDataAsync(target, template, keys, options, pagination, stopToken);
 
-      if (action is GridAction)
-        entity.Props = new Types.GridView();
-      else
-        entity.Props = new Types.View();
-
-      action._CopyTo(entity.Props);
-
-      entity.Links = new Types.LinkCollection();
-      entity.Links.Add(new Types.Link
-      {
-        Rel = Rel.Self,
-        Href = info.Path
-      });
-
-      await FetchDataAsync(entity, options, pagination, stopToken);
-
-      SetFilter(entity, options);
-
-      return entity;
+      BuildGridFilter(target, template, options);
     }
 
-    private void SetFilter(Types.Action view, object options)
+    private async Task FetchGridDataAsync(Types.Action target,
+      GridAction template, KeyCollection keys, object options, Pagination pagination,
+      CancellationToken stopToken)
     {
-      var filter = (action as GridAction)?.Filter;
+      var connectionName = template.Connection ?? baseTemplate.Connection;
+      var sql = template.Query;
+
+      using var cn = await connector.ConnectAsync(connectionName, stopToken);
+      using var reader = await sql
+        .AsSql()
+        .Set(options)
+        .Set(pagination)
+        .Set(new { key = keys.FirstOrDefault() })
+        .Set(keys.SelectMany((key, i) => new[] { $"key{i}", key }).ToArray())
+        .ReadAsync(cn, null, stopToken);
+
+      var ok = await reader.ReadAsync();
+
+      if (ok)
+      {
+        target.Fields ??= new Types.FieldCollection();
+        target.Embedded ??= new Types.EntityCollection();
+
+        var mappedFields = MapFields(reader.Current.GetFieldNames()).ToArray();
+
+        BuildFieldsFromQuery(target.Fields, reader, mappedFields);
+
+        while (ok)
+        {
+          var entity = new Types.Entity();
+
+          BuildDataEntityFromQuery(entity, reader, mappedFields);
+
+          entity.Data.SetType(template.EntityName);
+
+          target.Embedded.Add(entity);
+
+          ok = await reader.ReadAsync();
+        }
+      }
+    }
+
+    private void BuildGridFilter(Types.Action target, GridAction template,
+      object options)
+    {
+      var filter = template.Filter;
       if (filter == null)
         return;
 
@@ -100,69 +212,55 @@ namespace Keep.Paper.Papers
         targetAction.Fields.Add(targetField);
       }
 
-      (view.Actions ??= new Types.ActionCollection()).Add(targetAction);
+      (target.Actions ??= new Types.ActionCollection()).Add(targetAction);
     }
 
-    private async Task FetchDataAsync(Types.Action view, object options,
-      Pagination pagination, CancellationToken stopToken)
+    #endregion
+
+    #region Algorithms
+
+    private void BuildFieldsFromQuery(Types.FieldCollection fields,
+      IReaderAsync<Record> reader, HashMap<string>[] mappedFields)
     {
-      var connectionName = action.Connection ?? template?.Connection;
+      var template = this.actionTemplate;
 
-      var sql = action.Query;
-
-      using var cn = await connector.ConnectAsync(connectionName, stopToken);
-      using var reader = await sql
-        .AsSql()
-        .Set(options)
-        .Set(pagination)
-        .ReadAsync(cn, null, stopToken);
-
-      var ok = await reader.ReadAsync();
-
-      if (ok)
+      for (var i = 0; i < mappedFields.Length; i++)
       {
-        view.Fields = new Types.FieldCollection();
-        view.Embedded = new Types.EntityCollection();
+        var fieldMap = mappedFields[i];
+        var fieldName = fieldMap["sourceField"];
+        var fieldType = reader.Current.GetFieldType(i);
+        var fieldSpec = template.Fields?.FirstOrDefault(x =>
+          x.Name.EqualsIgnoreCase(fieldName));
 
-        var mappedFields = MapFields(reader.Current.GetFieldNames()).ToArray();
+        var field = CreateField(fieldType);
 
-        for (var i = 0; i < mappedFields.Length; i++)
-        {
-          var fieldMap = mappedFields[i];
-          var fieldName = fieldMap["sourceField"];
-          var fieldType = reader.Current.GetFieldType(i);
-          var fieldSpec = action.Fields?.FirstOrDefault(x => x.Name.EqualsIgnoreCase(fieldName));
+        fieldMap.ForEach(entry => field.Props._TrySet(entry.Key, entry.Value));
+        fieldSpec?._CopyTo(field.Props);
 
-          var field = CreateField(fieldType);
-
-          fieldMap.ForEach(entry => field.Props._TrySet(entry.Key, entry.Value));
-          fieldSpec?._CopyTo(field.Props);
-
-          view.Fields.Add(field);
-        }
-
-        while (ok)
-        {
-          var data = new HashMap();
-
-          for (var i = 0; i < mappedFields.Length; i++)
-          {
-            var fieldName = mappedFields[i]["name"];
-            var fieldValue = reader.Current[i];
-            data.Add(fieldName, fieldValue);
-          }
-
-          view.Embedded.Add(new Types.Entity
-          {
-            Data = new Types.Data(data).SetType(action.EntityName)
-          });
-
-          ok = await reader.ReadAsync();
-        }
+        fields.Add(field);
       }
     }
 
-    private Types.Field CreateField(Type fieldType)
+    private void BuildDataEntityFromQuery(Types.Entity entity,
+      IReaderAsync<Record> reader, HashMap<string>[] mappedFields)
+    {
+      var data = new HashMap();
+
+      for (var i = 0; i < mappedFields.Length; i++)
+      {
+        var fieldName = mappedFields[i]["name"];
+        var fieldValue = reader.Current[i];
+        data.Add(fieldName, fieldValue);
+      }
+
+      entity.Data = new Types.Data(data);
+    }
+
+    #endregion
+
+    #region Métodos de apoio
+
+    private static Types.Field CreateField(Type fieldType)
     {
       if (fieldType == typeof(int))
         return new Types.Field { Props = new Types.IntWidget() };
@@ -173,7 +271,7 @@ namespace Keep.Paper.Papers
       return new Types.Field { Props = new Types.TextWidget() };
     }
 
-    private IEnumerable<HashMap<string>> MapFields(string[] fieldNames)
+    private static IEnumerable<HashMap<string>> MapFields(string[] fieldNames)
     {
       var index = 0;
       foreach (var fieldName in fieldNames)
@@ -230,15 +328,11 @@ namespace Keep.Paper.Papers
       }
     }
 
-    private string MakeFieldName(string name, string title, int index)
+    private static string MakeFieldName(string name, string title, int index)
     {
       if (string.IsNullOrEmpty(name))
       {
         name = title;
-      }
-      else if (name?.StartsWithIgnoreCase("DF") == true)
-      {
-        name = name.Substring(2);
       }
 
       if (string.IsNullOrEmpty(name))
@@ -246,10 +340,10 @@ namespace Keep.Paper.Papers
         name = $"field{index}";
       }
 
-      return name.ToCamelCase();
+      return name;
     }
 
-    private string MakeFieldTitle(string name, string title, int index)
+    private static string MakeFieldTitle(string name, string title, int index)
     {
       if (string.IsNullOrEmpty(title))
       {
@@ -265,5 +359,7 @@ namespace Keep.Paper.Papers
 
       return title;
     }
+
+    #endregion
   }
 }

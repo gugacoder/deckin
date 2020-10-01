@@ -79,8 +79,9 @@ namespace Keep.Paper.Papers
             {
               Name = nameof(Credential.Username).ToCamelCase(),
               Title = "Usuário",
-              Username = true,
-              Required = true
+              Required = true,
+              AutoComplete = AutoComplete.Username,
+              Icon = Icon.MdiAccount
             }
           },
           new Types.Field
@@ -89,8 +90,9 @@ namespace Keep.Paper.Papers
             {
               Name = nameof(Credential.Password).ToCamelCase(),
               Title = "Senha",
-              Password = true,
-              Required = true
+              Required = true,
+              AutoComplete = AutoComplete.CurrentPassword,
+              Icon = Icon.MdiLock
             }
           },
         }

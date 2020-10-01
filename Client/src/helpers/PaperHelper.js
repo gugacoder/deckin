@@ -143,7 +143,7 @@ export function canonifyPaper (paper) {
   // Aplicando sanitizações
   index = 0
   target.fields = target.fields.map(field => {
-    field.kind = field.kind || 'info'
+    field.kind = field.kind || 'field'
     // FIXME: O nome deveria ser checado contra conflito de nome
     field.data = field.data || {}
     field.props = field.props || {}
@@ -153,17 +153,17 @@ export function canonifyPaper (paper) {
     // Se um valor não é indicado diretamente então criamos uma função
     // de referência para a propriedade de mesmo nome na coleção de dados.
     if (!field.data.value) {
-      if (!target.data[field.data.name]) {
+      if (!target.data[field.props.name]) {
         // Se não existe uma propriedade correspondente na coleção de dados
         // criamos uma valendo nulo.
-        target.data[field.data.name] = null
+        target.data[field.props.name] = null
       }
       Object.defineProperty(field.data, 'value', {
         get () {
-          return target.data[field.data.name]
+          return target.data[field.props.name]
         },
         set (value) {
-          target.data[field.data.name] = value
+          target.data[field.props.name] = value
         }
       })
     }

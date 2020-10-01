@@ -23,6 +23,8 @@ namespace Keep.Paper.Api.Types
     protected virtual bool? BaseHidden { get; set; }
     protected virtual bool? BaseRequired { get; set; }
     protected virtual string BaseExtent { get; set; }
+    protected virtual string BaseIcon { get; set; }
+    protected virtual string BaseAutoComplete { get; set; }
 
     [JsonProperty(Order = -1110)]
     public string Name { get => BaseName; set => BaseName = value; }
@@ -38,6 +40,12 @@ namespace Keep.Paper.Api.Types
 
     [JsonProperty(Order = -1070)]
     public virtual string Extent { get => BaseExtent; set => BaseExtent = value; }
+
+    [JsonProperty(Order = -1060)]
+    public virtual string Icon { get => BaseIcon; set => BaseIcon = value; }
+
+    [JsonProperty(Order = -1050)]
+    public virtual string AutoComplete { get => BaseAutoComplete; set => BaseAutoComplete = value; }
   }
 
 }

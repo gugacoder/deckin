@@ -274,16 +274,27 @@ namespace Keep.Paper.Controllers
         var parameters = getter.GetParameters();
         var enumerator = parameters.Cast<ParameterInfo>().GetEnumerator();
 
-        foreach (var key in keys)
+        var hasKeyCollectionParameter = (
+          from parameter in parameters
+          where typeof(KeyCollection).IsAssignableFrom(parameter.ParameterType)
+          select parameter
+          ).Any();
+
+        if (!hasKeyCollectionParameter)
         {
-          if (!enumerator.MoveNext())
-            return Ret.Fail(HttpStatusCode.NotFound, $"A chave `{key}` não " +
-                "era esperada.");
+          // Os primeiros parametros precisam ser necessariamente as chaves
+          // de identificação obtidas da URI.
+          foreach (var key in keys)
+          {
+            if (!enumerator.MoveNext())
+              return Ret.Fail(HttpStatusCode.NotFound, $"A chave `{key}` não " +
+                  "era esperada.");
 
-          var parameterType = enumerator.Current.ParameterType;
-          var parameterValue = Change.To(key, parameterType);
+            var parameterType = enumerator.Current.ParameterType;
+            var parameterValue = Change.To(key, parameterType);
 
-          parameterValueList.Add(parameterValue);
+            parameterValueList.Add(parameterValue);
+          }
         }
 
         while (enumerator.MoveNext())
@@ -291,26 +302,36 @@ namespace Keep.Paper.Controllers
           var parameterInfo = enumerator.Current;
           var parameterType = enumerator.Current.ParameterType;
 
-          JObject current;
+          object parameterValue = null;
 
-          if (parameterType == typeof(Pagination))
+          if (Is.OfType<KeyCollection>(parameterType))
           {
-            current = payload["pagination"] as JObject ?? new JObject();
+            parameterValue = new KeyCollection(keys);
           }
           else
           {
-            current = form;
-            if (payload.ContainsKey(parameterInfo.Name))
+            JObject current;
+
+            if (Is.OfType<Pagination>(parameterType))
             {
-              current = current[parameterInfo.Name] as JObject ?? new JObject();
+              current = payload["pagination"] as JObject ?? new JObject();
             }
+            else
+            {
+              current = form;
+              if (payload.ContainsKey(parameterInfo.Name))
+              {
+                current = current[parameterInfo.Name] as JObject ?? new JObject();
+              }
+            }
+
+            var ret = TryCreateParameter(current, parameterType);
+            if (!ret.Ok)
+              return (Ret)ret;
+
+            parameterValue = ret.Value;
           }
 
-          var ret = TryCreateParameter(current, parameterType);
-          if (!ret.Ok)
-            return (Ret)ret;
-
-          var parameterValue = ret.Value;
           parameterValueList.Add(parameterValue);
         }
 

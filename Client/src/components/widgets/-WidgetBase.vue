@@ -40,6 +40,9 @@ export default {
       type: String,
       required: true
     },
+    readOnly: {
+      type: Boolean
+    },
   },
 
   data: () => ({

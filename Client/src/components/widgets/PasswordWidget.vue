@@ -1,7 +1,5 @@
 <template lang="pug">
   v-text-field.password-widget(
-    type="password"
-    autocomplete="current-password"
     v-show="!hidden"
     v-model="value"
     :class="extent"
@@ -10,7 +8,9 @@
     :required="required"
     :hint="hint"
     :error-messages="errorMessages"
-    prepend-icon="mdi-lock"
+    :type="password"
+    :autocomplete="current-password"
+    :prepend-icon="mdi-lock"
     dense
   )
 </template>
