@@ -15,6 +15,7 @@ namespace Keep.Paper.Api.Types
   {
     protected virtual string BaseKind { get; set; }
     protected virtual string BaseRel { get; set; }
+    protected virtual string BaseRef { get; set; }
     protected virtual Data BaseMeta { get; set; }
     protected virtual Data BaseProps { get; set; }
     protected virtual Data BaseData { get; set; }
@@ -28,6 +29,9 @@ namespace Keep.Paper.Api.Types
 
     [JsonProperty(Order = -1030)]
     public virtual string Rel { get => BaseRel; set => BaseRel = value; }
+
+    [JsonProperty(Order = -1025)]
+    public virtual string Ref { get => BaseRef; set => BaseRef = value; }
 
     [JsonProperty(Order = -1020)]
     public virtual Data Meta { get => BaseMeta; set => BaseMeta = value; }

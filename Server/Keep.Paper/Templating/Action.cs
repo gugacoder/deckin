@@ -30,6 +30,10 @@ namespace Keep.Paper.Templating
 
     public virtual string Rel { get; set; }
 
+    public string Catalog { get; set; }
+
+    public string Collection { get; set; }
+
     public string Name
     {
       get => _name ?? _verb?.ToPascalCase() ?? _title?.ToPascalCase();

@@ -22,30 +22,29 @@ namespace Keep.Paper.Papers
 
     public Types.Action Index()
     {
-      var papers =
-        from catalog in paperCatalog.EnumerateCatalogs()
-        from paper in paperCatalog.EnumeratePapers(catalog)
-        let paperType = paperCatalog.GetType(catalog, paper)
-        select new Types.Entity
+      var links =
+        from type in paperCatalog.EnumerateTypes()
+          // FIXME: Mantido para compatibilidade com PaperType. Enquanto transitamos para IActionInfo
+        where type.Name.EqualsIgnoreCase("Home")
+           || type.Name.EndsWith(".Home")
+        select new Types.Link
         {
-          Rel = Rel.Item,
-          Links = new Types.LinkCollection
-          {
-            new Types.Link
-            {
-              Rel = Rel.Self,
-              Href = Href.To(HttpContext, paperType.Type, "Index")
-            }
-          }
+          Rel = Rel.Menu,
+          Href = Href.To(HttpContext, type.Catalog, type.Name),
+          Title = type.Catalog.ToProperCase()
         };
 
       return new Types.Action
       {
-        Props = new Types.DashboardView
+        Meta = new Types.Data
+        {
+          { "menu", true }
+        },
+        Props = new Types.CardView
         {
           Title = "Início"
         },
-        Embedded = new Types.EntityCollection(papers)
+        Links = new Types.LinkCollection(links)
       };
     }
   }

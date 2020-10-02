@@ -30,7 +30,7 @@ export default {
       required: true
     }
   },
-
+  
   computed: {
     parameters () {
       return {

@@ -136,19 +136,11 @@ namespace Keep.Paper.Configurations
     public static void MapPapers(this IEndpointRouteBuilder endpoints,
         Action<MapPaperOptions> configuration = null)
     {
-      var options = new MapPaperOptions();
-      configuration?.Invoke(options);
-
       var catalog = endpoints.ServiceProvider.GetService<IPaperCatalog>();
 
-      if (options.HomePaper != null)
-      {
-        catalog.SetType(PaperName.Home, new PaperType(options.HomePaper));
-      }
-      if (options.LoginPaper != null)
-      {
-        catalog.SetType(PaperName.Login, new PaperType(options.LoginPaper));
-      }
+      var options = new MapPaperOptions();
+      configuration?.Invoke(options);
+      // Nada a fazer com as opções por enquanto...
 
       endpoints.MapControllers();
     }

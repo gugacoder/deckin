@@ -59,7 +59,7 @@ namespace Keep.Paper.Templating
       foreach (var action in template.Actions)
       {
         var info = new ActionInfo();
-        info.Path = $"/{template.Catalog}/{template.Name}/{info.Name}";
+        info.Path = $"/{template.Catalog}/{template.Collection}/{info.Name}";
 
         var spec = new ActionSpec();
         spec.Info = info;
@@ -91,8 +91,12 @@ namespace Keep.Paper.Templating
       foreach (var action in template.Actions)
       {
         var paperType = new PaperType();
-        paperType.Catalog = template.Catalog ?? template.AssemblyName ?? "Default";
-        paperType.Name = $"{template.Name}.{action.Name}";
+
+        var catalog = action.Catalog ?? template.Catalog ?? template.AssemblyName ?? "Default";
+        var collection = action.Collection ?? template.Collection;
+
+        paperType.Catalog = catalog;
+        paperType.Name = $"{collection}.{action.Name}";
         paperType.Type = typeof(QueryTemplatePaper);
 
         var info = new ActionInfo();

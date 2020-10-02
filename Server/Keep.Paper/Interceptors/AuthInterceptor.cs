@@ -73,7 +73,6 @@ namespace Keep.Paper.Interceptors
 
     private object RequireAuthentication(string targetPaperHref)
     {
-      var loginPaper = paperCatalog.GetType(PaperName.Login);
       var ctx = this.HttpContext;
 
       return new Types.Status
@@ -89,7 +88,7 @@ namespace Keep.Paper.Interceptors
           {
             Title = LoginPaper.Title,
             Rel = Rel.Forward,
-            Href = Href.To(ctx, loginPaper.Type, "Index"),
+            Href = Href.To(ctx, "Keep.Paper", "Login", "Index"),
             Data = new Types.Payload<LoginPaper.Options>
             {
               Form = new LoginPaper.Options

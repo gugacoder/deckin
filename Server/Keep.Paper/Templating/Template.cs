@@ -28,31 +28,11 @@ namespace Keep.Paper.Templating
   [XmlInclude(typeof(LinkFrom))]
   public class Template : Node
   {
-    private string _name;
-    private string _title;
-    private string _verb;
-
     internal string AssemblyName { get; set; }
 
     public string Catalog { get; set; }
 
-    public string Name
-    {
-      get => _name ?? _verb?.ToPascalCase() ?? _title?.ToPascalCase();
-      set => _name = value;
-    }
-
-    public string Title
-    {
-      get => _title ?? _verb ?? _name?.ToProperCase();
-      set => _title = value;
-    }
-
-    public string Verb
-    {
-      get => _verb ?? _title ?? _name?.ToProperCase();
-      set => _verb = value;
-    }
+    public string Collection { get; set; }
 
     public bool Disabled { get; set; }
   }

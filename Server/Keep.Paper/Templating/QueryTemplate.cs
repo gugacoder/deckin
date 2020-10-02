@@ -22,7 +22,7 @@ namespace Keep.Paper.Templating
   public class QueryTemplate : Template
   {
     private ActionCollection _actions;
-    private LinkCollection _linkage;
+    private LinkCollection _links;
 
     public string Connection { get; set; }
     //public string Entity { get; set; }
@@ -34,10 +34,10 @@ namespace Keep.Paper.Templating
       set => _actions = Adopt(value);
     }
 
-    public LinkCollection Linkage
+    public LinkCollection Links
     {
-      get => _linkage;
-      set => _linkage = Adopt(value);
+      get => _links;
+      set => _links = Adopt(value);
     }
   }
 }

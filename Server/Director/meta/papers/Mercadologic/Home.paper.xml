@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<QueryTemplate
+  Catalog="Mercadologic"
+  Collection="Ambiente">
+  <Actions>
+    <CardAction
+      Name="Home"
+      Title="Mercadologic">
+    </CardAction>
+  </Actions>
+</QueryTemplate>

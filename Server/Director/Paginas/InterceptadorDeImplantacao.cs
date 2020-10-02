@@ -5,7 +5,7 @@
 //using Keep.Tools;
 //using Microsoft.AspNetCore.Http.Extensions;
 
-//namespace Director.Paginas.Interceptadores
+//namespace Director.Paginas
 //{
 //  [Expose]
 //  public class InterceptadorDeImplantacao : AbstractPaperInterceptor

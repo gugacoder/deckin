@@ -28,6 +28,6 @@ export default new Vuetify({
         accent: '#d71f3b',
       },
       */
-    }
+    },
   },
 });

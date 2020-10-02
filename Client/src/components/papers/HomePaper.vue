@@ -1,5 +1,5 @@
 <template lang="pug"> 
-  v-app.form-paper.x-container
+  v-app.home-paper.x-container
     the-header(
       :prominent="prominent"
       :catalog="catalogName"
@@ -44,26 +44,6 @@
       v-container(
         fluid
       )
-        //-
-          v-row(  
-            align="center"
-            justify="center"
-          )
-            v-col(
-              cols="12"
-              sm="8"
-              md="4"
-              align="center"
-              justify="center"
-            )
-        action-slice(
-          v-bind="actionSlice"
-          :flat="$isMobile"
-          flat
-          right
-          @alert="alert => this.alert = alert"
-          @paperReceived="paper => this.paper = paper"
-        )
           
       v-expansion-panels(
         flat
@@ -100,11 +80,7 @@ import '@/helpers/StringHelper.js'
 export default {
   extends: PaperBase,
 
-  name: 'form-paper',
-  aliases: [
-    'login-paper',
-    'card-paper'
-  ],
+  name: 'home-paper',
 
   components: {
     TheHeader,
@@ -131,15 +107,7 @@ export default {
 
   computed: {
     prominent () {
-      return this.type === 'login'
-    },
-    
-    actionSlice () {
-      return {
-        paper: this.paper,
-        actionName: null,   // O próprio paper é a ação
-        readOnly: this.type === 'card'
-      }
+      return this.paper.meta.prominent
     },
   },
 

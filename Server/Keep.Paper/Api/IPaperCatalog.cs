@@ -10,9 +10,6 @@ namespace Keep.Paper.Api
     public const string HomePaper = nameof(HomePaper);
     public const string LoginPaper = nameof(LoginPaper);
 
-    PaperType GetType(string specialName);
-    void SetType(string specialName, PaperType paperType);
-
     PaperType GetType(string catalogName, string paperName);
 
     IEnumerable<string> EnumerateCatalogs();

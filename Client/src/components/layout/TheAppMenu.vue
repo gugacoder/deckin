@@ -14,6 +14,8 @@
         style="background-color: rgba(0,0,0,.05);"
         @click.stop="e => $emit('input', e.target.value)"
       )
+        v-icon mdi-menu
+
         v-list-item-content.text-no-wrap
           app-title
 

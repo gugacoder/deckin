@@ -72,7 +72,12 @@ namespace Keep.Paper.Papers
 
     private void PostBuild(Types.Action target)
     {
-      // Nada a fazer por enquanto...
+      var links = target.Links ??= new Types.LinkCollection();
+      baseTemplate?.Links.ForEach(template =>
+      {
+        var link = new Types.Link()._CopyFrom(template);
+        links.Add(link);
+      });
     }
 
     #region Card Templating

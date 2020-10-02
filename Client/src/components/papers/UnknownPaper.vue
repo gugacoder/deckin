@@ -57,6 +57,7 @@
           
       v-expansion-panels(
         flat
+        style="z-index: 0"
       )
         v-expansion-panel
           v-expansion-panel-header

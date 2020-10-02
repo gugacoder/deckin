@@ -49,5 +49,15 @@
     <EmbeddedResource Update="meta\papers\CadastroDeBasesDoMercadologic %28copy%29.xml">
       <LogicalName>papers\CadastroDeBasesDoMercadologic.xml</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Update="meta\papers\Sample.module.xml">
+      <LogicalName>papers\Sample.paper.xml</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Update="meta\papers\Sample.paper-module.xml">
+      <LogicalName>papers\Sample.paper.xml</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="meta\papers\Director\" />
+    <Folder Include="meta\papers\Mercadologic\" />
   </ItemGroup>
 </Project>

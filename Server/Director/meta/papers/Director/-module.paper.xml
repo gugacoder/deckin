@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<QueryTemplate
+  Catalog="Director"
+  Collection="Ambiente">
+  <Actions>
+    <Workspace
+      Title="Director™">
+      <!-- Theme Generator -->
+      <!-- https://theme-generator.vuetifyjs.com/ -->
+      <Links>
+        <Link
+          Rel="menu"
+          Href="/Api/1/Papers/Director/Usuarios.Pesquisa/Index"
+          Title="Usuários" />
+      </Links>
+    </Workspace>
+  </Actions>
+</QueryTemplate>
