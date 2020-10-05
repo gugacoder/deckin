@@ -5,3 +5,9 @@ paket-files/**
 server/*.exe
 server/Deps
 server/Tools
+eps/
+Deps/
+Dist/
+Tools/
+toolset.exe
+
