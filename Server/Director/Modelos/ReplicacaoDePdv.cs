@@ -10,6 +10,7 @@ using Director.Dominio.dbo;
 using Director.Dominio.mlogic;
 using Keep.Paper.Api;
 using Keep.Tools;
+using Keep.Tools.Collections;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
 
@@ -20,40 +21,60 @@ namespace Director.Modelos
     private readonly DbDirector dbDirector;
     private readonly DbPdv dbPdv;
     private readonly IAudit audit;
+    private readonly ReplicacaoDePdvFalhas falhas;
 
     public ModeloDeReplicacaoDePdv(DbDirector dbDirector, DbPdv dbPdv, IAudit audit)
     {
       this.dbDirector = dbDirector;
       this.dbPdv = dbPdv;
       this.audit = audit;
+      this.falhas = new ReplicacaoDePdvFalhas(dbDirector, audit);
     }
 
     #region Replicação de dados
 
     public async Task ReplicarPdvsAsync(CancellationToken stopToken)
     {
-      ReplicacaoDePdvParametros parametros;
-
-      using (var cnDirector = await dbDirector.ConnectAsync(stopToken))
+      try
       {
-        parametros = await ReplicacaoDePdvParametros.ObterAsync(cnDirector,
-          stopToken);
+        ReplicacaoDePdvParametros parametros;
+
+        using (var cnDirector = await dbDirector.ConnectAsync(stopToken))
+        {
+          parametros = await ReplicacaoDePdvParametros.ObterAsync(cnDirector,
+            stopToken);
+        }
+
+        if (!parametros.Ativado)
+          return;
+
+        var pdvs = await ObterPdvsAtivosAsync(stopToken);
+        var tarefas = pdvs.Select(pdv =>
+          ReplicarAsync(parametros, pdv, stopToken)
+        ).ToArray();
+
+        await Task.WhenAll(tarefas);
       }
+      catch (Exception ex)
+      {
+        audit.LogDanger(
+          To.Text(
+            "Falhou a tentativa de replicar PDVs.",
+            ex),
+          GetType());
 
-      if (!parametros.Ativado)
-        return;
-
-      var pdvs = await ObterPdvsAtivosAsync(stopToken);
-      var tarefas = pdvs.Select(pdv =>
-        ReplicarAsync(parametros, pdv, stopToken)
-      ).ToArray();
-
-      await Task.WhenAll(tarefas);
+        await falhas.ReportarAsync(new TBfalha_replicacao
+        {
+          DFevento = TBfalha_replicacao.EventoReplicar,
+          DFfalha = "Falhou a tentativa de replicar PDVs.",
+          DFfalha_detalhada = To.Text(ex)
+        }, stopToken);
+      }
     }
 
     private async Task<TBpdv[]> ObterPdvsAtivosAsync(CancellationToken stopToken)
     {
-      var listDePdvAtivo = new List<TBpdv>();
+      var pdvsAtivos = new List<TBpdv>();
       try
       {
         audit.Log(
@@ -76,29 +97,15 @@ namespace Director.Modelos
             .Where(e => e.DFdata_inativacao == null).ToArray();
         }
 
-        var tarefas = empresasAtivas.Select(async empresa =>
+        var tarefas = empresasAtivas.Select(empresa =>
         {
-          try
-          {
-            using var cnDirector = await dbDirector.ConnectAsync(stopToken);
-
-            var pdvs = await TBpdv.ObterAsync(cnDirector,
-              empresa.DFcod_empresa, stopToken);
-
-            listDePdvAtivo.AddRange(pdvs.Where(pdv =>
-              pdv.DFdesativado == null && pdv.DFreplicacao_desativado == null));
-          }
-          catch (Exception ex)
-          {
-            audit.LogDanger(
-              To.Text(
-                $"Falhou a tentativa de obter informações sobre os PDVs da empresa: {empresa.DFcod_empresa}",
-                ex),
-              GetType());
-          }
+          var task = ObterPdvsAtivosAsync(empresa, stopToken);
+          return task;
         });
 
-        await Task.WhenAll(tarefas);
+        var pdvs = await Task.WhenAll(tarefas);
+
+        pdvsAtivos.AddRange(pdvs.SelectMany());
 
         audit.Log(
           "Obtenção de informações de conectividade dos PDVs a partir da base do Director concluída.",
@@ -111,9 +118,50 @@ namespace Director.Modelos
             "Obtenção de informações de conectividade dos PDVs a partir da base do Director concluída com falhas.",
             ex),
           GetType());
+
+        await falhas.ReportarAsync(new TBfalha_replicacao
+        {
+          DFevento = TBfalha_replicacao.EventoReplicar,
+          DFfalha = "Falhou a tentativa de descobrir os PDVs a partir da base do Director.",
+          DFfalha_detalhada = To.Text(ex)
+        }, stopToken);
       }
 
-      return listDePdvAtivo.ToArray();
+      return pdvsAtivos.ToArray();
+    }
+
+    private async Task<TBpdv[]> ObterPdvsAtivosAsync(TBempresa empresa,
+      CancellationToken stopToken)
+    {
+      try
+      {
+        using var cnDirector = await dbDirector.ConnectAsync(stopToken);
+
+        var pdvs = await TBpdv.ObterAsync(cnDirector,
+          empresa.DFcod_empresa, stopToken);
+
+        var pdvsAtivos = pdvs.Where(pdv =>
+          pdv.DFdesativado == null &&
+          pdv.DFreplicacao_desativado == null
+          ).ToArray();
+
+        return pdvsAtivos;
+      }
+      catch (Exception ex)
+      {
+        audit.LogDanger(To.Text(
+            $"Falhou a tentativa de obter informações sobre os PDVs da empresa: {empresa.DFcod_empresa}",
+            ex), GetType());
+
+        await falhas.ReportarAsync(new TBfalha_replicacao
+        {
+          DFevento = TBfalha_replicacao.EventoReplicar,
+          DFfalha = $"Falhou a tentativa de obter informações sobre os PDVs da empresa: {empresa.DFcod_empresa}",
+          DFfalha_detalhada = To.Text(ex),
+          DFcod_empresa = empresa.DFcod_empresa
+        }, stopToken);
+      }
+      return new TBpdv[0];
     }
 
     private async Task ReplicarAsync(ReplicacaoDePdvParametros parametros,
@@ -181,9 +229,19 @@ namespace Director.Modelos
           {
             audit.LogDanger(
               To.Text(
-                $"A replicação da tabela {tabela} do PDV {pdv.DFdescricao} para o Director falhou.",
+                $"Falhou a replicação da tabela {tabela} do PDV {pdv.DFdescricao} para o Director.",
                 ex),
               GetType());
+
+            await falhas.ReportarAsync(new TBfalha_replicacao
+            {
+              DFevento = TBfalha_replicacao.EventoReplicar,
+              DFfalha = $"Falhou a replicação da tabela {tabela} do PDV {pdv.DFdescricao} para o Director.",
+              DFfalha_detalhada = To.Text(ex),
+              DFcod_empresa = pdv.DFcod_empresa,
+              DFcod_pdv = pdv.DFcod_pdv,
+              DFtabela = tabela
+            }, stopToken);
           }
         }
 
@@ -198,6 +256,15 @@ namespace Director.Modelos
             $"Replicação do PDV {pdv.DFdescricao} para o Director concluída com falhas.",
             ex),
           GetType());
+
+        await falhas.ReportarAsync(new TBfalha_replicacao
+        {
+          DFevento = TBfalha_replicacao.EventoReplicar,
+          DFfalha = $"Falhou a tentativa de replicar o PDV {pdv.DFdescricao} para o Director.",
+          DFfalha_detalhada = To.Text(ex),
+          DFcod_empresa = pdv.DFcod_empresa,
+          DFcod_pdv = pdv.DFcod_pdv
+        }, stopToken);
       }
     }
 
@@ -333,6 +400,16 @@ namespace Director.Modelos
             $"Replicação da tabela {tabela} do PDV {pdv.DFdescricao} concluída com falhas.",
             ex),
           GetType());
+
+        await falhas.ReportarAsync(new TBfalha_replicacao
+        {
+          DFevento = TBfalha_replicacao.EventoReplicar,
+          DFfalha = $"Falhou a replicação da tabela {tabela} do PDV {pdv.DFdescricao} da empresa {pdv.DFcod_empresa}.",
+          DFfalha_detalhada = To.Text(ex),
+          DFcod_empresa = pdv.DFcod_empresa,
+          DFcod_pdv = pdv.DFcod_pdv,
+          DFtabela = tabela
+        }, stopToken);
       }
     }
 
@@ -342,11 +419,12 @@ namespace Director.Modelos
 
     public async Task ApagarHistoricoAsync(CancellationToken stopToken)
     {
+      ReplicacaoDePdvParametros parametros = null;
       try
       {
         using var cnDirector = await dbDirector.ConnectAsync(stopToken);
 
-        var parametros = await ReplicacaoDePdvParametros.ObterAsync(cnDirector,
+        parametros = await ReplicacaoDePdvParametros.ObterAsync(cnDirector,
             stopToken);
 
         if (!parametros.Ativado ||
@@ -397,11 +475,19 @@ namespace Director.Modelos
                 $"Limpeza de replicações da tabela {tabela} concluída com falhas.",
                 ex),
               GetType());
+
+            await falhas.ReportarAsync(new TBfalha_replicacao
+            {
+              DFevento = TBfalha_replicacao.EventoApagarHistorico,
+              DFfalha = $"Falhou a tentativa de apagar dados mais antigos que {parametros.Historico.Dias} dias atrás.",
+              DFfalha_detalhada = To.Text(ex),
+              DFtabela = tabela
+            }, stopToken);
           }
         }
 
         audit.LogSuccess(
-            $"Limpeza de replicações antigas concluída.",
+          $"Limpeza de replicações antigas concluída.",
           GetType());
       }
       catch (Exception ex)
@@ -411,6 +497,16 @@ namespace Director.Modelos
             $"Limpeza de replicações antigas concluída com falhas.",
             ex),
           GetType());
+
+        await falhas.ReportarAsync(new TBfalha_replicacao
+        {
+          DFevento = TBfalha_replicacao.EventoApagarHistorico,
+          DFfalha = To.Text(
+            $"Falhou a tentativa de apagar dados históricos.",
+            parametros != null ? Json.ToJson(parametros) : null
+            ),
+          DFfalha_detalhada = To.Text(ex)
+        }, stopToken);
       }
     }
 

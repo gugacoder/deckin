@@ -21,6 +21,13 @@ namespace Director.Dominio.mlogic
     public DateTime? DFreplicacao_desativado { get; set; }
     public int DFatualizacao { get; set; }
 
+    [Obsolete("Mantido apenas para compatibilidade com versões anteriores. Prefira usar DFcod_pdv.")]
+    public int DFid_pdv
+    {
+      get => DFcod_pdv;
+      set => DFcod_pdv = value;
+    }
+
     #region Métodos de apoio
 
     /// <summary>

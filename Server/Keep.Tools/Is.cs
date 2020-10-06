@@ -122,5 +122,7 @@ namespace Keep.Tools
 
       return type.IsValueType && (System.Nullable.GetUnderlyingType(type) != null);
     }
+
+    public static bool Null(object graph) => graph == null || graph == DBNull.Value;
   }
 }

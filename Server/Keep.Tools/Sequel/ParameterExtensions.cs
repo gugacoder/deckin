@@ -445,11 +445,11 @@ namespace Keep.Tools.Sequel
       foreach (var name in source._Keys())
       {
         var value = source._Get(name);
-        if (value != null)
+        if (!IsPrimitive(value))
         {
-          target[name] = IsPrimitive(value)
-            ? value : (value as Var ?? new Var(value));
+          value = value as Var ?? new Var(value);
         }
+        target[name] = value;
       }
     }
 
