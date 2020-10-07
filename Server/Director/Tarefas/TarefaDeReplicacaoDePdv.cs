@@ -42,7 +42,7 @@ namespace Director.Tarefas
       try
       {
         var replicacao = ActivatorUtilities.
-          CreateInstance<ModeloDeReplicacaoDePdv>(provider);
+          CreateInstance<ReplicacaoDePdvs>(provider);
 
         await replicacao.ReplicarPdvsAsync(stopToken);
         await replicacao.ApagarHistoricoAsync(stopToken);

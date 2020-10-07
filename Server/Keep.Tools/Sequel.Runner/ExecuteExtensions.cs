@@ -20,7 +20,7 @@ namespace Keep.Tools.Sequel.Runner
     /// Se uma falha ocorrer uma coleção vazia será retornada.
     /// </summary>
     /// <param name="sqlBuilder">A SQL a ser executada.</param>
-    public static void TryExecute(this SqlBuilder sqlBuilder,
+    public static Ret<int> TryExecute(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       string comment = null,
       [CallerMemberName] string callerName = null,
@@ -29,10 +29,13 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        Execute(sqlBuilder, cn, tx,
+        return Execute(sqlBuilder, cn, tx,
           comment, callerName, callerFile, callerLine);
       }
-      catch { /* nada a fazer */ }
+      catch (Exception ex)
+      {
+        return ex;
+      }
     }
 
     /// <summary>
@@ -72,7 +75,7 @@ namespace Keep.Tools.Sequel.Runner
     /// Se uma falha ocorrer uma coleção vazia será retornada.
     /// </summary>
     /// <param name="sqlBuilder">A SQL a ser executada.</param>
-    public static async Task TryExecuteAsync(this SqlBuilder sqlBuilder,
+    public static async Task<Ret<int>> TryExecuteAsync(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       CancellationToken stopToken = default,
       string comment = null,
@@ -82,10 +85,13 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        await ExecuteAsync(sqlBuilder, cn, tx,
+        return await ExecuteAsync(sqlBuilder, cn, tx,
           stopToken, comment, callerName, callerFile, callerLine);
       }
-      catch { /* nada a fazer */ }
+      catch (Exception ex)
+      {
+        return ex;
+      }
     }
 
     /// <summary>

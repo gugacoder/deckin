@@ -28,26 +28,33 @@ namespace Director.Dominio.mlogic
       set => DFcod_pdv = value;
     }
 
-    #region Métodos de apoio
-
     /// <summary>
-    /// Obtém informações sobre os PDVs de uma empresa indicada.
+    /// Obtém informações sobre os PDVs cadastrados na base de um Concentrador
+    /// do Mercadologic.
     /// </summary>
-    /// <param name="connection">Uma conexão ativa com o DBdirector.</param>
-    /// <param name="DFcod_empresa">O código da empresa pesquisada.</param>
+    /// <param name="cnConcentrador">
+    /// Uma conexão ativa com o DBMercadologic de um Concentrador do Mercadologic.
+    /// </param>
     /// <param name="stopToken">Um TOKEN para cancelamento assíncrono da tareafa.</param>
     /// <returns></returns>
-    public static async Task<TBpdv[]> ObterAsync(DbConnection connection,
-      int DFcod_empresa, CancellationToken stopToken = default)
+    public static async Task<TBpdv[]> ObterAsync(
+      DbConnection cnConcentrador, CancellationToken stopToken)
     {
       var pdvs = await
-        @"exec mlogic.sp_obter_pdvs @DFcod_empresa"
+        @"select (select id from empresa
+                  where desativado is null
+                  limit 1)                 as ""DFcod_empresa""
+               , pdv.id                    as ""DFcod_pdv""
+               , pdv.identificador         as ""DFdescricao""
+               , pdv.ip                    as ""DFip""
+               , pdv.banco_dados           as ""DFbanco_dados""
+               , pdv.desativado            as ""DFdesativado""
+               , pdv.replicacao_desativado as ""DFreplicacao_desativado""
+               , pdv.atualizacao           as ""DFatualizacao""
+           from pdv"
           .AsSql()
-          .Set(new { DFcod_empresa })
-          .SelectAsync<TBpdv>(connection, stopToken: stopToken);
+          .SelectAsync<TBpdv>(cnConcentrador, stopToken: stopToken);
       return pdvs;
     }
-
-    #endregion
   }
 }

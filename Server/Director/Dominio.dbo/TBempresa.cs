@@ -21,10 +21,10 @@ namespace Director.Dominio.dbo
     /// <summary>
     /// Obtém informações sobre as empresas cadastradas.
     /// </summary>
-    /// <param name="connection">Uma conexão ativa com o DBdirector.</param>
+    /// <param name="cnDirector">Uma conexão ativa com o DBdirector.</param>
     /// <param name="stopToken">Um TOKEN para cancelamento assíncrono da tareafa.</param>
     /// <returns></returns>
-    public static async Task<TBempresa[]> ObterAsync(DbConnection connection,
+    public static async Task<TBempresa[]> ObterAsync(DbConnection cnDirector,
       CancellationToken stopToken)
     {
       var pdvs = await
@@ -32,7 +32,7 @@ namespace Director.Dominio.dbo
                , DFdata_inativacao
             from TBempresa"
           .AsSql()
-          .SelectAsync<TBempresa>(connection, stopToken: stopToken);
+          .SelectAsync<TBempresa>(cnDirector, stopToken: stopToken);
       return pdvs;
     }
   }

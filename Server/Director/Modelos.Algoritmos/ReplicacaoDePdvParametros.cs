@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
 
-namespace Director.Modelos
+namespace Director.Modelos.Algoritmos
 {
   public class ReplicacaoDePdvParametros
   {

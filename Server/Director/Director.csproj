@@ -59,5 +59,6 @@
   <ItemGroup>
     <Folder Include="meta\papers\Director\" />
     <Folder Include="meta\papers\Mercadologic\" />
+    <Folder Include="Modelos.Algoritmos\" />
   </ItemGroup>
 </Project>

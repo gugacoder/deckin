@@ -14,16 +14,17 @@ using Keep.Tools.Collections;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
 
-namespace Director.Modelos
+namespace Director.Modelos.Algoritmos
 {
-  public class ModeloDeReplicacaoDePdv
+  public class ReplicacaoDePdv
   {
     private readonly DbDirector dbDirector;
     private readonly DbPdv dbPdv;
     private readonly IAudit audit;
     private readonly ReplicacaoDePdvFalhas falhas;
 
-    public ModeloDeReplicacaoDePdv(DbDirector dbDirector, DbPdv dbPdv, IAudit audit)
+    public ReplicacaoDePdv(DbDirector dbDirector, DbPdv dbPdv,
+      IAudit audit)
     {
       this.dbDirector = dbDirector;
       this.dbPdv = dbPdv;
@@ -31,147 +32,10 @@ namespace Director.Modelos
       this.falhas = new ReplicacaoDePdvFalhas(dbDirector, audit);
     }
 
-    #region Replicação de dados
-
-    public async Task ReplicarPdvsAsync(CancellationToken stopToken)
+    public async Task ReplicarPdvAsync(TBpdv pdv, CancellationToken stopToken)
     {
       try
       {
-        ReplicacaoDePdvParametros parametros;
-
-        using (var cnDirector = await dbDirector.ConnectAsync(stopToken))
-        {
-          parametros = await ReplicacaoDePdvParametros.ObterAsync(cnDirector,
-            stopToken);
-        }
-
-        if (!parametros.Ativado)
-          return;
-
-        var pdvs = await ObterPdvsAtivosAsync(stopToken);
-        var tarefas = pdvs.Select(pdv =>
-          ReplicarAsync(parametros, pdv, stopToken)
-        ).ToArray();
-
-        await Task.WhenAll(tarefas);
-      }
-      catch (Exception ex)
-      {
-        audit.LogDanger(
-          To.Text(
-            "Falhou a tentativa de replicar PDVs.",
-            ex),
-          GetType());
-
-        await falhas.ReportarAsync(new TBfalha_replicacao
-        {
-          DFevento = TBfalha_replicacao.EventoReplicar,
-          DFfalha = "Falhou a tentativa de replicar PDVs.",
-          DFfalha_detalhada = To.Text(ex)
-        }, stopToken);
-      }
-    }
-
-    private async Task<TBpdv[]> ObterPdvsAtivosAsync(CancellationToken stopToken)
-    {
-      var pdvsAtivos = new List<TBpdv>();
-      try
-      {
-        audit.Log(
-          "Obtendo informações de conectividade dos PDVs a partir da base do Director...",
-          GetType());
-
-        // Cada operação está sendo feita com sua própria conexão com o DBdirector.
-        // Isto porque o DBdirector pode precisar consultar as bases do
-        // Concentrador ou PDVs diretamente, via OLE DB, o que pode demorar.
-        // Para evitar uma demora exagerada as consultas estão sendo feitas em
-        // paralelo.
-
-        TBempresa[] empresasAtivas;
-
-        using (var cnDirector = await dbDirector.ConnectAsync(stopToken))
-        {
-          var empresas = await TBempresa.ObterAsync(cnDirector, stopToken);
-
-          empresasAtivas = empresas
-            .Where(e => e.DFdata_inativacao == null).ToArray();
-        }
-
-        var tarefas = empresasAtivas.Select(empresa =>
-        {
-          var task = ObterPdvsAtivosAsync(empresa, stopToken);
-          return task;
-        });
-
-        var pdvs = await Task.WhenAll(tarefas);
-
-        pdvsAtivos.AddRange(pdvs.SelectMany());
-
-        audit.Log(
-          "Obtenção de informações de conectividade dos PDVs a partir da base do Director concluída.",
-          GetType());
-      }
-      catch (Exception ex)
-      {
-        audit.LogDanger(
-          To.Text(
-            "Obtenção de informações de conectividade dos PDVs a partir da base do Director concluída com falhas.",
-            ex),
-          GetType());
-
-        await falhas.ReportarAsync(new TBfalha_replicacao
-        {
-          DFevento = TBfalha_replicacao.EventoReplicar,
-          DFfalha = "Falhou a tentativa de descobrir os PDVs a partir da base do Director.",
-          DFfalha_detalhada = To.Text(ex)
-        }, stopToken);
-      }
-
-      return pdvsAtivos.ToArray();
-    }
-
-    private async Task<TBpdv[]> ObterPdvsAtivosAsync(TBempresa empresa,
-      CancellationToken stopToken)
-    {
-      try
-      {
-        using var cnDirector = await dbDirector.ConnectAsync(stopToken);
-
-        var pdvs = await TBpdv.ObterAsync(cnDirector,
-          empresa.DFcod_empresa, stopToken);
-
-        var pdvsAtivos = pdvs.Where(pdv =>
-          pdv.DFdesativado == null &&
-          pdv.DFreplicacao_desativado == null
-          ).ToArray();
-
-        return pdvsAtivos;
-      }
-      catch (Exception ex)
-      {
-        audit.LogDanger(To.Text(
-            $"Falhou a tentativa de obter informações sobre os PDVs da empresa: {empresa.DFcod_empresa}",
-            ex), GetType());
-
-        await falhas.ReportarAsync(new TBfalha_replicacao
-        {
-          DFevento = TBfalha_replicacao.EventoReplicar,
-          DFfalha = $"Falhou a tentativa de obter informações sobre os PDVs da empresa: {empresa.DFcod_empresa}",
-          DFfalha_detalhada = To.Text(ex),
-          DFcod_empresa = empresa.DFcod_empresa
-        }, stopToken);
-      }
-      return new TBpdv[0];
-    }
-
-    private async Task ReplicarAsync(ReplicacaoDePdvParametros parametros,
-      TBpdv pdv, CancellationToken stopToken)
-    {
-      try
-      {
-        if (!parametros.Ativado || pdv.DFreplicacao_desativado != null)
-          return;
-
         audit.LogTrace(
           $"Iniciando replicação do PDV {pdv.DFdescricao} para o Director...",
           GetType());
@@ -412,104 +276,5 @@ namespace Director.Modelos
         }, stopToken);
       }
     }
-
-    #endregion
-
-    #region Limpeza de dados
-
-    public async Task ApagarHistoricoAsync(CancellationToken stopToken)
-    {
-      ReplicacaoDePdvParametros parametros = null;
-      try
-      {
-        using var cnDirector = await dbDirector.ConnectAsync(stopToken);
-
-        parametros = await ReplicacaoDePdvParametros.ObterAsync(cnDirector,
-            stopToken);
-
-        if (!parametros.Ativado ||
-            !parametros.Historico.Ativado ||
-            parametros.Historico.Dias <= 0)
-          return;
-
-        audit.LogTrace(
-          $"Iniciando limpeza de replicações antigas...",
-          GetType());
-
-        var dataLimite = DateTime.Now.AddDays(-parametros.Historico.Dias);
-
-        var tabelas = await
-          @"select DFtabela
-              from mlogic.vw_tabelas_replicadas"
-            .AsSql()
-            .SelectAsync<string>(cnDirector, stopToken: stopToken);
-
-        foreach (var tabela in tabelas)
-        {
-          try
-          {
-            audit.LogTrace(
-              $"Iniciando limpeza de replicações da tabela {tabela}...",
-              GetType());
-
-            using (var tx = cnDirector.BeginTransaction())
-            {
-              await
-                @"delete from mlogic.TBintegracao_@{tabela}
-                   where DFdata_integracao < @dataLimite"
-                  .AsSql()
-                  .Set(new { tabela, dataLimite })
-                  .ExecuteAsync(cnDirector, tx, stopToken: stopToken);
-
-              await tx.CommitAsync(stopToken);
-            }
-
-            audit.LogSuccess(
-              $"Limpeza de replicações da tabela {tabela} concluída.",
-              GetType());
-          }
-          catch (Exception ex)
-          {
-            audit.LogDanger(
-              To.Text(
-                $"Limpeza de replicações da tabela {tabela} concluída com falhas.",
-                ex),
-              GetType());
-
-            await falhas.ReportarAsync(new TBfalha_replicacao
-            {
-              DFevento = TBfalha_replicacao.EventoApagarHistorico,
-              DFfalha = $"Falhou a tentativa de apagar dados mais antigos que {parametros.Historico.Dias} dias atrás.",
-              DFfalha_detalhada = To.Text(ex),
-              DFtabela = tabela
-            }, stopToken);
-          }
-        }
-
-        audit.LogSuccess(
-          $"Limpeza de replicações antigas concluída.",
-          GetType());
-      }
-      catch (Exception ex)
-      {
-        audit.LogDanger(
-          To.Text(
-            $"Limpeza de replicações antigas concluída com falhas.",
-            ex),
-          GetType());
-
-        await falhas.ReportarAsync(new TBfalha_replicacao
-        {
-          DFevento = TBfalha_replicacao.EventoApagarHistorico,
-          DFfalha = To.Text(
-            $"Falhou a tentativa de apagar dados históricos.",
-            parametros != null ? Json.ToJson(parametros) : null
-            ),
-          DFfalha_detalhada = To.Text(ex)
-        }, stopToken);
-      }
-    }
-
-    #endregion
   }
 }

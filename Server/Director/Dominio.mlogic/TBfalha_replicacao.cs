@@ -3,6 +3,7 @@ namespace Director.Dominio.mlogic
 {
   public class TBfalha_replicacao
   {
+    public const string EventoLocalizarPdvs = "localizar-pdvs";
     public const string EventoReplicar = "replicar";
     public const string EventoApagarHistorico = "apagar-historico";
 

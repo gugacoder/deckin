@@ -43,6 +43,7 @@ namespace Director
       ));
 
       services.AddTransient<DbDirector>();
+      services.AddTransient<DbConcentrador>();
       services.AddTransient<DbPdv>();
     }
 

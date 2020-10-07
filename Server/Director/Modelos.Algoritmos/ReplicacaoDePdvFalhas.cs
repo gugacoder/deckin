@@ -9,8 +9,12 @@ using Keep.Tools;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
 
-namespace Director.Modelos
+namespace Director.Modelos.Algoritmos
 {
+  /// <summary>
+  /// Utilitário para registro de falhas de replicação de dados do PDV para o
+  /// Director.
+  /// </summary>
   public class ReplicacaoDePdvFalhas
   {
     private DbDirector dbDirector;
