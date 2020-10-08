@@ -61,7 +61,7 @@
         "DisplayName" = "8:Release"
         "IsDebugOnly" = "11:FALSE"
         "IsReleaseOnly" = "11:TRUE"
-        "OutputFilename" = "8:..\\..\\Dist\\Setup\\Setup.msi"
+        "OutputFilename" = "8:\\\\mac\\Home\\Sources\\gugacoder\\deckin\\Dist\\Setup\\Setup.msi"
         "PackageFilesAs" = "3:2"
         "PackageFileSize" = "3:-2147483648"
         "CabType" = "3:1"
@@ -176,7 +176,7 @@
         {
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_26B21BD6F04C4D86BEEBCCAADD4E6B02"
             {
-            "SourcePath" = "8:..\\Director\\appsettings.json"
+            "SourcePath" = "8:\\\\mac\\Home\\Sources\\gugacoder\\deckin\\Server\\Director\\appsettings.json"
             "TargetName" = "8:appsettings.json"
             "Tag" = "8:"
             "Folder" = "8:_4F1322F749A54BCAB5DC799525B00ED1"
@@ -251,7 +251,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:AppSuite"
         "ProductCode" = "8:{2FB365AE-7D76-4E11-ACEC-F62D4C382A98}"
-        "PackageCode" = "8:{CE344E5E-42C3-4164-8B35-29C001BF1963}"
+        "PackageCode" = "8:{A2918D62-8FA6-4EEA-BE2B-65ACF91C06C2}"
         "UpgradeCode" = "8:{615182A9-7122-4F78-896B-E2B4D155863D}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
@@ -274,7 +274,7 @@
         "UseSystemSearchPath" = "11:TRUE"
         "TargetPlatform" = "3:1"
         "PreBuildEvent" = "8:"
-        "PostBuildEvent" = "8:"
+        "PostBuildEvent" = "8:cd $(ProjectDir)..\\..\\\r\ntoolset.exe msi update \"$(BuiltOuputPath)\" --infer-pre-release\r\ntoolset msi make-uninstall \"$(BuiltOuputPath)\""
         "RunPostBuildEvent" = "3:0"
         }
         "Registry"
@@ -772,7 +772,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_E6A1194003094FDD846089A133ADEEC6"
             {
-            "SourcePath" = "8:..\\Director\\obj\\Debug\\netcoreapp3.1\\Director.exe"
+            "SourcePath" = "8:\\\\mac\\Home\\Sources\\gugacoder\\deckin\\Server\\Director\\obj\\Debug\\netcoreapp3.1\\Director.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_4F1322F749A54BCAB5DC799525B00ED1"
