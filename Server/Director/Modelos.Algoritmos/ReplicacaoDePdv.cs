@@ -40,6 +40,11 @@ namespace Director.Modelos.Algoritmos
           $"Iniciando replicação do PDV {pdv.DFdescricao} para o Director...",
           GetType());
 
+#if DEBUG
+        pdv.DFip = "172.27.1.145";
+        pdv.DFbanco_dados = "DBPDV";
+#endif
+
         using var cnDirector = await dbDirector.ConnectAsync(stopToken);
         using var cnPdv = await dbPdv.ConnectAsync(stopToken,
           pdv.DFip, pdv.DFbanco_dados);
@@ -136,9 +141,17 @@ namespace Director.Modelos.Algoritmos
                 from integracao.@{tabela}
                where integrado = false
                  and data_integracao <= @dataLimite
-               limit 10"
+               limit @maximo"
               .AsSql()
-              .Set(new { tabela, dataLimite })
+              .Set(new
+              {
+                tabela,
+                dataLimite,
+                maximo =
+                  tabela.Equals("cupom_fiscal_eletronico")
+                    ? 10  // A tabela de NFCE contem XMLs que aumentam muito o trafego
+                    : 100 // As demais tabelas são simples e podem ser puxadas em lote maior
+              })
               .ReadAsync(cnPdv, stopToken: stopToken);
           using (reader)
           {
@@ -191,6 +204,8 @@ namespace Director.Modelos.Algoritmos
             // contém o valor desse campo.
             var codRegistro = (int)registro[1];
             var codEmpresa = (int)registro[3];
+            var codPdv = (int)registro[5];
+            var dataIntegracao = (DateTime)registro[7];
 
             using (var tx = cnDirector.BeginTransaction())
             {
@@ -198,9 +213,25 @@ namespace Director.Modelos.Algoritmos
                 @"insert into mlogic.TBintegracao_@{tabela}
                     (@{campos}, DFintegrado)
                   select
-                    @{valores}, 1"
+                    @{valores}, 1
+                  where not exists (
+                    select 1 from mlogic.TBintegracao_@{tabela} with (nolock)
+                     where DFcod_registro = @codRegistro
+                       and DFcod_empresa = @codEmpresa
+                       and DFcod_pdv = @codPdv
+                       and DFdata_integracao = @dataIntegracao
+                  )"
                   .AsSql()
-                  .Set(new { tabela, campos, valores, codRegistro, codEmpresa })
+                  .Set(new
+                  {
+                    tabela,
+                    campos,
+                    valores,
+                    codRegistro,
+                    codEmpresa,
+                    codPdv,
+                    dataIntegracao
+                  })
                   .Set(registro)
                   .ExecuteAsync(cnDirector, tx, stopToken: stopToken);
 
