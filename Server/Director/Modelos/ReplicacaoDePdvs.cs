@@ -88,7 +88,7 @@ namespace Director.Modelos
         await falhas.ReportarAsync(new TBfalha_replicacao
         {
           DFevento = TBfalha_replicacao.EventoReplicar,
-          DFfalha = "Falhou a tentativa de replicar PDVs.",
+          DFfalha = ex.GetCauseMessage(),
           DFfalha_detalhada = To.Text(ex)
         }, stopToken);
       }

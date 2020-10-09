@@ -86,7 +86,7 @@ namespace Director.Modelos.Algoritmos
             await falhas.ReportarAsync(new TBfalha_replicacao
             {
               DFevento = TBfalha_replicacao.EventoApagarHistorico,
-              DFfalha = $"Falhou a tentativa de apagar dados mais antigos que {diasDeHistorico} dias atrás.",
+              DFfalha = ex.GetCauseMessage(),
               DFfalha_detalhada = To.Text(ex),
               DFtabela = tabela
             }, stopToken);
@@ -108,7 +108,7 @@ namespace Director.Modelos.Algoritmos
         await falhas.ReportarAsync(new TBfalha_replicacao
         {
           DFevento = TBfalha_replicacao.EventoApagarHistorico,
-          DFfalha = "Falhou a tentativa de apagar dados históricos.",
+          DFfalha = ex.GetCauseMessage(),
           DFfalha_detalhada = To.Text(ex)
         }, stopToken);
       }

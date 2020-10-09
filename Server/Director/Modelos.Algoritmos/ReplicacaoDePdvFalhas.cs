@@ -88,7 +88,7 @@ namespace Director.Modelos.Algoritmos
                        on mlogic.TBfalha_replicacao.DFevento = expiracao.DFevento
                       and mlogic.TBfalha_replicacao.DFid_falha_replicacao < expiracao.DFmin_id_falha_replicacao"
             .AsSql()
-            .Set(new { HistoricoMaximo = 10000 })
+            .Set(new { HistoricoMaximo = 100000 })
             .ExecuteAsync(cnConexao, tx);
 
           await tx.CommitAsync();

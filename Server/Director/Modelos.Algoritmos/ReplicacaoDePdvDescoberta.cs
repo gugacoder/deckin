@@ -88,7 +88,7 @@ namespace Director.Modelos.Algoritmos
         await falhas.ReportarAsync(new TBfalha_replicacao
         {
           DFevento = TBfalha_replicacao.EventoLocalizarPdvs,
-          DFfalha = "Falhou a tentativa de obter informação sobre os PDVs.",
+          DFfalha = ex.GetCauseMessage(),
           DFfalha_detalhada = To.Text(ex)
         }, stopToken);
 
@@ -128,7 +128,7 @@ namespace Director.Modelos.Algoritmos
         await falhas.ReportarAsync(new TBfalha_replicacao
         {
           DFevento = TBfalha_replicacao.EventoLocalizarPdvs,
-          DFfalha = "Falhou a tentativa de obter informação sobre Concentradores.",
+          DFfalha = ex.GetCauseMessage(),
           DFfalha_detalhada = To.Text(ex)
         }, stopToken);
 
@@ -166,7 +166,7 @@ namespace Director.Modelos.Algoritmos
           await falhas.ReportarAsync(new TBfalha_replicacao
           {
             DFevento = TBfalha_replicacao.EventoLocalizarPdvs,
-            DFfalha = $"Falhou a tentativa de obter informação sobre os PDVs da empresa {empresa.DFcod_empresa}.",
+            DFfalha = ex.GetCauseMessage(),
             DFfalha_detalhada = To.Text(ex),
             DFcod_empresa = empresa.DFcod_empresa
           }, stopToken);

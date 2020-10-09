@@ -59,35 +59,8 @@ namespace Director.Modelos.Algoritmos
         {
           try
           {
-            // Apagando registros de tentativa anterior de importação.
-            //
-            using (var tx = cnDirector.BeginTransaction())
-            {
-              await
-                $@"delete from mlogic.TBintegracao_{tabela}
-                    where DFintegrado = 0"
-                  .AsSql()
-                  .ExecuteAsync(cnDirector, tx, stopToken: stopToken);
-
-              await tx.CommitAsync(stopToken);
-            }
-
             await ReplicarTabelaAsync(cnDirector, cnPdv, pdv, tabela, dataLimite,
               stopToken);
-
-            // Marcando registros como integrados com sucesso
-            //
-            using (var tx = cnDirector.BeginTransaction())
-            {
-              await
-                $@"update mlogic.TBintegracao_{tabela}
-                      set DFintegrado = 1
-                    where DFintegrado = 0"
-                  .AsSql()
-                  .ExecuteAsync(cnDirector, tx, stopToken: stopToken);
-
-              await tx.CommitAsync(stopToken);
-            }
           }
           catch (Exception ex)
           {
@@ -100,7 +73,7 @@ namespace Director.Modelos.Algoritmos
             await falhas.ReportarAsync(new TBfalha_replicacao
             {
               DFevento = TBfalha_replicacao.EventoReplicar,
-              DFfalha = $"Falhou a replicação da tabela {tabela} do PDV {pdv.DFdescricao} para o Director.",
+              DFfalha = ex.GetCauseMessage(),
               DFfalha_detalhada = To.Text(ex),
               DFcod_empresa = pdv.DFcod_empresa,
               DFcod_pdv = pdv.DFcod_pdv,
@@ -124,7 +97,7 @@ namespace Director.Modelos.Algoritmos
         await falhas.ReportarAsync(new TBfalha_replicacao
         {
           DFevento = TBfalha_replicacao.EventoReplicar,
-          DFfalha = $"Falhou a tentativa de replicar o PDV {pdv.DFdescricao} para o Director.",
+          DFfalha = ex.GetCauseMessage(),
           DFfalha_detalhada = To.Text(ex),
           DFcod_empresa = pdv.DFcod_empresa,
           DFcod_pdv = pdv.DFcod_pdv
@@ -175,14 +148,14 @@ namespace Director.Modelos.Algoritmos
             campos = (
               from indice in Enumerable.Range(0, reader.Current.FieldCount)
               let campo = reader.Current.GetName(indice)
-              where !campo.EqualsAny("id")
+              where !campo.EqualsAny("id", "integrado")
               select $"DF{campo}"
             ).ToArray();
 
             valores = (
               from indice in Enumerable.Range(0, reader.Current.FieldCount)
               let campo = reader.Current.GetName(indice)
-              where !campo.EqualsAny("id")
+              where !campo.EqualsAny("id", "integrado")
               select $"@{campo}"
             ).ToArray();
 
@@ -194,7 +167,7 @@ namespace Director.Modelos.Algoritmos
                 from indice in Enumerable.Range(0, reader.Current.FieldCount)
                 let campo = reader.Current.GetName(indice)
                 let valor = reader.Current.GetValue(indice)
-                where !campo.EqualsAny("id")
+                where !campo.EqualsAny("id", "integrado")
                 select new[] { campo, valor }
               ).SelectMany(x => x).ToArray();
 
@@ -223,9 +196,9 @@ namespace Director.Modelos.Algoritmos
             {
               await
                 @"insert into mlogic.TBintegracao_@{tabela}
-                    (@{campos})
+                    (@{campos}, DFintegrado)
                   select
-                    @{valores}"
+                    @{valores}, 1"
                   .AsSql()
                   .Set(new { tabela, campos, valores, codRegistro, codEmpresa })
                   .Set(registro)
@@ -268,7 +241,7 @@ namespace Director.Modelos.Algoritmos
         await falhas.ReportarAsync(new TBfalha_replicacao
         {
           DFevento = TBfalha_replicacao.EventoReplicar,
-          DFfalha = $"Falhou a replicação da tabela {tabela} do PDV {pdv.DFdescricao} da empresa {pdv.DFcod_empresa}.",
+          DFfalha = ex.GetCauseMessage(),
           DFfalha_detalhada = To.Text(ex),
           DFcod_empresa = pdv.DFcod_empresa,
           DFcod_pdv = pdv.DFcod_pdv,
