@@ -29,12 +29,6 @@ namespace Keep.Paper.Catalog
     public static MethodAction Create(object typeOrObject, string methodName)
     {
       var type = typeOrObject as Type ?? typeOrObject.GetType();
-      return Create(null, type, methodName);
-    }
-
-    public static MethodAction Create(string pathPattern, object typeOrObject, string methodName)
-    {
-      var type = typeOrObject as Type ?? typeOrObject.GetType();
       var flags = BindingFlags.Public
                 | BindingFlags.NonPublic
                 | BindingFlags.Static
@@ -43,49 +37,19 @@ namespace Keep.Paper.Catalog
       if (method == null)
         throw new Exception($"Método não encontrado: {type.FullName}:{methodName}");
 
-      return Create(pathPattern, method);
+      return Create(method);
     }
 
     public static MethodAction Create(MethodInfo method)
     {
-      return Create(null, method);
-    }
+      var collection = NameCollection(method.DeclaringType);
+      var action = NameAction(method);
 
-    public static MethodAction Create(string pathPattern, MethodInfo method)
-    {
-      Catalog.Path path;
-      if (!string.IsNullOrEmpty(pathPattern))
+      var inferArgs = action.Contains("(...)");
+      if (inferArgs)
       {
-        path = Catalog.Path.Parse(pathPattern);
-      }
-      else if (method._Attribute<ActionAttribute>() is ActionAttribute attr)
-      {
-        path = Catalog.Path.Parse(attr.Pattern);
-      }
-      else
-      {
-        var type = method.DeclaringType;
-        var typeName = type.FullName.Split(';', ',').First();
-        if (typeName.EndsWith("Factory"))
-        {
-          typeName = typeName.Remove(typeName.Length - "Factory".Length);
-        }
-        if (typeName.EndsWith("Action"))
-        {
-          typeName = typeName.Remove(typeName.Length - "Action".Length);
-        }
-        if (typeName.EndsWith("Paper"))
-        {
-          typeName = typeName.Remove(typeName.Length - "Paper".Length);
-        }
+        action = action.Replace("(...)", "");
 
-        var methodName = method.Name;
-        if (methodName.EndsWith("Async"))
-        {
-          methodName = methodName.Remove(methodName.Length - "Async".Length);
-        }
-
-        var name = $"{typeName}.{methodName}";
         var keys =
           from parameter in method.GetParameters()
           let parameterType = parameter.ParameterType
@@ -94,13 +58,77 @@ namespace Keep.Paper.Catalog
              || Is.Var(parameterType)
           select parameter.Name.ToCamelCase();
 
-        path = new Path
+        var hasAny = (
+          from parameter in method.GetParameters()
+          let parameterType = parameter.ParameterType
+          where Is.OfType<IPathArgs>(parameterType)
+          select parameter).Any();
+        if (hasAny)
         {
-          Name = name,
-          Keys = keys.ToArray()
-        };
+          keys = keys.Append("*");
+        }
+
+        if (keys.Any())
+        {
+          action += $"({string.Join(";", keys)})";
+        }
       }
+
+      var pathName = action;
+      if (pathName.StartsWith("."))
+      {
+        pathName = $"{collection}{action}";
+      }
+
+      var path = Catalog.Path.Parse(pathName);
+
       return new MethodAction(path, method);
+    }
+
+    private static string NameCollection(Type type)
+    {
+      var attr = type._Attribute<CollectionAttribute>();
+
+      attr?.Validate();
+
+      if (!string.IsNullOrEmpty(attr?.Name))
+        return attr.Name;
+
+      var name = type.FullName.Split(';', ',').First();
+
+      if (name.EndsWith("Factory"))
+      {
+        name = name.Remove(name.Length - "Factory".Length);
+      }
+      if (name.EndsWith("Action"))
+      {
+        name = name.Remove(name.Length - "Action".Length);
+      }
+      if (name.EndsWith("Paper"))
+      {
+        name = name.Remove(name.Length - "Paper".Length);
+      }
+
+      return name;
+    }
+
+    private static string NameAction(MethodInfo method)
+    {
+      var attr = method._Attribute<ActionAttribute>();
+
+      attr?.Validate();
+
+      if (!string.IsNullOrEmpty(attr?.Pattern))
+        return attr.Pattern;
+
+      var name = method.Name;
+      if (name.EndsWith("Async"))
+      {
+        name = name.Remove(name.Length - "Async".Length);
+      }
+
+      var action = $".{name}(...)";
+      return action;
     }
   }
 }
