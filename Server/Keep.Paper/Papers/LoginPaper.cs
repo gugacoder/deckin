@@ -127,7 +127,7 @@ namespace Keep.Paper.Papers
                 {
                   Field = nameof(credential.Username).ToCamelCase(),
                   Reason = ret.Fault.Message ?? "Usuário e senha não conferem.",
-                  Severity = Severities.Warning
+                  Severity = Severity.Warning
                 }
               },
               new Types.Status
@@ -136,7 +136,7 @@ namespace Keep.Paper.Papers
                 {
                   Field = nameof(credential.Password).ToCamelCase(),
                   Reason = ret.Fault.Message ?? "Usuário e senha não conferem.",
-                  Severity = Severities.Warning
+                  Severity = Severity.Warning
                 }
               }
             }

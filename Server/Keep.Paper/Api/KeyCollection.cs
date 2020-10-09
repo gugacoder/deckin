@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace Keep.Paper.Api
 {
+  [Obsolete]
   public class KeyCollection : List<string>
   {
     public KeyCollection()

@@ -22,27 +22,10 @@ namespace Director
 {
   public class Program
   {
-    public static void Main(string[] args)
+    public static void Main(string[] _)
     {
       try
       {
-        var file = "sample.xml";
-        var text = File.ReadAllText(file);
-        var xml = text.ToXElement();
-
-        var errors = new List<string>();
-        var parser = new TemplateParser();
-        parser.ParseError += (o, e) => errors.Add(e.Message);
-
-        var template = parser.ParseTemplate(xml);
-
-        Debug.WriteLine(template.ToXElement());
-        Debug.WriteLine(string.Join("\n", errors.Select(x => $"- {x}")));
-
-        var processor = new TemplateProcessor();
-        var pages = processor.ParseActions(template);
-
-        Debug.WriteLine(pages.Count);
       }
       catch (Exception ex)
       {

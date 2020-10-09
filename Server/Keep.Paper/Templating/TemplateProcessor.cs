@@ -36,7 +36,7 @@ namespace Keep.Paper.Templating
   {
     public IActionInfo Info { get; set; }
     public ViewFactory Factory { get; set; }
-    public ViewBinder VideBinder { get; set; }
+    public ViewBinder ViewBinder { get; set; }
   }
 
   public class TemplateProcessor

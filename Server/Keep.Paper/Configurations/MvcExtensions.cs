@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Keep.Paper.Api;
+using Keep.Paper.Catalog;
 using Keep.Paper.Client;
 using Keep.Paper.Data;
 using Keep.Paper.Jobs;
@@ -112,7 +113,11 @@ namespace Keep.Paper.Configurations
 
       services.AddTransient<IJwtSettings, JwtSettings>();
       services.AddTransient<IAuthCatalog, AuthCatalog>();
+
+      services.AddSingleton<ICatalog, DefaultCatalog>();
+      // OBSOLETO: sera substituido por ICatalog
       services.AddSingleton<IPaperCatalog, PaperCatalog>();
+
       services.AddSingleton<IJobScheduler, JobScheduler>();
 
       services.AddHostedService<JobSchedulerHostedService>();
@@ -136,6 +141,8 @@ namespace Keep.Paper.Configurations
     public static void MapPapers(this IEndpointRouteBuilder endpoints,
         Action<MapPaperOptions> configuration = null)
     {
+      // OBSOLETE: esta sendo substituido por ICatalog
+      endpoints.ServiceProvider.GetService<ICatalog>();
       var catalog = endpoints.ServiceProvider.GetService<IPaperCatalog>();
 
       var options = new MapPaperOptions();

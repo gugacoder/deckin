@@ -35,5 +35,7 @@
     <Folder Include="Interceptors\" />
     <Folder Include="Api.Types\" />
     <Folder Include="Templating\" />
+    <Folder Include="Catalog\" />
+    <Folder Include="Rendering\" />
   </ItemGroup>
 </Project>

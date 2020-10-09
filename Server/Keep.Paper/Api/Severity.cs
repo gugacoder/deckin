@@ -1,7 +1,7 @@
 ﻿using System;
 namespace Keep.Paper.Api
 {
-  public static class Severities
+  public static class Severity
   {
     // Abaixo seguem comentários de recomendação para esquemas de cores,
     // na forma "Fundo; Texto".
