@@ -22,15 +22,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Keep.Paper.Catalog;
 using Keep.Paper.Rendering;
 
 namespace Keep.Paper.Controllers
 {
-  //[Route(Href.ApiPrefix)]
-  [Route("/Api/2/Papers")]
+  [Route(Href.ApiPrefix)]
   [NewtonsoftJsonFormatter]
   public class ActionController : Controller
   {

@@ -32,6 +32,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Remove="..\Director\meta\papers\**" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="sample.xml" />
     <None Remove="sample %28copy%29.xml" />
   </ItemGroup>
@@ -42,5 +45,13 @@
     <Content Include="draft.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Sandbox.ips">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Sandbox.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

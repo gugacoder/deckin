@@ -6,6 +6,9 @@ namespace Keep.Paper.Api
     // Marca um elemento como representando o próprio objeto.
     public const string Self = "self";
 
+    // Marca um elemento como representando um link ao elemento corrente.
+    public const string Link = "link";
+
     // Marca um elemento como parte da composição da área de trabalho.
     public const string Workspace = "workspace";
 

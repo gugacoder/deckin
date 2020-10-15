@@ -43,6 +43,26 @@ namespace Keep.Tools
       this.Data["StatusCode"] = (int)(this.Status = status);
     }
 
+    public HttpException(int status)
+      : this((HttpStatusCode)status, null, null)
+    {
+    }
+
+    public HttpException(int status, string message)
+      : this((HttpStatusCode)status, message, null)
+    {
+    }
+
+    public HttpException(int status, Exception cause)
+      : this((HttpStatusCode)status, null, cause)
+    {
+    }
+
+    public HttpException(int status, string message, Exception cause)
+      : this((HttpStatusCode)status, message, cause)
+    {
+    }
+
     public HttpStatusCode Status { get; }
   }
 }

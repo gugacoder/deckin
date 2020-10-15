@@ -137,7 +137,7 @@ export function canonifyPaper (paper) {
     target.fields = Object.keys(source.fields).map(fieldName => {
       let field = source.fields[fieldName]
       let properties = { data: { name: fieldName } }
-      return lodash.merge({}, field, properties)
+      return lodash.merge({}, field, properties) 
     })
   }
   // Aplicando sanitizações

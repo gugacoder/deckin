@@ -37,7 +37,7 @@ namespace Keep.Paper.Catalog
           actions.ForEach(action => catalog.Add(action.Path.Name, action));
 #if DEBUG
           actions.ForEach(action =>
-            Debug.WriteLine($"Action: /Api/2/Papers/{action.Path}"));
+            Debug.WriteLine($"Action: /Api/1/Papers/{action.Path}"));
 #endif
         }
         catch (Exception ex)

@@ -1,7 +1,8 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
+//import HomeView from '@/views/HomeView.vue'
 import PaperView from '@/views/PaperView.vue'
+import ActionView from '@/views/ActionView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 import AppConfig from '@/AppConfig.js'
 
@@ -11,19 +12,37 @@ const routes = [
   {
     path: '/',
     name: 'Index',
-    component: HomeView,
+    //component: HomeView,
+    //meta: {
+    //  title: AppConfig.title
+    //}
+    //redirect: { path: '/!/App/Home/Index' }
+    //redirect: { path: '/Sandbox/Tananana' },
+    //redirect: { path: '/!/Keep.Paper/Home/Index' }
+    redirect: { path: '/!/App/Home' }
+  },
+  {
+    path: '/!/:workspace/:action',
+    name: 'Action',
+    component: ActionView,
+    props: true,
     meta: {
       title: AppConfig.title
     }
-    //redirect: { path: '/!/App/Home/Index' }
-    //redirect: { path: '/Sandbox/Tananana' },
   },
+
+
   {
+    // XXX: OBSOLETE
     path: '/Home',
     name: 'Home',
     redirect: { path: '/!/Keep.Paper/Home/Index' }
   },
   {
+    // XXX: OBSOLETE
+    // TODO: new route pattern
+    //  path: '/!/:workspace/:action/:keys?',
+    //  workspace and action are the same pattern: Foo.Bar
     path: '/!/:catalogName/:paperName/:actionName/:actionKeys?',
     name: 'Paper',
     component: PaperView,
@@ -32,6 +51,9 @@ const routes = [
       title: AppConfig.title
     }
   },
+
+
+  
   {
     path: '/Sandbox/:arg',
     name: 'Sandbox',

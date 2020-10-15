@@ -73,7 +73,7 @@ function requestData (href, payload, identity) {
           links: [
             {
               rel: 'self',
-              href: CreatePaperHref(href),
+              href: createPaperHref(href),
               data: payload
             }
           ]
@@ -90,7 +90,7 @@ function requestData (href, payload, identity) {
         links: [
           {
             rel: 'self',
-            href: CreatePaperHref(href)
+            href: createPaperHref(href)
           }
         ]
       }))
@@ -103,14 +103,14 @@ function ensureSelfLink(entity, href /*, payload */) {
   if (!self) {
     entity.links.push({
       rel: 'self',
-      href: CreatePaperHref(href),
+      href: createPaperHref(href),
       //data: Object.assign({}, payload)
     })
   }
   return entity
 }
 
-function CreatePaperHref(href) {
+function createPaperHref(href) {
   if (href.includes('://')) {
     href = '/' + href.split('/').slice(3).join('/')
   }

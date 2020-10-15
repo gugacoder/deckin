@@ -13,6 +13,9 @@ import BrowserPlugin from '@/plugins/BrowserPlugin.js'
 
 Vue.config.productionTip = false
 
+// TODO: is this the right way to do it?
+Vue.$browser = BrowserPlugin
+
 Vue.use(VueShortKey)
 Vue.use(BrowserPlugin)
 Vue.use(VueInstall)
