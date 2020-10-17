@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <OutputType>Library</OutputType>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'Director' ">
+    <ExternalConsole>true</ExternalConsole>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Core.System.Configuration.Install" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="3.1.7" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.7.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.7" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4" />
+    <PackageReference Include="Dapper" Version="2.0.35" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.7" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.7.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Keep.Tools\Keep.Tools.csproj">
+      <GlobalPropertiesToRemove>
+      </GlobalPropertiesToRemove>
+    </ProjectReference>
+    <ProjectReference Include="..\Keep.Paper\Keep.Paper.csproj">
+      <GlobalPropertiesToRemove>
+      </GlobalPropertiesToRemove>
+    </ProjectReference>
+    <ProjectReference Include="..\AppSuite\AppSuite.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="meta\papers\CadastroDeBasesDoMercadologic %28copy%29.xml">
+      <LogicalName>papers\CadastroDeBasesDoMercadologic.xml</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Update="meta\papers\Sample.module.xml">
+      <LogicalName>papers\Sample.paper.xml</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Update="meta\papers\Sample.paper-module.xml">
+      <LogicalName>papers\Sample.paper.xml</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Dominio.Director.dbo\" />
+  </ItemGroup>
+</Project>

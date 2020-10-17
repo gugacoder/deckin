@@ -1,0 +1,80 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.XPath;
+using System.Collections;
+using Processa.Net.Xml;
+using Processa.Net;
+using Mercadologic.Utilities;
+
+namespace Mercadologic.Extensions
+{
+  public static class XmlExtensions
+  {
+    /// <summary>
+    /// Prefixo e namespaces de XML para pesquisa XPath..
+    /// </summary>
+    private static readonly XmlNamespaceManager namespaces;
+
+    static XmlExtensions()
+    {
+      namespaces = new XmlNamespaceManager(new NameTable());
+      foreach (var prefixo in XmlNs.ListarPrefixos())
+      {
+        namespaces.AddNamespace(prefixo.Key, prefixo.Value);
+      }
+    }
+
+    /// <summary>
+    /// Obtém os nodos selecionados de um XML pela aplicação do XPath indicado.
+    /// </summary>
+    /// <typeparam name="T">Tipo do retorno esperado.</typeparam>
+    /// <param name="xml">O XML de origem.</param>
+    /// <param name="xpath">A expressão XPath.</param>
+    /// <returns>Os nodos obtidos do XML.</returns>
+    public static IEnumerable<T> XPath<T>(this XContainer xml, string xpath)
+    {
+      var result = System.Xml.XPath.Extensions.XPathEvaluate(xml, xpath, namespaces);
+
+      var itens = (result as IEnumerable).Cast<object>();
+      if (itens == null)
+        return Enumerable.Empty<T>();
+
+      if (typeof(T) == typeof(XElement))
+        return itens.OfType<T>();
+
+      if (typeof(T) == typeof(XAttribute))
+        return itens.OfType<T>();
+
+      return itens.Select(valor =>
+      {
+        if (valor is XElement xElement)
+        {
+          valor = xElement.Value;
+        }
+        else if (valor is XAttribute xAttribute)
+        {
+          valor = xAttribute.Value;
+        }
+        var item = Change.To<T>(valor);
+        return item;
+      });
+    }
+
+    /// <summary>
+    /// Obtém os nodos selecionados de um XML pela aplicação do XPath indicado.
+    /// 
+    /// Apenas o valor dos nodos é retornado.
+    /// </summary>
+    /// <param name="xml">O XML de origem.</param>
+    /// <param name="xpath">A expressão XPath.</param>
+    /// <returns>Os nodos obtidos do XML.</returns>
+    public static IEnumerable<string> XPath(this XContainer xml, string xpath)
+    {
+      return XPath<string>(xml, xpath);
+    }
+  }
+}

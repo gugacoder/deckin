@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Keep.Tools.Reflection;
+using Keep.Tools.Sequel;
+using Keep.Tools.Sequel.Runner;
 
 namespace Keep.Tools.Data
 {
@@ -47,6 +49,23 @@ namespace Keep.Tools.Data
       {
         throw new NotSupportedException("Não há suporte a consulta de nfce para o driver: " + command.GetType().FullName, ex);
       }
+    }
+
+    public static IDisposable CreateReadUncommittedScope(this DbConnection connection)
+    {
+      "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED"
+        .AsSql()
+        .Execute(connection);
+
+      var disposable = new Disposable();
+      disposable.Disposed += (o, e) =>
+      {
+        "SET TRANSACTION ISOLATION LEVEL READ COMMITTED"
+          .AsSql()
+          .Execute(connection);
+      };
+
+      return disposable;
     }
   }
 }

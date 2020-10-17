@@ -1,0 +1,121 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Mercadologic.Utilities
+{
+  /// <summary>
+  /// Algoritmo de criptografia do Mercadologic comum ao Java e ao DotNet.
+  /// 
+  /// O algoritmo encripta e decripta textos e senhas.
+  /// Senhas encriptadas são prefixadas por "enc:".
+  /// </summary>
+  public class Crypto
+  {
+    /// <summary>
+    /// Prefixo para senhas encriptadas.
+    /// Uma senha é considerada encriptada somente se for iniciada com este prefixo.
+    /// </summary>
+    public const string PasswordPrefix = "enc:";
+
+    private const string Keyword = "mlogicV12";
+
+    /// <summary>
+    /// Algoritmo de criptografia de senhas.
+    /// -   Se a senha é prefixada por "enc:" a senha é considerada já
+    ///     encriptada e nada é feito.
+    /// -   Senão, a senha é encriptada e prefixada por "enc:".
+    /// </summary>
+    /// <param name="password">A senha a ser encriptada.</param>
+    /// <returns>A senha encriptada prefixada por "enc:".</returns>
+    public static string EncryptPassword(string password)
+    {
+      if (!password.StartsWith(PasswordPrefix))
+      {
+        password = $"{PasswordPrefix}{Encrypt(password)}";
+      }
+      return password;
+    }
+
+    /// <summary>
+    /// Algoritmo de decriptografia de senhas.
+    /// -   Se a senha é prefixada por "enc:" o porção à frente de "enc:"
+    ///     é decriptada e o texto obtido devolvido.
+    /// -   Senão, a senha é considerada já decriptada e é retornada como está.
+    /// </summary>
+    /// <param name="password">A senha a ser decriptada.</param>
+    /// <returns>A senha decriptada sem o prefixo "enc:".</returns>
+    public static string DecryptPassword(string password)
+    {
+      if (password.StartsWith(PasswordPrefix))
+      {
+        password = password.Substring(PasswordPrefix.Length);
+        password = Decrypt(password);
+      }
+      return password;
+    }
+
+    /// <summary>
+    /// Encripta um texto usando o algoritmo comum do Mercadologic.
+    /// </summary>
+    /// <param name="text">O texto a senha encriptado.</param>
+    /// <returns>O texto encriptado e codificado na base 64.</returns>
+    public static string Encrypt(string text)
+    {
+      return Encode(XorMessage(text, Keyword));
+    }
+
+    /// <summary>
+    /// Decripta um texto usando o algoritmo comum do Mercadologic.
+    /// </summary>
+    /// <param name="text">O texto a senha decriptado.</param>
+    /// <returns>O texto original obtido.</returns>
+    public static string Decrypt(string text)
+    {
+      return XorMessage(Decode(text), Keyword);
+    }
+
+    private static string XorMessage(string message, string key)
+    {
+      try
+      {
+        if (message == null || key == null)
+        {
+          return null;
+        }
+
+        char[] keys = key.ToCharArray();
+        char[] mesg = message.ToCharArray();
+
+        int ml = mesg.Length;
+        int kl = keys.Length;
+        char[] newmsg = new char[ml];
+
+        for (int i = 0; i < ml; i++)
+        {
+          newmsg[i] = (char)(mesg[i] ^ keys[i % kl]);
+        }
+
+        return new string(newmsg);
+      }
+      catch
+      {
+        return null;
+      }
+    }
+
+    private static string Encode(string text)
+    {
+      var plainTextBytes = Encoding.UTF8.GetBytes(text);
+      return Convert.ToBase64String(plainTextBytes);
+    }
+
+    private static string Decode(string base64text)
+    {
+      var base64EncodedBytes = Convert.FromBase64String(base64text);
+      return Encoding.UTF8.GetString(base64EncodedBytes);
+    }
+  }
+}

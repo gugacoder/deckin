@@ -1,0 +1,111 @@
+﻿using Processa.Host.Director;
+using Mercadologic.Domain;
+using Processa.Net.Collections;
+using Processa.Sequel;
+using Processa.Web.Auth;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Authentication;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Mercadologic.Auths
+{
+  public class MlogicAuth : IAuth
+  {
+    private class Token
+    {
+      public string Code { get; set; }
+      public DateTime ExpirationDate { get; set; }
+    }
+
+    private static HashMap<Token> tokens = new HashMap<Token>();
+    private static readonly object @lock = new object();
+
+    public IWebPrincipal Autenticar(string login, string senha)
+    {
+      var info = new LoginInfo(login);
+
+      IWebPrincipal id;
+
+      id = ValidarToken(info, senha);
+      if (id != null)
+      {
+        return id;
+      }
+
+      id = ValidarSenha(info, senha);
+      if (id != null)
+      {
+        return id;
+      }
+
+      throw new AuthenticationException("Usuário e senha não conferem: " + login);
+    }
+
+    private string MakeToken(LoginInfo info, string senha)
+    {
+      return $"{info.Login.GetHashCode()}:{senha.GetHashCode()}";
+    }
+
+    private IWebPrincipal ValidarToken(LoginInfo info, string senha)
+    {
+      Token token;
+
+      lock (@lock)
+      {
+        token = tokens[info.Login];
+      }
+
+      if (token == null)
+      {
+        return null;
+      }
+
+      var code = MakeToken(info, senha);
+      var valid = token.Code.Equals(code) == true;
+      var expired = token.ExpirationDate.CompareTo(DateTime.Now) < 0;
+
+      if (valid && !expired)
+      {
+        return new DirectorPrincipal(new DirectorIdentity(info, true));
+      }
+
+      lock (@lock)
+      {
+        tokens.Remove(info.Login);
+      }
+
+      return null;
+    }
+
+    private IWebPrincipal ValidarSenha(LoginInfo info, string senha)
+    {
+      using (var scope = new SequelScope(Conexoes.Director))
+      {
+        var query =
+          @"SELECT DFid_usuario
+                 , DFnome_usuario                   
+              FROM TBusuario WITH(NOLOCK)
+             WHERE DFnome_usuario = @nome
+               AND DFativo_inativo = 1
+               AND (SELECT dbo.VALIDAR_CRIPT(@senha, DFsenha)) = 1";
+
+        var autenticado = query.AsSql().Set("nome", info.Usuario, "senha", senha).TrySelectOne<bool>();
+        if (!autenticado) return null;
+
+        var id = new DirectorPrincipal(new DirectorIdentity(info, true));
+
+        var code = MakeToken(info, senha);
+        tokens[info.Login] = new Token
+        {
+          Code = code,
+          ExpirationDate = DateTime.Now.Add(TimeSpan.FromHours(1))
+        };
+
+        return id;
+      }
+    }
+  }
+}

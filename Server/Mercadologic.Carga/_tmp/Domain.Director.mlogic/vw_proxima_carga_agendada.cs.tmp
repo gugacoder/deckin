@@ -1,0 +1,36 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Mercadologic.Carga.Domain.Director.mlogic
+{
+  /// <summary>
+  /// View para cálculo da próxima data/hora de execução das cargas
+  /// agendadas.
+  /// </summary>
+  public partial class vw_proxima_carga_agendada
+  {
+    /// <summary>
+    /// Identificador da carga agenda na base.
+    /// </summary>
+    public int DFid_carga_agendada { get; set; }
+
+    /// <summary>
+    /// Código da empresa agetada pela agenda.
+    /// </summary>
+    public int DFcod_empresa { get; set; }
+
+    /// <summary>
+    /// Data/hora prevista para a próxima execução da agenda.
+    /// </summary>
+    public DateTime DFproxima_execucao { get; set; }
+
+    public override string ToString()
+    {
+      var dia = DFproxima_execucao.ToString(@"dd/MM/yyyy, dddd, \à\s HH:mm:ss");
+      return $"Agenda {DFid_carga_agendada} - Empresa {DFcod_empresa} - Próxima execução {dia}";
+    }
+  }
+}

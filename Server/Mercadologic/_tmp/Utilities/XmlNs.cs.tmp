@@ -1,0 +1,91 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using Processa.Net;
+
+namespace Mercadologic.Utilities
+{
+  /// <summary>
+  /// Coleção dos namespaces conhecidos.
+  /// </summary>
+  public static class XmlNs
+  {
+    #region Namespaces padrão de XML
+
+    /// <summary>
+    /// Namespace dos esquemas de assinatura digital de documentos XML.
+    /// </summary>
+    public const string Signature = "http://www.w3.org/2000/09/xmldsig#";
+
+    #endregion
+
+    #region Namespaces da SEFAZ
+
+    /// <summary>
+    /// Namespace dos esquemas XML do SPED/NFE.
+    /// </summary>
+    public const string Nfe = "http://www.portalfiscal.inf.br/nfe";
+
+    /// <summary>
+    /// Namespace dos esquemas XML do SPED/CTE.
+    /// </summary>
+    public const string Cte = "http://www.portalfiscal.inf.br/cte";
+
+    /// <summary>
+    /// Namespace dos esquemas XML do SPED/MDFE.
+    /// </summary>
+    public const string Mdfe = "http://www.portalfiscal.inf.br/mdfe";
+
+    #endregion
+
+    #region Namespaces da Processa
+
+    /// <summary>
+    /// Namespace do serviço DirectorSPED.
+    /// </summary>
+    public const string Sped = "http://processasistemas.com.br/ns/director/sped";
+
+    /// <summary>
+    /// Namespace do Trade2.
+    /// </summary>
+    public const string Trade2 = "http://processasistemas.com.br/ns/trade/2";
+
+    #endregion
+
+    private static KeyValuePair<string, string>[] _prefixos;
+
+    /// <summary>
+    /// Enumera os namespaces declarados nas constantes desta classe.
+    /// Cada chave contém o prefixo e o namespace correspondente.
+    /// </summary>
+    /// <returns>Os namespaces declarados nesta classe.</returns>
+    public static KeyValuePair<string, string>[] ListarPrefixos()
+    {
+      if (_prefixos == null)
+      {
+        _prefixos = EnumerarPrefixos().ToArray();
+      }
+      return _prefixos;
+    }
+
+    /// <summary>
+    /// Enumera os namespaces declarados nas constantes desta classe.
+    /// </summary>
+    /// <returns>Namespaces constantes nesta classe.</returns>
+    private static IEnumerable<KeyValuePair<string, string>> EnumerarPrefixos()
+    {
+      var campos = typeof(XmlNs).GetFields(BindingFlags.Public | BindingFlags.Static);
+      foreach (var campo in campos)
+      {
+        var prefixo = campo.Name.ChangeCase(TextCase.CamelCase);
+        var xmlns = campo.GetValue(null) as string;
+        if (xmlns != null)
+        {
+          yield return new KeyValuePair<string, string>(prefixo, xmlns);
+        }
+      }
+    }
+  }
+}

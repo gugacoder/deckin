@@ -1,0 +1,39 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Mercadologic.Carga.Domain.Director.mlogic
+{
+  public partial class TBcarga_publicada
+  {
+    /// <summary>
+    /// Valor do campo DFstatus para carga pendente de publicação.
+    /// </summary>
+    public const string Aguardando = "A";
+    /// <summary>
+    /// Valor do campo DFstatus para carga em processo de publicação.
+    /// </summary>
+    public const string EmExecucao = "E";
+    /// <summary>
+    /// Valor do campo DFstatus para carga já publicada.
+    /// </summary>
+    public const string Publicado = "P";
+    /// <summary>
+    /// Valor do campo DFstatus para falha na publicação da carga.
+    /// </summary>
+    public const string Falha = "F";
+
+    public int DFid_carga_empresa_publicada { get; set; }
+    public int DFid_carga_publicada { get; set; }
+    public int DFcod_empresa { get; set; }
+    public string DFidentificador { get; set; }
+    public int? DFid_carga_agendada { get; set; }
+    public DateTime DFdata_cadastro { get; set; }
+    public DateTime? DFdata_publicacao { get; set; }
+    public string DFstatus { get; set; }
+    public string DFfalha { get; set; }
+    public string DFfalha_detalhada { get; set; }
+  }
+}

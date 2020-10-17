@@ -18,86 +18,23 @@ using System.Collections;
 using System.Xml.Serialization;
 using Keep.Paper.Templating;
 using System.Diagnostics.CodeAnalysis;
+using Mercadologic.Carga.Utilitarios;
+using System.Data;
 
-namespace Director
+namespace Mercadologic.Replicacao
 {
   public class Program
   {
     [SuppressMessage("Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "<Pending>")]
     public static void Main(string[] args)
     {
-      // Sandbox.ips Sandbox.sql
       try
       {
-        var ipFile = args.FirstOrDefault();
-        var sqlFile = args.Skip(1).FirstOrDefault();
+        var file = "/tmp/file.json";
 
-        if (string.IsNullOrEmpty(ipFile) || string.IsNullOrEmpty(sqlFile))
-        {
-          Console.WriteLine($"Uso incorreto.");
-          Console.WriteLine($"  Informe o arquivo de IPs de PDV e o arquivo contendo a SQL.");
-          Console.WriteLine($"  Exemplo:");
-          Console.WriteLine($"    {App.Name} IPs.txt Comando.sql");
-          return;
-        }
+        SalvarJson(file);
 
-        ipFile = Path.GetFullPath(ipFile);
-        sqlFile = Path.GetFullPath(sqlFile);
-
-        Console.WriteLine();
-        Console.WriteLine($"IP-FILE: {ipFile}");
-        Console.WriteLine($"SQL-FILE: {sqlFile}");
-        Console.WriteLine();
-
-        var ips = File
-          .ReadAllLines(ipFile)
-          .Select(ip => ip.Split('#').First())
-          .Select(ip => ip.Trim())
-          .NotNullOrWhitespace()
-          .ToArray();
-        var sql = File.ReadAllText(sqlFile);
-
-        Console.WriteLine($"IPs afetados:");
-        foreach (var ip in ips)
-        {
-          Console.WriteLine($"- {ip}");
-        }
-
-        foreach (var ip in ips)
-        {
-          try
-          {
-            Console.WriteLine();
-            Console.WriteLine("- - -");
-            Console.WriteLine($"IP: {ip}");
-            Console.WriteLine("Conectando...");
-
-            using var cn = new Npgsql.NpgsqlConnection();
-            cn.ConnectionString = $"server={ip};database=DBPDV;uid=postgres;pwd=local";
-            cn.Open();
-
-            Console.WriteLine("Executando...");
-
-            using var cm = cn.CreateCommand();
-            cm.CommandText = sql;
-            var reader = cm.ExecuteReader();
-
-            PrintReader(reader);
-
-            Console.WriteLine();
-            Console.WriteLine("DONE!");
-          }
-          catch (Exception ex)
-          {
-            Console.WriteLine("FAIL!");
-            Console.WriteLine(ex.GetCauseMessage());
-            Console.WriteLine(ex.GetStackTrace());
-          }
-          finally
-          {
-            Console.WriteLine("- - -");
-          }
-        }
+        Console.WriteLine(Files.LoadTextFile(file));
 
         Console.WriteLine();
         Console.WriteLine("DONE!!!");
@@ -110,23 +47,32 @@ namespace Director
       }
     }
 
-    private static void PrintReader(Npgsql.NpgsqlDataReader reader)
+    private static void SalvarJson(string arquivo)
     {
-      Console.WriteLine();
-      do
-      {
-        while (reader.Read())
-        {
-          for (var i = 0; i < reader.FieldCount; i++)
-          {
-            var field = reader.GetName(i);
-            var value = reader.GetValue(i);
+      using var stream = new StreamWriter(arquivo);
+      using var gravador = new GravadorDeJson(stream);
 
-            Console.WriteLine($"{field}: {value}");
-          }
-        }
-      } while (reader.NextResult());
-      Console.WriteLine();
+      gravador.BeginArray();
+
+      gravador.BeginObject();
+      gravador.WriteProperty("id", -1);
+      gravador.WriteProperty("name", "Yesterday");
+      gravador.WriteProperty("date", DateTime.Today.AddDays(-1));
+      gravador.EndObject();
+
+      gravador.BeginObject();
+      gravador.WriteProperty("id", 0);
+      gravador.WriteProperty("name", "Today");
+      gravador.WriteProperty("date", DateTime.Today);
+      gravador.EndObject();
+
+      gravador.BeginObject();
+      gravador.WriteProperty("id", 1);
+      gravador.WriteProperty("name", "Tomorrow");
+      gravador.WriteProperty("date", DateTime.Today.AddDays(1));
+      gravador.EndObject();
+
+      gravador.EndArray();
     }
   }
 }

@@ -1,0 +1,154 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Mercadologic.Domain;
+using Processa.Net;
+using Processa.Sequel;
+
+namespace Mercadologic.Connectors
+{
+  /// <summary>
+  /// Utilitário para estabelecimento de conexões com base de dados.
+  /// </summary>
+  class MercadologicConector : Processa.Sequel.IConnector
+  {
+    /// <summary>
+    /// Instância do utilitário de detecção das configurações do Mercadologic.
+    /// </summary>
+    private ConfiguracaoDoConcentrador concentrador = new ConfiguracaoDoConcentrador();
+
+    /// <summary>
+    /// Monta o nome da conexão com o PDV.
+    /// O nome tem a forma:
+    /// <code>
+    ///   pdv://IP:PORTA
+    /// </code>
+    /// Sendo:
+    /// <list type="bullet">
+    ///   <item>IP, nome ou IP da máquina destino.</item>
+    ///   <item>PORTA, porta de acesso ao Postgres na máquina destino.</item>
+    /// </list>
+    /// </summary>
+    /// <param name="maquinaOuIp">Nome da máquina ou IP.</param>
+    /// <param name="porta">Porta da máquina destino.</param>
+    /// <returns>O nome da conexão com o PDV.</returns>
+    public string NomearConexaoDoPdv(string maquinaOuIp, int porta = 5432)
+    {
+      return $"pdv://{maquinaOuIp}:{porta}";
+    }
+
+    /// <summary>
+    /// Estabelece conexão com a base de dados indicada.
+    /// </summary>
+    /// <param name="nomeDaConexao">
+    /// Nome da conexão. As constantes <see cref="Director"/> e
+    /// <see cref="Mercadologic"/> podem ser usadas.
+    /// </param>
+    /// <returns>A conexão estabelecida.</returns>
+    public DbConnection Conectar(string nomeDaConexao)
+    {
+      return EstabelecerConexao(nomeDaConexao, null, null, null);
+    }
+
+    /// <summary>
+    /// Estabelece conexão com a base de dados indicada.
+    /// </summary>
+    /// <param name="maquinaOuIp">
+    /// IP ou nome da máquina onde o PDV está sendo excutado.
+    /// </param>
+    /// <param name="porta">Número da porta de conexão com o Postgres do PDV.</param>
+    /// <returns>A conexão estabelecida.</returns>
+    public DbConnection ConectarAoPdv(string maquinaOuIp, int porta = 5432)
+    {
+      var configuracao = NomearConexaoDoPdv(maquinaOuIp, porta);
+      return EstabelecerConexao(configuracao, null, null, null);
+    }
+
+    /// <summary>
+    /// Implementação da interface de conexão do Processa.Sequel.
+    /// </summary>
+    /// <param name="configuration">Nome da conexão.</param>
+    /// <param name="connectionString">Conexão de string com a base.</param>
+    /// <param name="connectionProvider">Nome do provedor de dados.</param>
+    /// <param name="conectorBase">
+    /// Instância do conector padrão do Sequel.
+    /// Usada para estabelecer conexão usando o algoritmo padrão do Sequel.
+    /// </param>
+    /// <returns>A conexão estabelecida.</returns>
+    DbConnection IConnector.Connect(string configuration, string connectionString, string connectionProvider, IConnector baseConnector)
+    {
+      return EstabelecerConexao(configuration, connectionString, connectionProvider, baseConnector);
+    }
+
+    /// <summary>
+    /// Implementação da interface de conexão do Processa.Sequel.
+    /// </summary>
+    /// <param name="configuracao">Nome da conexão.</param>
+    /// <param name="stringDeConexao">Conexão de string com a base.</param>
+    /// <param name="provedor">Nome do provedor de dados.</param>
+    /// <param name="conectorBase">
+    /// Instância do conector padrão do Sequel.
+    /// Usada para estabelecer conexão usando o algoritmo padrão do Sequel.
+    /// </param>
+    /// <returns>A conexão estabelecida.</returns>
+    private DbConnection EstabelecerConexao(
+        string configuracao
+      , string stringDeConexao
+      , string provedor
+      , IConnector connectorBase
+      )
+    {
+      if (connectorBase == null)
+      {
+        connectorBase = SequelSettings.DefaultConnector;
+      }
+
+      if (configuracao.EqualsIgnoreCase(Conexoes.Director))
+      {
+        var stringDeConexaoDescoberta = concentrador.ObterStringDeConexao(Conexoes.Director);
+        if (stringDeConexaoDescoberta != null)
+        {
+          var conexao = new SqlConnection(stringDeConexaoDescoberta);
+          return conexao;
+        }
+      }
+
+      if (configuracao.EqualsIgnoreCase(Conexoes.Mercadologic))
+      {
+        var stringDeConexaoDescoberta = concentrador.ObterStringDeConexao(Conexoes.Mercadologic);
+        if (stringDeConexaoDescoberta != null)
+        {
+          var conexao = new Npgsql.NpgsqlConnection(stringDeConexaoDescoberta);
+          return conexao;
+        }
+      }
+
+      var stringDeConexaoEfetiva = stringDeConexao ?? configuracao;
+      if (stringDeConexaoEfetiva.StartsWithIgnoreCase("Pdv:"))
+      {
+        var match = Regex.Match(stringDeConexaoEfetiva, @"pdv:/{0,2}([^/:]+)(?::([^:]+))?");
+        if (match.Success)
+        {
+          var maquinaOuIp = match.Groups[1];
+          var porta = match.Groups[2];
+          var stringDeConexaoDoPdv =
+              $"server={maquinaOuIp};"
+            + $"port={porta};"
+            + $"database=DBmercadologic;"
+            + $"user id=postgres;"
+            + $"password=local;"
+            + $"timeout=60;";
+          var conexao = new Npgsql.NpgsqlConnection(stringDeConexaoDoPdv);
+          return conexao;
+        }
+      }
+
+      return connectorBase.Connect(configuracao, stringDeConexao, provedor, null);
+    }
+  }
+}

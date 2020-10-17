@@ -24,6 +24,9 @@
       <GlobalPropertiesToRemove>
       </GlobalPropertiesToRemove>
     </ProjectReference>
+    <ProjectReference Include="..\Mercadologic.Carga\Mercadologic.Carga.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\Director\meta\**">

@@ -17,12 +17,12 @@ namespace Keep.Tools.Sequel.Runner
 
     public event EventHandler Disposed;
 
-    private Func<DbCommand> factory;
-    private Func<DbDataReader, T> transform;
-
-    private TransformReaderAsync()
+    protected TransformReaderAsync()
     {
     }
+
+    protected Func<DbCommand> Factory;
+    protected Func<DbDataReader, T> Transform;
 
     public static async Task<TransformReaderAsync<E>> CreateAsync<E>(
       Func<DbCommand> factory,
@@ -30,8 +30,8 @@ namespace Keep.Tools.Sequel.Runner
       CancellationToken stopToken)
     {
       var reader = new TransformReaderAsync<E>();
-      reader.factory = factory;
-      reader.transform = transform;
+      reader.Factory = factory;
+      reader.Transform = transform;
       await reader.ResetAsync(stopToken);
       return reader;
     }
@@ -53,10 +53,10 @@ namespace Keep.Tools.Sequel.Runner
     public void Cancel() => this.Command?.Cancel();
 
     public IReaderAsync<T> Clone()
-      => TransformReaderAsync<T>.CreateAsync(factory, transform, default).Result;
+      => TransformReaderAsync<T>.CreateAsync(Factory, Transform, default).Result;
 
     object ICloneable.Clone()
-      => TransformReaderAsync<object>.CreateAsync(factory, transform, default).Result;
+      => TransformReaderAsync<object>.CreateAsync(Factory, Transform, default).Result;
 
     public async Task<bool> ReadAsync(CancellationToken stopToken)
     {
@@ -64,7 +64,7 @@ namespace Keep.Tools.Sequel.Runner
         return false;
 
       var ready = await Reader.ReadAsync(stopToken);
-      this.Current = ready ? transform.Invoke(Reader) : default;
+      this.Current = ready ? Transform.Invoke(Reader) : default;
 
       return ready;
     }
@@ -90,7 +90,7 @@ namespace Keep.Tools.Sequel.Runner
         this.Command = null;
       }
 
-      this.Command = this.factory?.Invoke();
+      this.Command = this.Factory?.Invoke();
       if (this.Command != null)
       {
         this.Reader = await this.Command.ExecuteReaderAsync(stopToken);

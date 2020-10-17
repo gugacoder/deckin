@@ -1,0 +1,414 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Processa.Host;
+using Processa.Host.Diagnostics;
+using Mercadologic.Carga.Domain.Director.mlogic;
+using Mercadologic.Carga.Domain.Mlogic;
+using Mercadologic.Carga.Types;
+using Processa.Net;
+using Processa.Net.Collections;
+using Processa.Net.Extensions;
+using Processa.Net.Serialization.Json;
+using Processa.Sequel;
+using Processa.Web.Drive;
+using static Mercadologic.Carga.Business.ImportacaoDeCarga;
+
+namespace Mercadologic.Carga.Business
+{
+  class GerenciamentoDeCarga
+  {
+    private static readonly object @lock = new object();
+
+    /// <summary>
+    /// Realiza o processamento das cargas publicadas.
+    /// 
+    /// Durante o processamento as cargas recebidas do Director são inseridas
+    /// no Concentrador. E as cargas produzidas a partir do Concentrador são
+    /// publicadas na URL do Drive para serem baixadas pelos PDVs.
+    /// 
+    /// Url do Drive:
+    /// <code>
+    ///   /Drive/Mercadologic/Empresas/{CodEmpresa}/Pdvs/Carga
+    /// </code>
+    /// 
+    /// A publicação de uma carga no Director pode ser feita pela execução da
+    /// procedure da seguinte forma:
+    /// <code>
+    ///   DECLARE @codigosDeEmpresas VARCHAR(100)
+    ///   DECLARE @codigosDeTabelas VARCHAR(100)
+    ///   
+    ///   -- Conforme código cadastrado na tabela TBempresa
+    ///   SET @codigosDeEmpresas = '1,2,3'
+    ///   
+    ///   -- Conforme código cadastrado na tabela mlogic.TBtabela_carga
+    ///   SET @codigosDeTabelas = '1,2,3'
+    ///   
+    ///   EXEC mlogic.sp_publicar_carga @codigosDeEmpresas, @codigosDeTabelas
+    /// </code>
+    /// </summary>
+    /// <returns></returns>
+    public Ret ExecutarCargas(CancellationToken cancellationToken)
+    {
+      try
+      {
+        lock (@lock)
+        {
+          //
+          // NOTE: Existe uma restrição neste ponto:
+          //
+          // Como ainda é necessário gravar dados na base do Concentrador, então,
+          // ainda não conseguimos realmente montar o processo muti-empresa.
+          //
+          // Este método obtém apenas as cargas da empresa cadastrada no Concentrador.
+          // Futuramente, quando não houver a necessidade de registrar dados na
+          // base do Concentrador, este procedimento irá consultar todas as empresa
+          // ao mesmo tempo.
+          //
+          // Por enquanto, para obtermos o resultado multi-empresa, deve haver
+          // um domínio distinto para cada filial cadastrado no arquivo
+          // Config.Processa.Web.xml e deve haver a conexão com o DBmercadologic 
+          // cadastrada no arquivo Config.ConnectionStrings.xml.
+          //
+          var empresa = Domain.Mlogic.empresa.Obter();
+
+          // Obtendo as cargas
+          //
+          var cargas = TBcarga_publicada.ObterPendencias(empresa.Id);
+          if (cargas.Length == 0)
+            return true;
+
+          if (cancellationToken.IsCancellationRequested)
+            return Ret.Create(HttpStatusCode.ServiceUnavailable);
+
+          ExecutarCargasDaEmpresa(empresa.Id, cargas, cancellationToken);
+
+          return true;
+        }
+      }
+      catch (Exception ex)
+      {
+        Audit.ReportFault(
+          "atualizar-carga",
+          nameof(GerenciamentoDeCarga),
+          ex,
+          $"Falha executando a atualização de carga."
+        );
+        return Ret.Fail("Falha executando agendamento de carga.");
+      }
+    }
+
+    private Ret ExecutarCargasDaEmpresa(
+        int codigoDaEmpresa
+      , TBcarga_publicada[] cargas
+      , CancellationToken cancellationToken
+      )
+    {
+      string pastaTemporaria = null;
+      try
+      {
+        pastaTemporaria = CriarPastaTemporaria();
+
+        //
+        // Registrando o início do processo de execução da carga
+        //
+        cargas.ForEach(x =>
+        {
+          x.DFstatus = TBcarga_publicada.EmExecucao;
+          x.DFdata_publicacao = DateTime.Now;
+        });
+        SalvarStatusDaCarga(cargas);
+
+        var idsDeCargaEmpresaPublicada = cargas
+          .Select(x => x.DFid_carga_publicada)
+          .Distinct()
+          .ToArray();
+
+        var importacao = new ImportacaoDeCarga();
+        var exportacao = new ExportacaoDeCarga();
+        var publicacao = new PublicacaoDeCarga();
+
+        var tabelas = sp_obter_indice_tabela_carga_publicada.Executar(idsDeCargaEmpresaPublicada);
+
+        Ret ret;
+        Versao versaoDaCarga = null;
+        string[] arquivosBaixados = null;
+        string[] arquivosExportados = null;
+
+        if (cancellationToken.IsCancellationRequested)
+          return Ret.Create(HttpStatusCode.ServiceUnavailable);
+
+        ret = importacao.BaixarDoDirector(
+            pastaTemporaria
+          , codigoDaEmpresa
+          , tabelas
+          , cancellationToken
+          , out arquivosBaixados
+          );
+
+        if (ret.Ok && (arquivosBaixados.Length == 0))
+        {
+          // Esta carga não contém arquivos para publicação.
+          Audit.ReportSuccess(
+              "atualizar-carga"
+            , nameof(GerenciamentoDeCarga)
+            , $"Carga integrada com sucesso."
+          );
+          return ret;
+        }
+
+        //
+        // NOTE: Existe uma restrição neste ponto:
+        //
+        // Como ainda é necessário gravar dados na base do Concentrador, então,
+        // ainda não conseguimos realmente montar o processo muti-empresa.
+        //
+        // O método anterior, ExecutarAgenda(), obteve apenas as cargas da
+        // empresa cadastrada no Concentrador.
+        //
+        // Por enquanto, para obtermos o resultado multi-empresa, deve haver
+        // um domínio distinto para cada filial cadastrado no arquivo
+        // Config.Processa.Web.xml e deve haver a conexão com o DBmercadologic 
+        // cadastrada no arquivo Config.ConnectionStrings.xml.
+        //
+        if (ret.Ok)
+        {
+          if (cancellationToken.IsCancellationRequested)
+            return Ret.Create(HttpStatusCode.ServiceUnavailable);
+
+          ret = importacao.SalvarNoConcentrador(
+              pastaTemporaria
+            , codigoDaEmpresa
+            , arquivosBaixados
+            , cancellationToken
+            , out versaoDaCarga
+            );
+        }
+
+        if (ret.Ok)
+        {
+          cargas.ForEach(x => x.DFidentificador = versaoDaCarga.ToString());
+          SalvarStatusDaCarga(cargas);
+        }
+
+        if (ret.Ok)
+        {
+          if (cancellationToken.IsCancellationRequested)
+            return Ret.Create(HttpStatusCode.ServiceUnavailable);
+
+          ret = exportacao.ExportarParaArquivo(
+              pastaTemporaria
+            , codigoDaEmpresa
+            , versaoDaCarga
+            , cancellationToken
+            , out arquivosExportados
+            );
+        }
+
+        if (ret.Ok)
+        {
+          if (cancellationToken.IsCancellationRequested)
+            return Ret.Create(HttpStatusCode.ServiceUnavailable);
+
+          ret = publicacao.PublicarNoDrive(
+              pastaTemporaria
+            , codigoDaEmpresa
+            , versaoDaCarga
+            , arquivosExportados
+            , cancellationToken
+            );
+        }
+
+        //
+        // Atualizando o status de execucao das cargas
+        //
+        if (ret.Ok)
+        {
+          cargas.ForEach(x => x.DFstatus = TBcarga_publicada.Publicado);
+          SalvarStatusDaCarga(cargas);
+        }
+        else
+        {
+          cargas.ForEach(x =>
+          {
+            x.DFstatus = TBcarga_publicada.Falha;
+            x.DFfalha = string.Join(Environment.NewLine, ret.Fault.Messages);
+            x.DFfalha_detalhada = ret.Fault.Exception?.GetStackTrace() ?? "";
+          });
+          SalvarStatusDaCarga(cargas);
+        }
+
+        if (ret.Ok)
+        {
+          var porta = WebHost.Atual?.ParametrosEfetivos?.Porta ?? 80;
+          var sufixo = (porta == 80) ? "" : $":{porta}";
+          Audit.ReportSuccess(
+              "atualizar-carga"
+            , nameof(GerenciamentoDeCarga)
+            , $"Carga integrada, publicada na URL e pronta para atualização dos PDVs."
+            , $"- versao: at.{versaoDaCarga}"
+            , $"- url: http://localhost{sufixo}/Drive/Mercadologic/Empresas/{codigoDaEmpresa}/Pdvs/Cargas/{versaoDaCarga.Numero}"
+          );
+        }
+        else
+        {
+          Audit.ReportFault(
+              "atualizar-carga"
+            , nameof(GerenciamentoDeCarga)
+            , ret.Fault.Messages.Concat(
+                ret.Fault.Exception?.GetTranslatedCauses().Select(x => $"- {x}")
+                ?? Enumerable.Empty<string>()
+              )
+          );
+        }
+
+        return ret;
+      }
+      catch (Exception ex)
+      {
+        cargas.ForEach(x =>
+        {
+          x.DFstatus = TBcarga_publicada.Falha;
+          x.DFfalha = ex.Message;
+          x.DFfalha_detalhada = ex.GetStackTrace();
+        });
+        SalvarStatusDaCarga(cargas);
+
+        var ids = string.Join(", ", cargas.Select(x => x.DFid_carga_publicada));
+        Audit.ReportFault(
+          "atualizar-carga",
+          nameof(GerenciamentoDeCarga),
+          ex,
+          $"Falha executando a atualização de carga.",
+          $"- ids das cargas publicadas: {ids}"
+        );
+
+        return Ret.Fail(ex, $"Falha executando agendamento de carga. IDs das cargas publicadas: {ids}");
+      }
+      finally
+      {
+        if (cancellationToken.IsCancellationRequested)
+        {
+          try
+          {
+            var naoTerminado = cargas.Any(x => x.DFstatus == TBcarga_publicada.EmExecucao);
+            if (naoTerminado)
+            {
+              // A carga foi abortada. Talvez o sistema esteja sendo desligado.
+              // Vamos voltar seu status para Aguardando para
+              // que seja reexecutada.
+              cargas.ForEach(x => x.DFstatus = TBcarga_publicada.Aguardando);
+              SalvarStatusDaCarga(cargas);
+            }
+          }
+          catch (Exception ex)
+          {
+            var ids = string.Join(", ", cargas.Select(x => x.DFid_carga_publicada));
+            Audit.ReportFault(
+              "atualizar-carga",
+              nameof(GerenciamentoDeCarga),
+              ex,
+              $"A carga foi abortada mas não foi possível salvar o status da carga.",
+              $"- ids das cargas publicadas: {ids}"
+            );
+          }
+        }
+
+        if (MlogicSettings.Atual.Carga.ManterHistorico)
+        {
+          CriarUmaCopiaDeBackupDosArquivos(pastaTemporaria);
+        }
+        ApagarPastaTemporaria(pastaTemporaria);
+      }
+    }
+
+    private void SalvarStatusDaCarga(TBcarga_publicada[] cargas)
+    {
+      try
+      {
+        TBcarga_publicada.SalvarCarga(cargas);
+      }
+      catch (Exception exx)
+      {
+        var ids = string.Join(", ", cargas.Select(x => x.DFid_carga_publicada));
+        throw new Exception(
+          $"Falha muito grave tentando atualizar os dados das cargas na base. IDs das cargas publicadas: {ids}",
+          exx
+        );
+      }
+    }
+
+    /// <summary>
+    /// Cria uma pasta temporária.
+    /// </summary>
+    /// <returns>A pasta temporária criada.</returns>
+    private string CriarPastaTemporaria()
+    {
+      var caminho = Path.GetTempFileName();
+      File.Delete(caminho);
+      Directory.CreateDirectory(caminho);
+      return caminho;
+    }
+
+    /// <summary>
+    /// Remove ou tenta remover a pasta temporária.
+    /// Em caso de falha nada é feito.
+    /// </summary>
+    /// <param name="pastaTemporaria">A pasta a ser apagada.</param>
+    private void ApagarPastaTemporaria(string pastaTemporaria)
+    {
+      try
+      {
+        if (Directory.Exists(pastaTemporaria))
+        {
+          Directory.Delete(pastaTemporaria, recursive: true);
+        }
+      }
+      catch { /* Nada mais a fazer. */ }
+    }
+
+    /// <summary>
+    /// Mantém uma cópia de backup dos arquivos produzidos durante a carga.
+    /// </summary>
+    /// <param name="pastaTemporaria">A pasta que contém os arquivos temporários.</param>
+    private void CriarUmaCopiaDeBackupDosArquivos(string pastaTemporaria)
+    {
+      string pasta = "";
+      try
+      {
+        var pastaBase = @"C:\Mercadologic\Concentrador\Temp\Cargas";
+        var nome = DateTime.Now.ToString($"yyyy-MM-dd_hh.mm.ss.fff");
+        pasta = Path.Combine(pastaBase, nome);
+
+        if (!Directory.Exists(pastaBase))
+        {
+          Directory.CreateDirectory(pastaBase);
+        }
+
+        Directory.Move(pastaTemporaria, pasta);
+
+        Audit.ReportWarn(
+          "backup-arquivos",
+          nameof(GerenciamentoDeCarga),
+          $"Uma cópia da pasta com os arquivos processados foi movida para o histórico.",
+          $"- local: {pasta}"
+        );
+      }
+      catch (Exception ex)
+      {
+        Audit.ReportWarn(
+          "backup-arquivos",
+          nameof(GerenciamentoDeCarga),
+          ex,
+          $"Não foi possível criar uma pasta de backup dos arquivos processados.",
+          $"- local: {pasta}"
+        );
+      }
+    }
+  }
+}

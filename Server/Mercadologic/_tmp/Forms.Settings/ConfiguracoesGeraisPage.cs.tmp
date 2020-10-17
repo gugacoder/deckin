@@ -1,0 +1,34 @@
+﻿using Processa.Net.Settings.Forms;
+using System.Windows.Forms;
+
+namespace Mercadologic.Forms.Settings
+{
+  public partial class ConfiguracoesGeraisPage : UserControl, ISettingsPage
+  {
+    public ConfiguracoesGeraisPage()
+    {
+      this.Text = "Configurações Gerais";
+
+      InitializeComponent();
+    }
+
+    public Control Control => this;
+
+    public INotifier Notifier { get; set; }
+
+    public bool Active { get; set; }
+
+    public bool HasUncommittedChanges
+      => ckManterHistorico.Checked != MlogicSettings.Atual.Carga.ManterHistorico;
+
+    public void Commit()
+    {
+      MlogicSettings.Atual.Carga.ManterHistorico = ckManterHistorico.Checked;
+    }
+
+    public void Reset()
+    {
+      ckManterHistorico.Checked = MlogicSettings.Atual.Carga.ManterHistorico;
+    }
+  }
+}

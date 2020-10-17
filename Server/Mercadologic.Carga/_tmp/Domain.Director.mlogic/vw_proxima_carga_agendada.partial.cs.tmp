@@ -1,0 +1,50 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Keep.Tools.Sequel;
+using Keep.Tools.Sequel.Runner;
+
+namespace Mercadologic.Carga.Domain.Director.mlogic
+{
+  partial class vw_proxima_carga_agendada
+  {
+    /// <summary>
+    /// Calcula a próxima data/hora de execução de cada agendamento de carga
+    /// cadastrado no Director.
+    /// </summary>
+    /// <param name="codigoEmpresa">
+    /// Código da empresa afetada pela carga.
+    /// Se omitido, as agendas de todas as empresas serão consideradas.
+    /// </param>
+    /// <returns>A coleção de datas da próxima execução de cada carga</returns>
+    public static async Task<vw_proxima_carga_agendada[]> ObterProximasExecucoesAsync(
+      DbConnection cnDirector, int? codigoEmpresa, CancellationToken stopToken)
+    {
+      try
+      {
+        // A view mlogic.vw_proxima_carga_agendada contém o algoritmo de cálculo
+        // da próxima execução de cada agenda.
+        // O resultado é uma tabela contendo em cada registro o ID do agendamento
+        // de carga e a data/hora da próxima execução da agenda.
+        var execucoes = await
+          @"select DFid_carga_agendada
+                 , DFcod_empresa
+                 , DFproxima_execucao
+              from mlogic.vw_proxima_carga_agendada with (nolock)
+             where DFcod_empresa matches if set @codigoEmpresa"
+          .AsSql()
+          .Set(new { codigoEmpresa })
+          .SelectAsync<vw_proxima_carga_agendada>(cnDirector, stopToken: stopToken);
+        return execucoes;
+      }
+      catch (Exception ex)
+      {
+        throw new Exception("Falhou a tentativa de calcular a próxima execução da agenda de carga na base de dados do Director.", ex);
+      }
+    }
+  }
+}

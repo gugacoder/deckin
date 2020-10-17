@@ -1,0 +1,47 @@
+﻿using Processa.Host.Diagnostics;
+using Mercadologic.Carga.Business;
+using Mercadologic.Carga.Domain;
+using Processa.Net;
+using Processa.Sequel;
+using Processa.Web.Tasks;
+using System;
+using System.Linq;
+using System.Threading;
+
+namespace Mercadologic.Carga.Tasks
+{
+  /// <summary>
+  /// Tarefa para integrar ao Director as notas fiscals autorizadas
+  /// e canceladas mais recentes no período.
+  /// </summary>
+  [AutoTask(InstanceCountEnum.OneInstancePerDomain)]
+  public class PublicacaoDeCargaTask : ITask
+  {
+    public void Run(Schedule schedule, CancellationToken cancellationToken)
+    {
+      try
+      {
+        if (cancellationToken.IsCancellationRequested)
+          return;
+
+        var gerenciador = new GerenciamentoDeCarga();
+        gerenciador.ExecutarCargas(cancellationToken);
+
+      }
+      catch (Exception ex)
+      {
+        ex.Trace();
+        Audit.ReportFault(
+            "atualizar-carga"
+          , nameof(AgendamentoDeCargaTask)
+          , ex
+          , "Houve uma falha integrando a carga."
+          );
+      }
+      finally
+      {
+        schedule.Add(this, TimeSpan.FromSeconds(2));
+      }
+    }
+  }
+}

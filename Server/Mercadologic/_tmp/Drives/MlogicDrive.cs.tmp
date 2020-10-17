@@ -1,0 +1,35 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Processa.Web.Drive;
+using Processa.Web.Drive.Services;
+
+namespace Mercadologic.Drives
+{
+  /// <summary>
+  /// Adaptador do Drive para habilitar a publicação de arquivos no endpoint:
+  ///     /Drive/Mercadologic
+  /// </summary>
+  [ExportDrive("Mercadologic")]
+  public class MlogicDrive : DriveService
+  {
+    // Esta classe está sendo usada para criar um DRIVE no Process.Web.Drive
+    // para publicação de arquivos na URL do Drive.
+    // 
+    // O Processa.Web.Drive cria automaticamente uma URL com o nome:
+    //    /Drive/Mercadologic
+    // Por exemplo:
+    //    http://host.com:90/Drive/Mercadologic
+    //
+    // Os arquivos publicados, como os arquivos de carga do PDV, são fornecidos
+    // por esta classe.
+    //
+    // Nenhuma customização está sendo necessária, por tanto, a classe base
+    // DriveService está fazendo todo o serviço da forma padrão como implementada
+    // pelo Processa.Web.Drive.
+    
+    public static IDrive GetDrive() => Processa.Web.Drive.Drives.GetDrive<MlogicDrive>();
+  }
+}

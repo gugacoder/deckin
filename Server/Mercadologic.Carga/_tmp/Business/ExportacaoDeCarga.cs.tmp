@@ -1,0 +1,196 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Npgsql;
+using System.IO;
+using Mercadologic.Carga.Types;
+using System.Net;
+using Mercadologic.Carga.Domain.Mlogic;
+using System.Threading;
+using Keep.Tools;
+using AppSuite.Conectores;
+using Keep.Paper.Api;
+
+namespace Mercadologic.Carga.Business
+{
+  class ExportacaoDeCarga
+  {
+    private readonly DbDirector dbDirector;
+    private readonly IAudit<ExportacaoDeCarga> audit;
+
+    public ExportacaoDeCarga(DbDirector dbDirector, IAudit<ExportacaoDeCarga> audit)
+    {
+      this.dbDirector = dbDirector;
+      this.audit = audit;
+    }
+
+    public async Task<Ret<string[]>> ExportarParaArquivoAsync(
+        string pastaTemporaria
+      , int codigoDaEmpresa
+      , Versao versaoDaCarga
+      , CancellationToken stopToken
+      )
+    {
+      string[] arquivosExportados = null;
+      try
+      {
+        // Serão gerados arquivos com extensão *.txt na pasta destino
+
+        using (var mlogic = new SequelScope(Conexoes.Mercadologic))
+        {
+          Audit.ReportInfo(
+            "exportar-carga",
+            nameof(ExportacaoDeCarga),
+            $"Preparando promoções. Essa operação pode levar algum tempo..."
+          );
+
+          var tabelas = preparar_carga_automatica.Executar();
+
+          var contagem = 0;
+          var saidas =
+            from tabela in tabelas
+            select new
+            {
+              indice = ++contagem,
+              tabela,
+              caminho = Path.Combine(pastaTemporaria, $"{tabela.ToUpper()}.txt")
+            };
+
+          using (mlogic.CreateReadUncommittedScope())
+          {
+            foreach (var saida in saidas)
+            {
+              if (stopToken.IsCancellationRequested)
+                return Ret.Create(HttpStatusCode.ServiceUnavailable);
+
+              var indice = saida.indice;
+              var tabela = saida.tabela;
+              var caminho = saida.caminho;
+
+              Audit.ReportInfo(
+                "exportar-carga",
+                nameof(ExportacaoDeCarga),
+                $"Exportando: {tabela}... (arquivo {indice}/{tabelas.Length} passo 1/2)"
+              );
+
+              var procedure = $"exportar_carga_automatica_{tabela}";
+              try
+              {
+                var registros =
+                  $@"select * from {procedure} ();"
+                  .AsSql(mlogic)
+                  .Select();
+                using (registros)
+                {
+                  SaveCsv(registros, caminho);
+                }
+              }
+              catch (Exception ex)
+              {
+                var info = $"Falhou a tentativa de executar a procdure: {procedure}.";
+                Audit.ReportFault("exportar-carga", nameof(ExportacaoDeCarga),
+                    ex, info);
+                return Ret.Fail(ex, info);
+              }
+
+              Audit.ReportInfo(
+                "exportar-carga",
+                nameof(ExportacaoDeCarga),
+                $"Exportado: {tabela} (arquivo {indice}/{tabelas.Length} passo 2/2)"
+              );
+            }
+          }
+
+          var caminhos = saidas.Select(x => x.caminho).ToList();
+
+          // Arquivo de índice
+          var txtDeIndice = Path.Combine(pastaTemporaria, "indice.txt");
+          var nomes = caminhos.Select(x => Path.GetFileName(x)).Append("versao.txt");
+          var dadosDeIndice = string.Join(Environment.NewLine, nomes);
+          File.WriteAllText(txtDeIndice, dadosDeIndice);
+          caminhos.Add(txtDeIndice);
+
+          // Arquivo de versão
+          var txtDeVersao = Path.Combine(pastaTemporaria, "versao.txt");
+          var versao = versaoDaCarga.Numero.ToString();
+          File.WriteAllText(txtDeVersao, versao);
+          caminhos.Add(txtDeVersao);
+
+          // Arquivo de informações da versão
+          var xmlDeVersao = Path.Combine(pastaTemporaria, "versao.xml");
+          var dadosDeVersao = versaoDaCarga.ToXmlString();
+          File.WriteAllText(xmlDeVersao, dadosDeVersao);
+          caminhos.Add(xmlDeVersao);
+
+          Audit.ReportSuccess(
+            "exportar-carga",
+            nameof(ExportacaoDeCarga),
+            $"Carga exportada para arquivos."
+          );
+
+          arquivosExportados = caminhos.ToArray();
+          return true;
+        }
+      }
+      catch (Exception ex)
+      {
+        Audit.ReportFault(
+          "exportar-carga",
+          nameof(ExportacaoDeCarga),
+          ex,
+          $"Falha exportando os arquivos de carga."
+        );
+        return Ret.Fail("Falha exportando os arquivos de carga.");
+      }
+    }
+
+    /// <summary>
+    /// Exporta os registros para arquivo CSV no formato suportado
+    /// pelo Postgres.
+    /// </summary>
+    /// <param name="registros">Os registros a serem exportados.</param>
+    /// <param name="arquivo">O arquivo CSV destino.</param>
+    private void SaveCsv(RecordResult registros, string arquivo)
+    {
+      using (var writer = new StreamWriter(arquivo))
+      {
+        while (registros.Read())
+        {
+          var quantidadeDeCampos = 0;
+
+          foreach (var field in registros.Fields)
+          {
+            var valor = registros.Current.GetValue(field);
+
+            if (++quantidadeDeCampos > 1)
+            {
+              writer.Write('|');
+            }
+
+            if (valor == null || valor == DBNull.Value)
+            {
+              writer.Write("\\N");
+            }
+            else if (valor is string || valor is DateTime)
+            {
+              writer.Write(JsonFormat.Escape(Change.To<string>(valor).Trim()));
+            }
+            else if (valor is bool bit)
+            {
+              writer.Write(bit ? "t" : "f");
+            }
+            else
+            {
+              writer.Write(Change.To<string>(valor).Trim());
+            }
+          }
+
+          writer.WriteLine();
+        }
+        writer.Flush();
+      }
+    }
+  }
+}

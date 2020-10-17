@@ -1,0 +1,64 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Processa.Sequel;
+
+namespace Mercadologic.Domain
+{
+  public static class SequelExtensions
+  {
+    [ThreadStatic]
+    private static volatile int readUncommitteScopeCount;
+
+    /// <summary>
+    /// Inicia um bloco para leitura de dados não commitados.
+    /// A leitura é restaurada para dados commitados assim que o bloco é
+    /// finalizado pela invocação de "Dispose()".
+    /// </summary>
+    /// <param name="scope">O escopo modificado.</param>
+    /// <returns>
+    /// O objeto IDisposable para ser fechado depois da leitura dos
+    /// dados não commitados.
+    /// </returns>
+    public static IDisposable CreateReadUncommittedScope(this SequelScope scope)
+    {
+      if (++readUncommitteScopeCount == 1)
+      {
+        "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED"
+          .AsSql(scope)
+          .Execute();
+      }
+
+      var dispose = new Disposable();
+      dispose.OnDispose += (o, e) =>
+        {
+          if (readUncommitteScopeCount-- == 1)
+          {
+            try
+            {
+              "SET TRANSACTION ISOLATION LEVEL READ COMMITTED"
+                .AsSql(scope)
+                .Execute();
+            }
+            catch
+            {
+              // Nada a fazer
+            }
+          }
+        };
+      return dispose;
+    }
+
+    class Disposable : IDisposable
+    {
+      public event EventHandler OnDispose;
+
+      public void Dispose()
+      {
+        OnDispose?.Invoke(this, EventArgs.Empty);
+      }
+    }
+  }
+}

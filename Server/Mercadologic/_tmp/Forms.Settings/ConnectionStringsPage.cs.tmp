@@ -1,0 +1,45 @@
+﻿using System;
+using System.Drawing;
+using System.Windows.Forms;
+using Processa.ConfigEditor;
+using Processa.Net.Settings.Forms;
+
+namespace Mercadologic.Forms.Settings
+{
+  public partial class ConnectionStringsPage : UserControl, ISettingsPage
+  {
+    public ConnectionStringsPage()
+    {
+      this.Text = "Strings de Conexão";
+      InitializeComponent();
+    }
+
+    public Control Control => this;
+
+    public INotifier Notifier { get; set; }
+
+    public bool Active { get; set; }
+
+    public bool HasUncommittedChanges { get; }
+
+    public void Commit()
+    {
+    }
+
+    public void Reset()
+    {
+    }
+
+    private void OpenConfigEditor()
+    {
+      var form = new ConfigEditorForm();
+      form.Size = new Size(650, 450);
+      form.ShowDialog(this);
+    }
+
+    private void btOpenConfigEditor_Click(object sender, EventArgs e)
+    {
+      OpenConfigEditor();
+    }
+  }
+}

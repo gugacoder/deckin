@@ -15,7 +15,7 @@ namespace Keep.Tools.Sequel.Runner
   {
     #region Read (Records)
 
-    public static async Task<IReaderAsync<Record>> ReadAsync(this SqlBuilder sqlBuilder,
+    public static async Task<RecordReaderAsync> ReadAsync(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
       CancellationToken stopToken = default,
       string comment = null,
@@ -32,9 +32,8 @@ namespace Keep.Tools.Sequel.Runner
 
         ctx = await ConnectionContext.CreateAsync(cn);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = await TransformReaderAsync<object>.CreateAsync(
+        var result = await RecordReaderAsync.CreateAsync(
           () => cm,
-          reader => new Record(reader),
           stopToken
         );
 

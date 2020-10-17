@@ -1,0 +1,47 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Processa.Host.Diagnostics;
+using Mercadologic.Carga.Business;
+using Processa.Net;
+using Processa.Web.Tasks;
+
+namespace Mercadologic.Carga.Tasks
+{
+  /// <summary>
+  /// Tarefa para remoção de cargas antigas publicadas no Drive.
+  /// </summary>
+  [AutoTask(InstanceCountEnum.OneInstancePerDomain)]
+  class LimpezaDeCargasPassadasTask : ITask
+  {
+    public void Run(Schedule schedule, CancellationToken cancellationToken)
+    {
+      try
+      {
+        if (cancellationToken.IsCancellationRequested)
+          return;
+
+        var publicacao = new PublicacaoDeCarga();
+        publicacao.RemoverPublicacoesAntigas();
+
+      }
+      catch (Exception ex)
+      {
+        ex.Trace();
+        Audit.ReportFault(
+            "limpeza-carga"
+          , nameof(LimpezaDeCargasPassadasTask)
+          , ex
+          , "Houve uma falha tentando limpar cargas antigas."
+          );
+      }
+      finally
+      {
+        schedule.Add(this, TimeSpan.FromMinutes(1));
+      }
+    }
+  }
+}

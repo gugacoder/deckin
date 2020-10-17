@@ -1,0 +1,238 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Xml.Linq;
+using Processa.Host.Diagnostics;
+using Mercadologic.Domain;
+using Mercadologic.Extensions;
+using Mercadologic.Utilities;
+using Processa.Net;
+using Processa.Net.Collections;
+
+namespace Mercadologic.Connectors
+{
+  /// <summary>
+  /// Utilitário de descoberta das configurações do Concentrador.
+  /// A descoberta é possível apenas quando o aplicativo é instalado
+  /// dentro da hierarquia de pastas do Concentrador ou no mesmo computador.
+  /// </summary>
+  class ConfiguracaoDoConcentrador
+  {
+    /// <summary>
+    /// Cache das strings de conexão já conhecidas.
+    /// </summary>
+    private readonly HashMap<string> cache;
+
+    private string[] pastasDeConfiguracao;
+
+    /// <summary>
+    /// Coleção dos caminhos de configuração possíveis para captura
+    /// dos parâmetros do Concentrador quando o aplicativo é instalado
+    /// dentro da sua hierarquia de pastas.
+    /// 
+    /// O conector pesquisa estas pastas em busca dos arquivos.
+    /// Se encontrado, estes parâmetros são usados, o que permite uma
+    /// integração mais suave entre o aplica e o Concentrador.
+    /// Se não encontrado, a conexão é obtida do arquivo de configuração
+    /// padrão do sistema, o Config.ConnectionStrings.xml.
+    /// </summary>
+    public ConfiguracaoDoConcentrador()
+    {
+      cache = new HashMap<string>();
+      pastasDeConfiguracao = EnumerarPastasDeConfiguracao().ToArray();
+    }
+
+    /// <summary>
+    /// Detecta e enumera as pastas de configuração possíveis, dentro
+    /// da hierarquia de pastas do Concentrador.
+    /// </summary>
+    /// <returns>As pastas de configuração possíveis</returns>
+    private IEnumerable<string> EnumerarPastasDeConfiguracao()
+    {
+      // Caminhos raiz possíveis. Por ordem de precedência.
+      var caminhosRaiz = new[]
+      {
+        // A própria pasta do aplicativo.
+        App.Path,
+        // A pasta do Concentrador quando o aplicativo está dentro de sua hierarquia.
+        Regex.Replace(App.Path, "Mercadologic.*", "", RegexOptions.IgnoreCase),
+        // A pasta padrão geralmente usada para instalação do Concentrador.
+        @"C:\Mercadologic"
+      };
+
+      // Caminhos relativos possíveis. Por ordem de precedência.
+      var caminhosBase = new[] {
+        @".",
+        @"..\Concentrador",
+        @"Concentrador",
+        @"Config"
+      };
+
+      var caminhos =
+        from @raiz in caminhosRaiz
+        from @base in caminhosBase
+        select Path.Combine(@raiz, @base);
+
+      foreach (var caminho in caminhos.Distinct())
+      {
+        var existe = Directory.Exists(caminho);
+        if (existe)
+        {
+          yield return caminho;
+        }
+      }
+    }
+
+    /// <summary>
+    /// Constrói o ConnectionString apropriado para conexão com a base de dados escolhida.
+    /// O algoritmo procura um arquivo de configuração do Hibernate nas pastas de
+    /// configuração do Concentrador e extrai seus parâmetros. Caso o arquivo de configuração
+    /// não exista, os parâmetros são lidos dos arquivos Config.ConnectionString.xml ou
+    /// AppSettings.xml.
+    /// </summary>
+    /// <param name="nomeDaConexao">
+    /// Nome da conexão.
+    /// Geralmente um dos valores: Director ou Mercadologic.
+    /// </param>
+    /// <returns>A instância do ConnectionString para conexão com a base de dados.</returns>
+    public string ObterStringDeConexao(string nomeDaConexao)
+    {
+      string stringDeConexao = null;
+
+      if (cache.ContainsKey(nomeDaConexao))
+      {
+        stringDeConexao = cache[nomeDaConexao];
+      }
+      else
+      {
+        var nomeDoArquivoDoHibernate = nomeDaConexao.EqualsIgnoreCase(Conexoes.Mercadologic)
+          ? "hibernate.cfg.xml"
+          : $"hibernate{nomeDaConexao}.cfg.xml";
+
+        var arquivoDoHibernate = (
+          from pasta in pastasDeConfiguracao
+          let arquivo = Path.Combine(pasta, nomeDoArquivoDoHibernate)
+          where File.Exists(arquivo)
+          select arquivo
+        ).FirstOrDefault();
+
+        if (arquivoDoHibernate != null)
+        {
+          try
+          {
+            stringDeConexao = ExtrairStringDeConexao(nomeDaConexao, arquivoDoHibernate);
+          }
+          catch (Exception ex)
+          {
+            ex.TraceWarning("As configurações de conexão detectadas do Concentrador não são válidas: " + arquivoDoHibernate);
+            Audit.ReportFault("connect", nameof(ConfiguracaoDoConcentrador), ex,
+                $"As configurações de conexão detectadas do Concentrador não são válidas."
+              , $"- arquivo: {arquivoDoHibernate}"
+            );
+          }
+        }
+
+        cache[nomeDaConexao] = stringDeConexao;
+      }
+      return stringDeConexao;
+    }
+
+    /// <summary>
+    /// Extrai os parâmetros do ConnectionString a partir do 
+    /// </summary>
+    /// <param name="nomeDaConexao"></param>
+    /// <param name="arquivoDoHibernate"></param>
+    /// <returns></returns>
+    private static string ExtrairStringDeConexao(string nomeDaConexao, string arquivoDoHibernate)
+    {
+      try
+      {
+        var isDirector = nomeDaConexao.EqualsIgnoreCase(Conexoes.Director);
+
+        var xml = XDocument.Load(arquivoDoHibernate);
+
+        var url = xml.XPath("//*[@name='hibernate.connection.url']").FirstOrDefault();
+        var usuario = xml.XPath("//*[@name='hibernate.connection.username']").FirstOrDefault();
+        var senha = xml.XPath("//*[@name='hibernate.connection.password']").FirstOrDefault();
+
+        senha = Crypto.DecryptPassword(senha ?? "");
+
+        string host = null;
+        string porta = null;
+        string catalogo = null;
+        string parametros = null;
+
+        // Exemplos de strings de conexão no arquivo do Hibernate:
+        //    jdbc:jtds:sqlserver://localhost:1433/DBMercadologic;instance=EXPRESS
+        //    jdbc:jtds:sqlserver://localhost/DBMercadologic
+        //    jdbc:postgresql://localhost:5432/DBMercadologic
+        //    jdbc:postgresql://localhost/DBMercadologic
+
+        var regex = new Regex(".*://([^/:]+)(?::([^/]+))?(?:/([^;]+))(?:;(.*))?");
+        var match = regex.Match(url);
+        if (!match.Success)
+          throw new Exception("Url de conexão não reconhecida: " + url);
+
+        host = match.Groups[1].Value;
+        porta = match.Groups[2].Value;
+        catalogo = match.Groups[3].Value;
+        parametros = match.Groups[4].Value;
+
+        // Determinando o nome da instância em caso de SQLServer
+        if (!string.IsNullOrWhiteSpace(parametros))
+        {
+          var tokens = parametros.Split(';');
+          var pares =
+            from token in tokens
+            let par = token.Split('=')
+            let chave = par.First().ToLower()
+            let valor = par.Skip(1).FirstOrDefault()
+            where valor != null
+            select new { chave, valor };
+
+          var nomeDaInstanciaDoServidor = (
+            from pair in pares
+            where pair.chave == "instance"
+            select pair.valor
+          ).FirstOrDefault();
+
+          if (nomeDaInstanciaDoServidor != null)
+          {
+            host = $@"{host}\{nomeDaInstanciaDoServidor}";
+          }
+        }
+
+        if (!string.IsNullOrWhiteSpace(porta))
+        {
+          if (isDirector)
+          {
+            host = $"{host},{porta}";
+          }
+          else
+          {
+            host = $"{host};port={porta}";
+          }
+        }
+
+        var stringDeConexao =
+            $"server={host};"
+          + $"database={catalogo};"
+          + $"user id={usuario};"
+          + $"password={senha};"
+          + $"timeout=60;"
+          + (isDirector ? $"Application Name={App.Name};" : "")
+          ;
+
+        return stringDeConexao;
+      }
+      catch (Exception ex)
+      {
+        throw new Exception("Não foi possível extrair informação do arquivo de configuração: " + arquivoDoHibernate, ex);
+      }
+    }
+  }
+}

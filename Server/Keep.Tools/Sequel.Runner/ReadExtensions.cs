@@ -11,6 +11,43 @@ namespace Keep.Tools.Sequel.Runner
 {
   public static class ReadExtensions
   {
+    #region Read (Records)
+
+    public static IReader<Record> Read(this SqlBuilder sqlBuilder,
+      DbConnection cn, DbTransaction tx = null,
+      string comment = null,
+      [CallerMemberName] string callerName = null,
+      [CallerFilePath] string callerFile = null,
+      [CallerLineNumber] int callerLine = 0)
+    {
+      ConnectionContext ctx = null;
+      try
+      {
+        var dialect = Dialects.GetDialect(cn);
+        var sql = sqlBuilder.Format(dialect,
+          comment, callerName, callerFile, callerLine);
+
+        ctx = ConnectionContext.Create(cn);
+        var cm = ctx.CreateCommand(sql, tx);
+        var result = new TransformReader<Record>(
+          () => cm,
+          reader => new Record(reader)
+        );
+
+        result.Disposed += (o, e) => cm.TryDispose();
+        result.Disposed += (o, e) => ctx.TryDispose();
+
+        return result;
+      }
+      catch
+      {
+        ctx?.TryDispose();
+        throw;
+      }
+    }
+
+    #endregion
+
     #region Read (Type)
 
     public static IReader<T> Read<T>(this SqlBuilder sqlBuilder,

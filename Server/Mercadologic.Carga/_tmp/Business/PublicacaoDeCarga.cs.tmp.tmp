@@ -1,0 +1,276 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Processa.Host.Diagnostics;
+using Processa.Host.Diagnostics.Types;
+using Mercadologic.Carga.Domain.Mlogic;
+using Mercadologic.Carga.Types;
+using Mercadologic.Drives;
+using Processa.Net;
+using Processa.Net.Collections;
+using Processa.Net.Extensions;
+using Processa.Net.Xml;
+using Processa.Web.Drive;
+
+namespace Mercadologic.Carga.Business
+{
+  class PublicacaoDeCarga
+  {
+    public Ret PublicarNoDrive(
+        string pastaTemporaria
+      , int codigoDaEmpresa
+      , Versao versaoDaCarga
+      , string[] arquivosExportados
+      , CancellationToken cancellationToken
+      )
+    {
+      try
+      {
+        Ret ret;
+
+        var drive = MlogicDrive.GetDrive();
+        var raizVirtual = $"/Empresas/{codigoDaEmpresa}/Pdvs/Cargas";
+        var pastaVirtual = $"{raizVirtual}/{versaoDaCarga.Numero}";
+
+        // Apagando o conteudo por garantia, caso a pasta ja exista por um motivo qualquer
+        drive.Delete(pastaVirtual, "*.*", userDomainOnly: true, recursive: false);
+
+        var contagem = 0;
+        var saidas =
+          from arquivo in arquivosExportados
+          let nome = Path.GetFileName(arquivo)
+          select new
+          {
+            indice = ++contagem,
+            arquivo = nome,
+            caminhoArquivo = arquivo,
+            caminhoVirtual = $"{pastaVirtual}/{nome}"
+          };
+
+        foreach (var saida in saidas)
+        {
+          if (cancellationToken.IsCancellationRequested)
+            return Ret.Create(HttpStatusCode.ServiceUnavailable);
+
+          var indice = saida.indice;
+          var arquivo = saida.arquivo;
+          var caminhoArquivo = saida.caminhoArquivo;
+          var caminhoVirtual = saida.caminhoVirtual;
+
+          Audit.ReportInfo(
+            "publicar-carga",
+            nameof(PublicacaoDeCarga),
+            $"Publicando: {arquivo}... (arquivo {indice}/{arquivosExportados.Length} passo 1/2)"
+          );
+
+          ret = drive.MoveToDrive(caminhoArquivo, caminhoVirtual, overwrite: true);
+          if (!ret.Ok)
+          {
+            Audit.ReportFault(
+              "publicar-carga",
+              nameof(PublicacaoDeCarga),
+              $"Não foi possível exportar o arquivo: {arquivo}"
+                .AsSingle()
+                .Append($"- arquivo: {caminhoArquivo}")
+                .Append($"- caminho: {caminhoVirtual}")
+                .Concat(ret.Fault?.Messages ?? new string[0])
+            );
+            return Ret.Fail(ret.Fault.Messages);
+          }
+
+          Audit.ReportInfo(
+            "publicar-carga",
+            nameof(PublicacaoDeCarga),
+            $"Publicado: {arquivo}... (arquivo {indice}/{arquivosExportados.Length} passo 2/2)"
+          );
+        }
+
+        var txtDeUltimaVersao = $"{raizVirtual}/ultima_versao.txt";
+        var dadosDeUltimaVersao = versaoDaCarga.Numero.ToString();
+        ret = drive.SaveText(txtDeUltimaVersao, dadosDeUltimaVersao, SaveMode.Overwrite);
+        if (!ret.Ok)
+        {
+          Audit.ReportFault(
+            "publicar-carga",
+            nameof(PublicacaoDeCarga),
+            "Não foi possível publicar o arquivo: ultima_versao.txt"
+              .AsSingle()
+              .Append($"- caminho: {txtDeUltimaVersao}")
+              .Concat(ret.Fault?.Messages ?? new string[0])
+          );
+          return Ret.Fail(ret.Fault.Messages);
+        }
+
+        return true;
+      }
+      catch (Exception ex)
+      {
+        Audit.ReportFault(
+          "publicar-carga",
+          nameof(PublicacaoDeCarga),
+          ex,
+          $"Falha publicando os arquivos de carga no Drive."
+        );
+        return Ret.Fail(ex, "Falha publicando os arquivos de carga no Drive.");
+      }
+    }
+
+    public Ret RemoverPublicacoesAntigas()
+    {
+      try
+      {
+        var drive = MlogicDrive.GetDrive();
+        var codigosDeEmpresa = ObterCodigos(drive, "/Empresas");
+        foreach (var codigoDeEmpresa in codigosDeEmpresa)
+        {
+          try
+          {
+            RemoverPublicacoesAntigasDaEmpresa(drive, codigoDeEmpresa);
+          }
+          catch (Exception ex)
+          {
+            Audit.ReportFault(
+              "limpeza-carga",
+              nameof(PublicacaoDeCarga),
+              ex,
+              $"Falhou a tentativa de apagar versões de carga antigas da empresa {codigoDeEmpresa}."
+            );
+            return Ret.Fail(ex, $"Falhou a tentativa de apagar versões de carga antigas da empresa {codigoDeEmpresa}.");
+          }
+        }
+        return true;
+      }
+      catch (Exception ex)
+      {
+        Audit.ReportFault(
+          "limpeza-carga",
+          nameof(PublicacaoDeCarga),
+          ex,
+          "Falhou a tentativa de apagar versões de carga antigas."
+        );
+        return Ret.Fail(ex, "Falhou a tentativa de apagar versões de carga antigas.");
+      }
+    }
+
+    private void RemoverPublicacoesAntigasDaEmpresa(IDrive drive, int codigoEmpresa)
+    {
+      var raizVirtual = $"/Empresas/{codigoEmpresa}/Pdvs/Cargas";
+
+      // Obtendo todas as versões exceto as X ultimas
+      var versoes = ObterVersoes(drive, raizVirtual);
+      versoes = versoes
+        .OrderBy(x => x.Data)
+        .ThenBy(x => x.Numero)
+        .Reverse()
+        .Skip(4)  // Quantidade de versões deixadas na pasta
+        .Reverse()
+        .ToArray();
+
+      // Apagando as versões
+      foreach (var versao in versoes)
+      {
+        var pastaVirtual = $"{raizVirtual}/{versao.Numero}";
+        var ret = drive.Delete(pastaVirtual, recursive: true);
+        if (ret.Ok)
+        {
+          Audit.ReportWarn(
+            "limpeza-carga",
+            nameof(PublicacaoDeCarga),
+            $"Carga antiga apagada.",
+            $"- versao: {versao}",
+            $"- caminho: {pastaVirtual}"
+          );
+        }
+        else
+        {
+          Audit.ReportFault(
+            "limpeza-carga",
+            nameof(PublicacaoDeCarga),
+            new[] {
+                $"Não foi possível apagar uma Carga antiga.",
+                $"- versao: {versao}",
+                $"- caminho: {pastaVirtual}"
+            }.Concat(ret.Fault.Messages)
+          );
+        }
+      }
+    }
+
+    /// <summary>
+    /// Varre as pastas filhas da pasta indicada procurando por aquelas pastas
+    /// que representam números inteiros e os destaca.
+    /// </summary>
+    /// <param name="drive">O Drive pesquisado.</param>
+    /// <param name="pastaVirtual">A pasta raiz para pesquisa.</param>
+    /// <returns>A lista dos códigos obtidos.</returns>
+    private ICollection<int> ObterCodigos(IDrive drive, string pastaVirtual)
+    {
+      var ret = drive.FindFolders(pastaVirtual, "*", recursive: false);
+      if (!ret.Ok)
+        return new int[0];
+
+      var pastas = ret.Value;
+      var codigos = (
+        from pasta in pastas
+        let nome = Path.GetFileName(pasta)
+        where Regex.IsMatch(nome, @"^\d+$")
+        let codigo = int.Parse(nome)
+        select codigo
+      ).ToArray();
+
+      return codigos;
+    }
+
+    /// <summary>
+    /// Pesquisa nas subpastas da pasta indicada por arquivos chamados "versao.xml"
+    /// que contém uma instância da classe <see cref="Versao"/> serializada para XML.
+    /// 
+    /// As instâncias de <see cref="Versao"/> obtidas representam as pastas de
+    /// carga já publicadas no Drive.
+    /// </summary>
+    /// <param name="drive">O Drive pesquisado.</param>
+    /// <param name="pastaVirtual">A pasta raiz para pesquisa.</param>
+    /// <returns>As versões encontradas.</returns>
+    private ICollection<Versao> ObterVersoes(IDrive drive, string pastaVirtual)
+    {
+      var ret = drive.FindFiles(pastaVirtual, "versao.xml", recursive: true);
+      if (!ret.Ok)
+        return new Versao[0];
+
+      var arquivos = ret.Value;
+
+      var versoes = new List<Versao>();
+      foreach (var arquivo in arquivos)
+      {
+        try
+        {
+          var ret2 = drive.ReadText(arquivo);
+          if (!ret2.Ok)
+            continue;
+
+          var xml = ret2.Value;
+          var versao = xml.ToXmlObject<Versao>();
+          versoes.Add(versao);
+        }
+        catch (Exception ex)
+        {
+          Audit.ReportWarn(
+              "limpeza-carga"
+            , nameof(PublicacaoDeCarga)
+            , ex
+            , $"O arquivo não corresponde a um XML de versão padrão."
+            , arquivo
+          );
+        }
+      }
+      return versoes;
+    }
+
+  }
+}

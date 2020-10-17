@@ -1,0 +1,46 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Keep.Tools.Sequel;
+using Keep.Tools.Sequel.Runner;
+
+namespace Mercadologic.Carga.Domain.Director.mlogic
+{
+  /// <summary>
+  /// Procedure de construção de uma carga publicada a partir
+  /// do agendamento de carga.
+  /// 
+  /// A procedure mlogic.sp_publicar_carga_agendada se encarrega de criar
+  /// os registros na tabela de carga publicada nos moldes dos
+  /// seus parâmetros de agendamentos.
+  /// </summary>
+  public static class sp_publicar_carga_agendada
+  {
+    /// <summary>
+    /// Executa a procedure de construção de uma carga publicada a partir
+    /// do agendamento de carga.
+    /// 
+    /// A procedure mlogic.sp_publicar_carga_agendada se encarrega de criar
+    /// os registros na tabela de carga publicada nos moldes dos
+    /// seus parâmetros de agendamentos.
+    /// </summary>
+    public static async Task ExecutarAsync(DbConnection cnDirector,
+      int[] idsDeCargasAgendadas, int? empresaId,
+      CancellationToken stopToken)
+    {
+      using var tx = cnDirector.BeginTransaction();
+
+      await
+        @"exec mlogic.sp_publicar_carga_agendada @idsDeCargasAgendadas, @empresaId"
+          .AsSql()
+          .Set(new { idsDeCargasAgendadas, empresaId })
+          .ExecuteAsync(cnDirector, tx, stopToken);
+
+      tx.Commit();
+    }
+  }
+}

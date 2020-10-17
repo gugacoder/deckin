@@ -1,0 +1,23 @@
+﻿using Processa.Net.Settings;
+
+public class MlogicSettings : Settings
+{
+  public static MlogicSettings Atual { get; } = new MlogicSettings();
+
+  public CargaSettings Carga { get; } = new CargaSettings();
+
+  public class CargaSettings : Settings
+  {
+    /// <summary>
+    /// Quando ativado o algoritmo de atualização de carga salva a pasta de
+    /// trabalho com todos os arquivos produzidos durante o processamento na
+    /// pasta temporária do Concentrador, em
+    /// "C:\Mercadologic\Concentrador\Temp\Cargas".
+    /// </summary>
+    public bool ManterHistorico
+    {
+      get => this.Get(defaultValue: false);
+      set => this.Set(value);
+    }
+  }
+}

@@ -1,0 +1,30 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Keep.Tools.Data;
+using Keep.Tools.Sequel;
+using Keep.Tools.Sequel.Runner;
+
+namespace Mercadologic.Carga.Domain.Mlogic
+{
+  partial class empresa
+  {
+    /// <summary>
+    /// Obtém a única empresa cadastrada na base do Mercadologic.
+    /// </summary>
+    public static async Task<empresa> ObterAsync(DbConnection cnMercadologic,
+      CancellationToken stopToken)
+    {
+      using var noLockScope = cnMercadologic.CreateReadUncommittedScope();
+      var empresa = await
+        "select id from empresa"
+        .AsSql()
+        .SelectOneAsync<empresa>(cnMercadologic, stopToken: stopToken);
+      return empresa;
+    }
+  }
+}

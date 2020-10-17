@@ -1,0 +1,279 @@
+﻿using AppSuite.Conectores;
+using Keep.Paper.Api;
+using Keep.Tools;
+using Keep.Tools.Collections;
+using Mercadologic.Carga.Domain;
+using Mercadologic.Carga.Domain.Director;
+using Mercadologic.Carga.Domain.Director.mlogic;
+using Mercadologic.Carga.Domain.Mlogic;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Mercadologic.Carga.Business
+{
+  class AgendaDeCarga
+  {
+    /// <summary>
+    /// Cache da data/hora de execução de uma carga agendada.
+    /// O serviço valida esta data/hora em intervalos regulares
+    /// e publica a carga agenda na tabela de carga publicada.
+    /// </summary>
+    private class CargaAgendada
+    {
+      /// <summary>
+      /// Informações sobre a próxima execução da agenda.
+      /// </summary>
+      public vw_proxima_carga_agendada ProximaExecucao { get; set; }
+
+      /// <summary>
+      /// Quando a data/hora da agenda expira a agenda deve ser publicada
+      /// na tabela de carga publicada. Quando esta publicação acontece
+      /// este atributo é marcado para provocar o recálculo da nova
+      /// data/hora de execução da agenda.
+      /// </summary>
+      public bool Publicado { get; set; }
+    }
+
+    private readonly List<CargaAgendada> CargasAgendadas;
+    private readonly DbDirector dbDirector;
+    private readonly IAudit<AgendaDeCarga> audit;
+
+    /// <summary>
+    /// Data/hora da próxima atualização da agenda prevista.
+    /// </summary>
+    private DateTime proximaAtualizacaoDaAgenda = DateTime.MinValue;
+
+    public AgendaDeCarga(DbDirector dbDirector, IAudit<AgendaDeCarga> audit)
+    {
+      this.CargasAgendadas = new List<CargaAgendada>();
+      this.dbDirector = dbDirector;
+      this.audit = audit;
+    }
+
+    /// <summary>
+    /// Método de publicação de cargas agendadas.
+    /// O método mantém um cache das próximas execuções de cargas agendadas
+    /// e realiza a publicação dessas agendas quando expiradas.
+    /// </summary>
+    /// <returns>Verdadeiro se bem sucedido; Falso caso contrário.</returns>
+    public async Task<Ret> ExecutarAgendaAsync(CancellationToken stopToken)
+    {
+      //
+      // A execução da agenda segue estes dois passos:
+      //
+      //  1.  Primeiro mantém-se um cache de todas as agendas e suas
+      //      datas de execução.
+      //      O método AtualizarAgenda() se encarrega de validar estas
+      //      datas de agendamento periodicamente.
+      //
+      //  2.  Depois publica-se as agendas.
+      //      As agendas servem como molde para criação dos registros
+      //      de publicação de carga.
+      //      São estes os registros de publicação processadas pelo
+      //      algoritmo do serviço para publicar os arquivos de carga
+      //      na URL do Drive.
+      //
+
+      using var cnDirector = await dbDirector.ConnectAsync();
+      using var cnMercadologic = await dbMercadologic.ConnectAsync();
+
+      await AtualizarAgendaAsync(cnDirector, stopToken);
+      var ret = await ExecutarAgendaExpiradaAsync(cnDirector, stopToken);
+      return ret;
+    }
+
+    /// <summary>
+    /// Recalcula a próxima data/hora de execução das agendas.
+    /// </summary>
+    /// <returns>Verdadeiro se bem sucedido; Falso caso contrário.</returns>
+    private async Task<Ret> AtualizarAgendaAsync(DbConnection cnDirector,
+      DbConnection cnMercadologic, CancellationToken stopToken)
+    {
+      try
+      {
+        var agendaDesatualizada = proximaAtualizacaoDaAgenda.CompareTo(DateTime.Now) <= 0;
+        if (!agendaDesatualizada)
+          return true;
+
+        if (stopToken.IsCancellationRequested)
+          return Ret.Create(HttpStatusCode.ServiceUnavailable);
+
+        // Obtendo as agendas cadastradas na base
+        //
+        var empresa = await Domain.Mlogic.empresa.ObterAsync(cnMercadologic, stopToken);
+        CargaAgendada[] agendasNaBase = await ObterProximasExecucoesAsync(
+          cnDirector, empresa.Id, stopToken);
+
+        // Destacando os itens correspondentes
+        var items = (
+          from agenda in CargasAgendadas
+          join agendaNaBase in agendasNaBase
+            on agenda.ProximaExecucao.DFid_carga_agendada
+               equals agendaNaBase.ProximaExecucao.DFid_carga_agendada
+          select new { agenda, agendaNaBase }
+        ).ToArray();
+
+        // Aplicando atualizações de agenda
+        //
+        var modificados = (
+          from item in items
+          let agenda = item.agenda
+          let agendaNaBase = item.agendaNaBase
+          where (agenda.Publicado
+              || agendaNaBase.ProximaExecucao.DFproxima_execucao
+                   .CompareTo(agenda.ProximaExecucao.DFproxima_execucao) < 0)
+          select item
+        ).ToArray();
+        if (modificados.Length > 0)
+        {
+          foreach (var item in modificados)
+          {
+            var agenda = item.agenda;
+            var agendaNaBase = item.agendaNaBase;
+
+            if (agenda.Publicado
+             || agenda.ProximaExecucao.DFproxima_execucao
+                  .CompareTo(agendaNaBase.ProximaExecucao.DFproxima_execucao) > 0
+               )
+            {
+              agenda.Publicado = false;
+              agenda.ProximaExecucao.DFproxima_execucao =
+                agendaNaBase.ProximaExecucao.DFproxima_execucao;
+            }
+          }
+
+          audit.LogWarning(To.Text(
+            "Agendas modificadas:",
+              modificados.Select(x => $"- {x.agenda.ProximaExecucao}")));
+        }
+
+        // Descartando agendas removidas da base
+        //
+        var descartes = CargasAgendadas.Except(items.Select(x => x.agenda)).ToArray();
+        if (descartes.Length > 0)
+        {
+          descartes.ForEach(x => CargasAgendadas.Remove(x));
+
+          audit.LogWarning(To.Text(
+            "Agendas descartadas:",
+              descartes.Select(x => $"- {x.ProximaExecucao}")));
+        }
+
+        // Incluindo novas agendas
+        //
+        var adicoes = agendasNaBase.Except(items.Select(x => x.agendaNaBase)).ToArray();
+        if (adicoes.Length > 0)
+        {
+          CargasAgendadas.AddRange(adicoes);
+
+          audit.LogWarning(To.Text(
+            "Novas agendas:",
+              adicoes.Select(x => $"- {x.ProximaExecucao}")));
+        }
+
+        return true;
+      }
+      catch (Exception ex)
+      {
+        audit.LogDanger(To.Text(
+          "Falha atualizando o agendamento de carga a partir da base do Director.",
+            ex));
+
+        return Ret.Fail("Falha atualizando o agendamento de carga a partir da base do Director.", ex);
+      }
+      finally
+      {
+        proximaAtualizacaoDaAgenda = DateTime.Now;
+      }
+    }
+
+    /// <summary>
+    /// Realiza a execução de uma agenda expirada, construindo uma instância
+    /// na carga na tabela de carga publicada.
+    /// </summary>
+    /// <returns>Verdadeiro se bem sucedido; Falso caso contrário.</returns>
+    private async Task<Ret> ExecutarAgendaExpiradaAsync(DbConnection cnDirector,
+      DbConnection cnMercadologic, CancellationToken stopToken)
+    {
+      try
+      {
+        var agendasExpiradas = (
+          from agenda in CargasAgendadas
+          where agenda.ProximaExecucao.DFproxima_execucao.CompareTo(DateTime.Now) <= 0
+            && !agenda.Publicado
+          select agenda
+        ).ToArray();
+
+        if (!agendasExpiradas.Any())
+          return true;
+
+        if (stopToken.IsCancellationRequested)
+          return Ret.Create(HttpStatusCode.ServiceUnavailable);
+
+        var empresa = await Domain.Mlogic.empresa.ObterAsync(cnMercadologic, stopToken);
+
+        var idsDeCargasAgendadas = agendasExpiradas
+          .Select(x => x.ProximaExecucao.DFid_carga_agendada)
+          .ToArray();
+        await sp_publicar_carga_agendada.ExecutarAsync(cnDirector,
+          idsDeCargasAgendadas, empresa.Id, stopToken);
+
+        // Marcado as agendas como publicadas;
+        agendasExpiradas.ForEach(x => x.Publicado = true);
+
+        // Forçando uma atualização da agenda para recálculo da próxima
+        // execução das agendas publicadas.
+        proximaAtualizacaoDaAgenda = DateTime.Now;
+
+        audit.LogInformation(To.Text(
+          "Agendas expiradas publicadas:",
+            agendasExpiradas.Select(x =>
+              $"- agenda {x.ProximaExecucao.DFid_carga_agendada} em {x.ProximaExecucao.DFproxima_execucao}"
+            )));
+
+        return true;
+      }
+      catch (Exception ex)
+      {
+        audit.LogDanger(To.Text(
+          "Falha atualizando o agendamento de carga a partir da base do Director.",
+            ex));
+        return Ret.Fail("Falha atualizando o agendamento de carga a partir da base do Director.", ex);
+      }
+    }
+
+    /// <summary>
+    /// Calcula a próxima data/hora de execução de cada agendamento de carga
+    /// cadastrado no Director.
+    /// </summary>
+    /// <param name="codigoEmpresa">
+    /// Código da empresa afetada pela carga.
+    /// Se omitido, as agendas de todas as empresas serão consideradas.
+    /// </param>
+    /// <returns>A coleção de datas da próxima execução de cada carga</returns>
+    private static async Task<CargaAgendada[]> ObterProximasExecucoesAsync(
+      DbConnection cnDirector, int? codigoEmpresa, CancellationToken stopToken)
+    {
+      try
+      {
+        var execucoes = await vw_proxima_carga_agendada.ObterProximasExecucoesAsync(
+          cnDirector, codigoEmpresa, stopToken);
+        var agendas = (
+          from execucao in execucoes
+          select new CargaAgendada { ProximaExecucao = execucao }
+        ).ToArray();
+        return agendas;
+      }
+      catch (Exception ex)
+      {
+        throw new Exception("Falhou a tentativa de calcular a próxima execução da agenda de carga na base de dados do Director.", ex);
+      }
+    }
+  }
+}

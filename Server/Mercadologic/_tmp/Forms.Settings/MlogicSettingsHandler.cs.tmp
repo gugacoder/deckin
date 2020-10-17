@@ -1,0 +1,20 @@
+﻿using Processa.Net.Settings;
+using Processa.Net.Settings.Forms;
+
+namespace Mercadologic.Forms.Settings
+{
+  public class MlogicSettingsHandler : ISettingsHandler
+  {
+    public string Text { get; }
+      = $"Configurações do Mlogic";
+
+    public Processa.Net.Settings.Settings Settings { get; }
+      = MlogicSettings.Atual;
+
+    public ISettingsPage[] Pages { get; }
+      = new ISettingsPage[] {
+        new ConfiguracoesGeraisPage(),
+        new ConnectionStringsPage()
+      };
+  }
+}

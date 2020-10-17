@@ -1,0 +1,43 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Mercadologic.Connectors;
+
+namespace Mercadologic.Domain
+{
+  /// <summary>
+  /// Nomes das conexões configuradas no arquivo de ConnectionStrings.
+  /// Use estes nomes para obter a string de conexão correspondente.
+  /// </summary>
+  public static class Conexoes
+  {
+    /// <summary>
+    /// Nome da string de conexão para a base DBdirector pertencente ao SQLServer.
+    /// </summary>
+    public static string Director { get; } = nameof(Director);
+
+    /// <summary>
+    /// Nome da string de conexão para a base do Concentrador do Mercadologic,
+    /// geralmente chamada de DBmercadologic, pertencente ao PostgreSQL.
+    /// </summary>
+    public static string Mercadologic { get; } = nameof(Mercadologic);
+
+    static Conexoes()
+    {
+      ImplantarSequelScope();
+    }
+
+    /// <summary>
+    /// Registra a instância de MercadologicConector como instância padrão
+    /// de conexão do Sequel, para estabelecimento de conexões personalizadas,
+    /// pela descoberta dos arquivos de configuração do Concentrador Java
+    /// ou pelo arquivo de configuração do serviço.
+    /// </summary>
+    public static void ImplantarSequelScope()
+    {
+      Sequel.SequelSettings.Connector = new MercadologicConector();
+    }
+  }
+}
