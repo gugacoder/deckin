@@ -7,7 +7,7 @@ namespace Mercadologic.Carga.Tipos
   {
     public int Empresa { get; set; }
 
-    public int Versao { get; set; }
+    public Versao Versao { get; set; }
 
     public string Rotulo { get; set; }
 

@@ -81,7 +81,7 @@ namespace Mercadologic.Carga.Business
       //
 
       using var cnDirector = await dbDirector.ConnectAsync();
-      using var cnMercadologic = await dbMercadologic.ConnectAsync();
+      using var cnConcentrador = await dbMercadologic.ConnectAsync();
 
       await AtualizarAgendaAsync(cnDirector, stopToken);
       var ret = await ExecutarAgendaExpiradaAsync(cnDirector, stopToken);
@@ -93,7 +93,7 @@ namespace Mercadologic.Carga.Business
     /// </summary>
     /// <returns>Verdadeiro se bem sucedido; Falso caso contrário.</returns>
     private async Task<Ret> AtualizarAgendaAsync(DbConnection cnDirector,
-      DbConnection cnMercadologic, CancellationToken stopToken)
+      DbConnection cnConcentrador, CancellationToken stopToken)
     {
       try
       {
@@ -106,7 +106,7 @@ namespace Mercadologic.Carga.Business
 
         // Obtendo as agendas cadastradas na base
         //
-        var empresa = await Domain.Mlogic.empresa.ObterAsync(cnMercadologic, stopToken);
+        var empresa = await Domain.Mlogic.empresa.ObterAsync(cnConcentrador, stopToken);
         CargaAgendada[] agendasNaBase = await ObterProximasExecucoesAsync(
           cnDirector, empresa.Id, stopToken);
 
@@ -199,7 +199,7 @@ namespace Mercadologic.Carga.Business
     /// </summary>
     /// <returns>Verdadeiro se bem sucedido; Falso caso contrário.</returns>
     private async Task<Ret> ExecutarAgendaExpiradaAsync(DbConnection cnDirector,
-      DbConnection cnMercadologic, CancellationToken stopToken)
+      DbConnection cnConcentrador, CancellationToken stopToken)
     {
       try
       {
@@ -216,7 +216,7 @@ namespace Mercadologic.Carga.Business
         if (stopToken.IsCancellationRequested)
           return Ret.Create(HttpStatusCode.ServiceUnavailable);
 
-        var empresa = await Domain.Mlogic.empresa.ObterAsync(cnMercadologic, stopToken);
+        var empresa = await Domain.Mlogic.empresa.ObterAsync(cnConcentrador, stopToken);
 
         var idsDeCargasAgendadas = agendasExpiradas
           .Select(x => x.ProximaExecucao.DFid_carga_agendada)

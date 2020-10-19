@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
 
-namespace Mercadologic.Carga.Domain.Mlogic
+namespace Mercadologic.Carga.Dominio.Concentrador
 {
   /// <summary>
   /// Procedure de preparação da base do Concentrador para receber a carga.

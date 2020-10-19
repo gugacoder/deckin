@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AppSuite.Conectores;
 using Keep.Paper;
 using Keep.Paper.Api;
+using Keep.Tools;
 using Keep.Tools.Collections;
 using Mercadologic.Carga.Dominio.Director.mlogic;
 using Mercadologic.Carga.Negocios.Algoritmos;
@@ -57,6 +58,9 @@ namespace Mercadologic.Carga.Negocios
         from carga in cargas
         join empresa in empresas
           on carga.DFcod_empresa equals empresa.DFcod_empresa
+        where empresa.DFdata_inativacao == null
+        where empresa.DFip_bloqueado_ate == null
+           || empresa.DFip_bloqueado_ate.Value.CompareTo(DateTime.Now) <= 0
         group carga by empresa into g
         select new
         {
@@ -64,45 +68,53 @@ namespace Mercadologic.Carga.Negocios
           cargas = g.ToArray()
         };
 
-      await Task.WhenAll(
-        cargasPorEmpresa
-          .Where(x =>
-            x.empresa.DFdata_inativacao == null &&
-            x.empresa.DFip_bloqueado_ate == null)
-          .Select(x =>
-            PublicarCargaDaEmpresaNoDriveAsync(
-              cnDirector, x.empresa, x.cargas, stopToken)));
+      var tarefas = cargasPorEmpresa.Select(x =>
+        PublicarCargaDaEmpresaNoDriveAsync(
+          cnDirector, x.empresa, x.cargas, stopToken));
+
+      await Task.WhenAll(tarefas);
     }
 
     private async Task PublicarCargaDaEmpresaNoDriveAsync(
       DbConnection cnDirector, TBempresa_mercadologic empresa,
       TBcarga_publicada[] cargas, CancellationToken stopToken)
     {
-      using var cnConcentrador = await dbConcentrador.ConnectAsync(stopToken,
-        server: empresa.DFservidor,
-        database: empresa.DFdatabase,
-        port: empresa.DFporta,
-        username: empresa.DFusuario,
-        password: empresa.DFsenha);
+      try
+      {
+        using var cnConcentrador = await dbConcentrador.ConnectAsync(stopToken,
+          server: empresa.DFservidor,
+          database: empresa.DFdatabase,
+          port: empresa.DFporta,
+          username: empresa.DFusuario,
+          password: empresa.DFsenha);
 
-      var cargasEmJson =
-        await ExportadorDeCargaDoDirectorParaJson.ExecutarAsync(
-          cnDirector, empresa, cargas, stopToken);
+        var cargasEmJson =
+          await ExportadorDeCargaDoDirectorParaJson.ExecutarAsync(
+            cnDirector, empresa, cargas, audit, stopToken);
 
-      var versao =
-        await ImportadorDeCargaJsonNoConcentrador.ExecutarAsync(
-          cnConcentrador, empresa, cargas, cargasEmJson, stopToken);
+        var versao =
+          await ImportadorDeCargaJsonNoConcentrador.ExecutarAsync(
+            cnConcentrador, empresa, cargas, cargasEmJson, audit, stopToken);
 
-      var pasta =
-        await ExportadorDeCargaDoConcentradorParaCsv.ExecutarAsync(
-          cnConcentrador, empresa, versao, stopToken);
+        var pasta =
+          await ExportadorDeCargaDoConcentradorParaCsv.ExecutarAsync(
+            cnConcentrador, empresa, versao, audit, stopToken);
 
-      var pacote =
-        await CompactadorDeArquivosDaCarga.ExecutarAsync(
-          cnConcentrador, empresa, versao, pasta, stopToken);
+        var pacote =
+          await CompactadorDeArquivosDaCarga.ExecutarAsync(
+            cnConcentrador, empresa, versao, pasta, audit, stopToken);
 
-      await PublicadorDeCargaNoDrive.ExecutarAsync(
-        cnDirector, cnConcentrador, empresa, pacote, stopToken);
+        await PublicadorDeCargaNoDrive.ExecutarAsync(
+          cnDirector, cnConcentrador, empresa, pacote, audit, stopToken);
+      }
+      catch (Exception ex)
+      {
+        audit.LogDanger(
+          To.Text(
+            $"Falhou a tentativa de publicar a carga da empresa: {empresa.DFcod_empresa}",
+            ex),
+          GetType());
+      }
     }
   }
 }

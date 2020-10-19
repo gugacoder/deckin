@@ -49,5 +49,11 @@
     <Folder Include="Negocios.Algoritmos\" />
     <Folder Include="Dominio.Director.mlogic\" />
     <Folder Include="Tarefas\" />
+    <Folder Include="Dominio.Concentrador\" />
+    <Folder Include="Tipos\" />
+    <Folder Include="_tmp\Types\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="_tmp\Types\Versao.cs.tmp" />
   </ItemGroup>
 </Project>

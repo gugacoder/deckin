@@ -9,17 +9,20 @@ using Keep.Tools.Data;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
 
-namespace Mercadologic.Carga.Domain.Mlogic
+namespace Mercadologic.Carga.Dominio.Concentrador
 {
-  partial class empresa
+  public partial class empresa
   {
+    public int cod_empresa { get; set; }
+
     /// <summary>
     /// Obtém a única empresa cadastrada na base do Mercadologic.
     /// </summary>
     public static async Task<empresa> ObterAsync(DbConnection cnConcentrador,
       CancellationToken stopToken)
     {
-      using var noLockScope = cnConcentrador.CreateReadUncommittedScope();
+      using var noLockScope = await cnConcentrador
+        .SetTransactionIsolationLevelReadUncommittedAsync(stopToken);
       var empresa = await
         "select id from empresa"
         .AsSql()

@@ -7,9 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
-using Mercadologic.Carga.Types;
+using Mercadologic.Carga.Tipos;
 
-namespace Mercadologic.Carga.Domain.Mlogic
+namespace Mercadologic.Carga.Dominio.Concentrador
 {
   /// <summary>
   /// Procedure de conclusão da carga automática.

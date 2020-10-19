@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Keep.Tools;
+using Keep.Tools.Sequel.Runner;
 
 namespace Keep.Tools.IO
 {
   public class JsonWriter : IDisposable
   {
-    private readonly StreamWriter writer;
+    private readonly TextWriter writer;
 
     private Stack<int> depth;
 
-    public JsonWriter(StreamWriter writer)
+    public JsonWriter(TextWriter writer)
     {
       this.writer = writer;
       this.depth = new Stack<int>();
@@ -20,6 +23,11 @@ namespace Keep.Tools.IO
 
     public void BeginObject()
     {
+      BeginObjectAsync().Await();
+    }
+
+    public async Task BeginObjectAsync(CancellationToken stopToken = default)
+    {
       var count = depth.Peek();
 
       depth.Pop();
@@ -29,18 +37,28 @@ namespace Keep.Tools.IO
 
       if (count > 0)
       {
-        writer.Write(",");
+        await writer.WriteAsync(",");
       }
-      writer.Write("{");
+      await writer.WriteAsync("{");
     }
 
     public void EndObject()
     {
+      EndObjectAsync().Await();
+    }
+
+    public async Task EndObjectAsync(CancellationToken stopToken = default)
+    {
       depth.Pop();
-      writer.Write("}");
+      await writer.WriteAsync("}");
     }
 
     public void BeginArray()
+    {
+      BeginArrayAsync().Await();
+    }
+
+    public async Task BeginArrayAsync(CancellationToken stopToken = default)
     {
       var count = depth.Peek();
 
@@ -51,18 +69,29 @@ namespace Keep.Tools.IO
 
       if (count > 0)
       {
-        writer.Write(",");
+        await writer.WriteAsync(",");
       }
-      writer.Write("[");
+      await writer.WriteAsync("[");
     }
 
     public void EndArray()
     {
-      depth.Pop();
-      writer.Write("]");
+      EndArrayAsync().Await();
     }
 
-    public void WriteProperty(string nome, object valor)
+    public async Task EndArrayAsync(CancellationToken stopToken = default)
+    {
+      depth.Pop();
+      await writer.WriteAsync("]");
+    }
+
+    public void WriteProperty(string name, object value)
+    {
+      WritePropertyAsync(name, value).Await();
+    }
+
+    public async Task WritePropertyAsync(string name, object value,
+      CancellationToken stopToken = default)
     {
       var count = depth.Peek();
 
@@ -71,38 +100,45 @@ namespace Keep.Tools.IO
 
       if (count > 0)
       {
-        writer.Write(",");
+        await writer.WriteAsync(",");
       }
 
-      if (valor == null || valor == DBNull.Value)
+      string text;
+
+      if (value == null || value == DBNull.Value)
       {
-        valor = "null";
+        text = "null";
       }
-      else if (valor is string || valor is DateTime)
+      else if (value is string || value is DateTime)
       {
-        var text = Change.To<string>(valor).Trim();
+        text = Change.To<string>(value).Trim();
         text = Json.Escape(text);
-        valor = $@"""{text}""";
+        text = $@"""{text}""";
       }
-      else if (valor is bool bit)
+      else if (value is bool bit)
       {
-        valor = bit ? "true" : "false";
+        text = bit ? "true" : "false";
       }
       else
       {
-        valor = Change.To<string>(valor).Trim();
+        text = Change.To<string>(value).Trim();
       }
 
-      writer.Write("\"");
-      writer.Write(nome);
-      writer.Write("\"");
-      writer.Write(":");
-      writer.Write(valor);
+      await writer.WriteAsync("\"");
+      await writer.WriteAsync(name);
+      await writer.WriteAsync("\"");
+      await writer.WriteAsync(":");
+      await writer.WriteAsync(text);
     }
 
     public void Flush()
     {
       writer.Flush();
+    }
+
+    public async Task FlushAsync(CancellationToken stopToken = default)
+    {
+      await writer.FlushAsync();
     }
 
     public void Dispose()

@@ -5,7 +5,17 @@ namespace Keep.Tools.IO
 {
   public static class FileSystem
   {
-    public static string GetTempFolder()
+    public static string CreateTempFile(string suggestedName = null)
+    {
+      if (string.IsNullOrEmpty(suggestedName))
+        return Path.GetTempFileName();
+
+      var folder = CreateTempFolder();
+      var filepath = Path.Combine(folder, suggestedName);
+      return filepath;
+    }
+
+    public static string CreateTempFolder()
     {
       var path = Path.GetTempPath();
       File.Delete(path);
