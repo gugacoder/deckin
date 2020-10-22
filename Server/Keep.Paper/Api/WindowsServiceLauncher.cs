@@ -7,10 +7,12 @@ using Keep.Tools.Reflection;
 
 namespace Keep.Paper.Api
 {
+  [Obsolete("Substituído pelo InnkeeperLauncher.")]
   public class WindowsServiceLauncher
   {
     private WindowsServiceProperties properties;
 
+    [Obsolete("Substituído pelo InnkeeperLauncher.")]
     public WindowsServiceLauncher Configure(Action<WindowsServiceProperties> options)
     {
       var properties = new WindowsServiceProperties();
@@ -31,6 +33,7 @@ namespace Keep.Paper.Api
       return this;
     }
 
+    [Obsolete("Substituído pelo InnkeeperLauncher.")]
     public void RunOrInstall(string[] args, Action<string[]> applicationLauncher)
     {
       var isInstalling = args.Any(arg => arg.StartsWith("/"));

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Dapper;
 using AppSuite.Conectores;
 using Keep.Paper.Api;
-using Keep.Paper.Domain;
+using Keep.Paper.Types;
 using Keep.Paper.Helpers;
 using Keep.Paper.Services;
 using Keep.Tools;
@@ -28,7 +28,7 @@ namespace AppSuite.Modelos
       this.jwtSettings = jwtSettings;
     }
 
-    public async Task<Ret<Identity>> AutenticarAsync(Credential credencial)
+    public async Task<Ret<UserIdentity>> AutenticarAsync(Credential credencial)
     {
       try
       {
@@ -83,8 +83,9 @@ namespace AppSuite.Modelos
           return Ret.Fail(HttpStatusCode.Unauthorized,
               "Usuário e senha não conferem.");
 
-        var identity = new IdentityBuilder()
-            .AddUsername(info.usuario)
+        var identity = new UserIdentityBuilder()
+            .AddUserName(info.usuario)
+            .AddUserDomain(credentials.Domain)
             .AddClaim(info)
             .AddClaimNameConvention(TextCase.Underscore, prefix: "_")
             .AddSigningCredentials(jwtSettings.SecurityKey)

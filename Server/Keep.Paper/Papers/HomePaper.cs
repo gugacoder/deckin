@@ -20,31 +20,31 @@ namespace Keep.Paper.Papers
       this.paperCatalog = paperCatalog;
     }
 
-    public Types.Action Index()
+    public Api.Types.Action Index()
     {
       var links =
         from type in paperCatalog.EnumerateTypes()
           // FIXME: Mantido para compatibilidade com PaperType. Enquanto transitamos para IActionInfo
         where type.Name.EqualsIgnoreCase("Home")
            || type.Name.EndsWith(".Home")
-        select new Types.Link
+        select new Api.Types.Link
         {
           Rel = Rel.Menu,
           Href = Href.To(HttpContext, type.Catalog, type.Name),
           Title = type.Catalog.ToProperCase()
         };
 
-      return new Types.Action
+      return new Api.Types.Action
       {
-        Meta = new Types.Data
+        Meta = new Api.Types.Data
         {
           { "menu", true }
         },
-        Props = new Types.CardView
+        Props = new Api.Types.CardView
         {
           Title = "Início"
         },
-        Links = new Types.LinkCollection(links)
+        Links = new Api.Types.LinkCollection(links)
       };
     }
   }

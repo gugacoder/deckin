@@ -13,16 +13,21 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Keep.Tools.Collections;
+using Keep.Paper.Security;
+using System.Linq;
+using System.Security.Claims;
 
 namespace Keep.Paper.Interceptors
 {
   public class AuthInterceptor : AbstractPaperInterceptor
   {
     private readonly IPaperCatalog paperCatalog;
+    private readonly IUserContext userContext;
 
-    public AuthInterceptor(IPaperCatalog paperCatalog)
+    public AuthInterceptor(IPaperCatalog paperCatalog, IUserContext userContext)
     {
       this.paperCatalog = paperCatalog;
+      this.userContext = userContext;
     }
 
     public override async Task<object> InterceptPaper(PaperInfo info, NextAsync nextAsync)
@@ -39,7 +44,7 @@ namespace Keep.Paper.Interceptors
 
       // Autenticação...
       //
-      object userToken = null;
+      string userToken = null;
       if (request.Headers.ContainsKey(HeaderNames.Authorization))
       {
         userToken = request.Headers[HeaderNames.Authorization].ToString();
@@ -48,7 +53,7 @@ namespace Keep.Paper.Interceptors
 
       // Autorização...
       //
-      if (userToken == null)
+      if (string.IsNullOrEmpty(userToken))
       {
         var allowAnonymous =
             paperType._HasAttribute<AllowAnonymousAttribute>() ||
@@ -68,6 +73,27 @@ namespace Keep.Paper.Interceptors
         }
       }
 
+      string user = null;
+      string domain = null;
+
+      var parts = userToken.Split('/');
+      if (parts.Length == 2)
+      {
+        domain = parts.First();
+        user = parts.Last();
+      }
+      else
+      {
+        user = userToken;
+      }
+
+      var identity = new ClaimsIdentity();
+      identity.AddClaim(new Claim(PaperClaimTypes.UserName, user));
+      identity.AddClaim(new Claim(PaperClaimTypes.UserDomain, domain));
+      var principal = new ClaimsPrincipal(identity);
+
+      userContext.User = principal;
+
       return await nextAsync(info);
     }
 
@@ -75,21 +101,21 @@ namespace Keep.Paper.Interceptors
     {
       var ctx = this.HttpContext;
 
-      return new Types.Status
+      return new Api.Types.Status
       {
-        Props = new Types.Status.Info
+        Props = new Api.Types.Status.Info
         {
           Fault = Fault.Unauthorized,
           Reason = "Acesso restrito a usuários autenticados."
         },
-        Links = new Types.LinkCollection
+        Links = new Api.Types.LinkCollection
         {
-          new Types.Link
+          new Api.Types.Link
           {
             Title = LoginPaper.Title,
             Rel = Rel.Forward,
             Href = Href.To(ctx, "Keep.Paper", "Login", "Index"),
-            Data = new Types.Payload<LoginPaper.Options>
+            Data = new Api.Types.Payload<LoginPaper.Options>
             {
               Form = new LoginPaper.Options
               {

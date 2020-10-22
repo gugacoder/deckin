@@ -13,9 +13,9 @@ namespace Keep.Paper.Controllers
   public class ApiController : Controller
   {
     [Route("{*path}")]
-    public IActionResult FallThrough() => Ok(new Types.Status
+    public IActionResult FallThrough() => base.Ok(new Api.Types.Status
     {
-      Props = new Types.Status.Info
+      Props = new Api.Types.Status.Info
       {
         Fault = Fault.NotFound,
         Reason = "The requested path does not match any valid resource."

@@ -16,7 +16,6 @@ namespace Keep.Paper.Api.Types
       set => this.Props = (Widget)value;
     }
 
-    [JsonProperty(Order = -1010)]
     public virtual new Widget Props { get; set; }
   }
 }

@@ -24,9 +24,9 @@ namespace Keep.Paper.Rendering
       var ret = await matcher.TryMatchParametersAsync(ctx, method);
 
       if (!ret.Ok)
-        return new Types.Status
+        return new Api.Types.Status
         {
-          Props = new Types.Status.Info
+          Props = new Api.Types.Status.Info
           {
             Fault = Fault.Failure,
             Reason = ret.Fault.Message

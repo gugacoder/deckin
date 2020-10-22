@@ -57,9 +57,9 @@ namespace Keep.Paper.Controllers
       }
       catch (Exception ex)
       {
-        return Ok(new Types.Status
+        return base.Ok(new Api.Types.Status
         {
-          Props = new Types.Status.Info
+          Props = new Api.Types.Status.Info
           {
             Fault = Fault.NotFound,
             Reason = "O servidor não foi capaz de processar a ação requisitada.",
@@ -97,9 +97,9 @@ namespace Keep.Paper.Controllers
       RenderingChain next)
     {
       return await Task.FromResult(
-        new Types.Status
+        new Api.Types.Status
         {
-          Props = new Types.Status.Info
+          Props = new Api.Types.Status.Info
           {
             Fault = Fault.NotFound,
             Reason = "A ação requisitada não existe.",

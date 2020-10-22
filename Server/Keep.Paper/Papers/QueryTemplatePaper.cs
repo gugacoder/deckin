@@ -35,10 +35,10 @@ namespace Keep.Paper.Papers
     }
 
     [Fallback]
-    public async Task<Types.Entity> ResolveAsync(KeyCollection keys,
+    public async Task<Api.Types.Entity> ResolveAsync(KeyCollection keys,
       object options, Pagination pagination)
     {
-      var target = new Types.Action();
+      var target = new Api.Types.Action();
 
       // FIXME: Deveria ser recebido via parametro
       var stopToken = default(CancellationToken);
@@ -59,7 +59,7 @@ namespace Keep.Paper.Papers
       return target;
     }
 
-    private void PreBuild(Types.Action target)
+    private void PreBuild(Api.Types.Action target)
     {
       // FIXME: Qual a forma correta de construir SELF considerando CATALOG, PAPER, ACTION e KEYS?
       //target.Links ??= new Types.LinkCollection();
@@ -70,22 +70,22 @@ namespace Keep.Paper.Papers
       //});
     }
 
-    private void PostBuild(Types.Action target)
+    private void PostBuild(Api.Types.Action target)
     {
-      var links = target.Links ??= new Types.LinkCollection();
+      var links = target.Links ??= new Api.Types.LinkCollection();
       baseTemplate?.Links.ForEach(template =>
       {
-        var link = new Types.Link()._CopyFrom(template);
+        var link = new Api.Types.Link()._CopyFrom(template);
         links.Add(link);
       });
     }
 
     #region Card Templating
 
-    private async Task BuildCardAsync(Types.Action target, CardAction template,
+    private async Task BuildCardAsync(Api.Types.Action target, CardAction template,
       KeyCollection keys, object options, CancellationToken stopToken)
     {
-      target.Props = new Types.CardView();
+      target.Props = new Api.Types.CardView();
 
       baseTemplate._CopyTo(target.Props);
       template._CopyTo(target.Props);
@@ -93,7 +93,7 @@ namespace Keep.Paper.Papers
       await FetchCardDataAsync(target, template, keys, options, stopToken);
     }
 
-    private async Task FetchCardDataAsync(Types.Action target, CardAction template,
+    private async Task FetchCardDataAsync(Api.Types.Action target, CardAction template,
       KeyCollection keys, object options, CancellationToken stopToken)
     {
       var connectionName = template.Connection ?? baseTemplate.Connection;
@@ -107,11 +107,11 @@ namespace Keep.Paper.Papers
         .Set(keys.SelectMany((key, i) => new[] { $"key{i}", key }).ToArray())
         .ReadAsync(cn, null, stopToken);
 
-      var ok = await reader.ReadAsync();
+      var ok = await reader.ReadAsync(stopToken);
 
       if (ok)
       {
-        target.Fields ??= new Types.FieldCollection();
+        target.Fields ??= new Api.Types.FieldCollection();
 
         var mappedFields = MapFields(reader.Current.GetFieldNames()).ToArray();
 
@@ -126,7 +126,7 @@ namespace Keep.Paper.Papers
 
     #region Grid Templating
 
-    private async Task BuildGridAsync(Types.Action target, GridAction template,
+    private async Task BuildGridAsync(Api.Types.Action target, GridAction template,
       KeyCollection keys, object options, Pagination pagination, CancellationToken stopToken)
     {
       var defaultOffset = template.Offset ?? 0;
@@ -136,7 +136,7 @@ namespace Keep.Paper.Papers
       if (pagination.Offset == null) pagination.Offset = defaultOffset;
       if (pagination.Limit == null) pagination.Limit = defaultLimit;
 
-      target.Props = new Types.GridView();
+      target.Props = new Api.Types.GridView();
 
       baseTemplate._CopyTo(target.Props);
       template._CopyTo(target.Props);
@@ -146,7 +146,7 @@ namespace Keep.Paper.Papers
       BuildGridFilter(target, template, options);
     }
 
-    private async Task FetchGridDataAsync(Types.Action target,
+    private async Task FetchGridDataAsync(Api.Types.Action target,
       GridAction template, KeyCollection keys, object options, Pagination pagination,
       CancellationToken stopToken)
     {
@@ -162,12 +162,12 @@ namespace Keep.Paper.Papers
         .Set(keys.SelectMany((key, i) => new[] { $"key{i}", key }).ToArray())
         .ReadAsync(cn, null, stopToken);
 
-      var ok = await reader.ReadAsync();
+      var ok = await reader.ReadAsync(stopToken);
 
       if (ok)
       {
-        target.Fields ??= new Types.FieldCollection();
-        target.Embedded ??= new Types.EntityCollection();
+        target.Fields ??= new Api.Types.FieldCollection();
+        target.Embedded ??= new Api.Types.EntityCollection();
 
         var mappedFields = MapFields(reader.Current.GetFieldNames()).ToArray();
 
@@ -175,7 +175,7 @@ namespace Keep.Paper.Papers
 
         while (ok)
         {
-          var entity = new Types.Entity();
+          var entity = new Api.Types.Entity();
 
           BuildDataEntityFromQuery(entity, reader, mappedFields);
 
@@ -183,33 +183,33 @@ namespace Keep.Paper.Papers
 
           target.Embedded.Add(entity);
 
-          ok = await reader.ReadAsync();
+          ok = await reader.ReadAsync(stopToken);
         }
       }
     }
 
-    private void BuildGridFilter(Types.Action target, GridAction template,
+    private void BuildGridFilter(Api.Types.Action target, GridAction template,
       object options)
     {
       var filter = template.Filter;
       if (filter == null)
         return;
 
-      var targetAction = new Types.Action
+      var targetAction = new Api.Types.Action
       {
-        Props = new Types.View
+        Props = new Api.Types.View
         {
           Name = "filter"
         },
-        Data = new Types.Data(options),
-        Fields = new Types.FieldCollection()
+        Data = new Api.Types.Data(options),
+        Fields = new Api.Types.FieldCollection()
       };
 
       foreach (var field in filter)
       {
-        var targetField = new Types.Field
+        var targetField = new Api.Types.Field
         {
-          Props = new Types.Widget(field.Type)
+          Props = new Api.Types.Widget(field.Type)
         };
 
         field._CopyTo(targetField.Props);
@@ -217,14 +217,14 @@ namespace Keep.Paper.Papers
         targetAction.Fields.Add(targetField);
       }
 
-      (target.Actions ??= new Types.ActionCollection()).Add(targetAction);
+      (target.Actions ??= new Api.Types.ActionCollection()).Add(targetAction);
     }
 
     #endregion
 
     #region Algorithms
 
-    private void BuildFieldsFromQuery(Types.FieldCollection fields,
+    private void BuildFieldsFromQuery(Api.Types.FieldCollection fields,
       IReaderAsync<Record> reader, HashMap<string>[] mappedFields)
     {
       var template = this.actionTemplate;
@@ -246,7 +246,7 @@ namespace Keep.Paper.Papers
       }
     }
 
-    private void BuildDataEntityFromQuery(Types.Entity entity,
+    private void BuildDataEntityFromQuery(Api.Types.Entity entity,
       IReaderAsync<Record> reader, HashMap<string>[] mappedFields)
     {
       var data = new HashMap();
@@ -258,22 +258,22 @@ namespace Keep.Paper.Papers
         data.Add(fieldName, fieldValue);
       }
 
-      entity.Data = new Types.Data(data);
+      entity.Data = new Api.Types.Data(data);
     }
 
     #endregion
 
     #region Métodos de apoio
 
-    private static Types.Field CreateField(Type fieldType)
+    private static Api.Types.Field CreateField(Type fieldType)
     {
       if (fieldType == typeof(int))
-        return new Types.Field { Props = new Types.IntWidget() };
+        return new Api.Types.Field { Props = new Api.Types.IntWidget() };
 
       if (fieldType == typeof(DateTime))
-        return new Types.Field { Props = new Types.DateWidget() };
+        return new Api.Types.Field { Props = new Api.Types.DateWidget() };
 
-      return new Types.Field { Props = new Types.TextWidget() };
+      return new Api.Types.Field { Props = new Api.Types.TextWidget() };
     }
 
     private static IEnumerable<HashMap<string>> MapFields(string[] fieldNames)

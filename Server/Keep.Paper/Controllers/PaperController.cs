@@ -27,8 +27,9 @@ using Newtonsoft.Json.Linq;
 
 namespace Keep.Paper.Controllers
 {
+  [Obsolete("Replaced by ActionController")]
   [Route(Href.ApiPrefix)]
-  [NewtonsoftJsonFormatter]
+  //[NewtonsoftJsonFormatter]
   public class PaperController : Controller
   {
     private delegate Task<object> ChainAsync(PaperInfo info, NextAsync nextAsync);
@@ -143,7 +144,7 @@ namespace Keep.Paper.Controllers
         //  status = customStatus;
         //}
 
-        if (result is Types.Entity entity)
+        if (result is Api.Types.Entity entity)
         {
           EnsureSelfLink(entity);
         }
@@ -157,7 +158,7 @@ namespace Keep.Paper.Controllers
       }
     }
 
-    private void EnsureSelfLink(Types.Entity result)
+    private void EnsureSelfLink(Api.Types.Entity result)
     {
       if (result.Links == null)
       {
@@ -173,7 +174,7 @@ namespace Keep.Paper.Controllers
       if (hasSelf)
         return;
 
-      links.Add(new Types.Link
+      links.Add(new Api.Types.Link
       {
         Rel = Rel.Self,
         Href = HttpContext.Request.Path
@@ -226,9 +227,9 @@ namespace Keep.Paper.Controllers
     {
       var message = messages.First();
       var detail = messages.Skip(1);
-      return Ok(new Types.Status
+      return base.Ok(new Api.Types.Status
       {
-        Props = new Types.Status.Info
+        Props = new Api.Types.Status.Info
         {
           Fault = fault,
           Reason = message,

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
+using Newtonsoft.Json;
 
 namespace Keep.Tools
 {
@@ -210,34 +210,29 @@ namespace Keep.Tools
       return text;
     }
 
-    public static string ToJson(object graph)
+    public static string ToJson(object @object, int indentation = default)
     {
-      return ToJson(graph, null);
-    }
-
-    public static string ToJson(object graph, Settings settings)
-    {
-      using (var memory = new MemoryStream())
+      var settings = new JsonSerializerSettings
       {
-        var serializer = new DataContractJsonSerializer(graph.GetType());
-        serializer.WriteObject(memory, graph);
-        using (var reader = new StreamReader(memory))
-        {
-          memory.Position = 0;
-          var json = reader.ReadToEnd();
+        DefaultValueHandling = DefaultValueHandling.Ignore,
+        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+      };
 
-          if (settings?.Indent == true)
-            json = Beautify(json, settings?.IndentationDepth ?? 2);
+      using var textWriter = new StringWriter();
+      using var jsonWriter = new JsonTextWriter(textWriter)
+      {
+        Formatting = indentation > 0 ? Formatting.Indented : Formatting.None,
+        Indentation = indentation
+      };
 
-          return json;
-        }
-      }
-    }
+      var serializer = JsonSerializer.Create(settings);
+      serializer.Serialize(jsonWriter, @object);
 
-    public class Settings
-    {
-      public bool Indent { get; set; }
-      public int IndentationDepth { get; set; } = 2;
+      jsonWriter.Flush();
+      textWriter.Flush();
+
+      var json = textWriter.ToString();
+      return json;
     }
   }
 }

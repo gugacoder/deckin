@@ -26,9 +26,9 @@ namespace Keep.Paper.Papers
     }
 
     [AllowAnonymous]
-    public Types.Entity Status(ClientInfo client)
+    public Api.Types.Entity Status(ClientInfo client)
     {
-      return new Types.Entity<SystemInfo>
+      return new Api.Types.Entity<SystemInfo>
       {
         Data = new SystemInfo
         {

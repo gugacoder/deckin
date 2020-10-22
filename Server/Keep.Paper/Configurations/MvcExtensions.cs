@@ -10,6 +10,7 @@ using Keep.Paper.Data;
 using Keep.Paper.Jobs;
 using Keep.Paper.Middlewares;
 using Keep.Paper.Papers;
+using Keep.Paper.Security;
 using Keep.Paper.Services;
 using Keep.Tools;
 using Keep.Tools.Reflection;
@@ -97,8 +98,10 @@ namespace Keep.Paper.Configurations
       var options = new ServiceOptions();
       builder?.Invoke(options);
 
-      services.AddSingleton<ICommonSettings, CommonSettings>();
+      services.AddHttpContextAccessor();
+      services.AddTransient<IUserContext, UserContext>();
 
+      services.AddSingleton<ICommonSettings, CommonSettings>();
       services.AddSingleton<IAuditSettings, AuditSettings>(provider =>
       {
         var settings = ActivatorUtilities.CreateInstance<AuditSettings>(provider);

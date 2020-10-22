@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Keep.Paper.Api;
-using Keep.Paper.Helpers;
 using Keep.Paper.Papers;
 using Keep.Paper.Templating;
 using Keep.Tools;

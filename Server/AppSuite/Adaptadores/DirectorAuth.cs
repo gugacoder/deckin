@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using AppSuite.Modelos;
 using Keep.Paper.Api;
-using Keep.Paper.Domain;
+using Keep.Paper.Types;
 using Keep.Tools;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,7 +18,7 @@ namespace AppSuite.Adaptadores
       this.serviceProvider = serviceProvider;
     }
 
-    public async Task<Ret<Identity>> AuthenticateAsync(Credential credential)
+    public async Task<Ret<UserIdentity>> AuthenticateAsync(Credential credential)
     {
       try
       {

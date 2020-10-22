@@ -36,5 +36,11 @@ namespace Keep.Tools.Collections
       : base(keyComparer, entries)
     {
     }
+
+    public void Add(object target)
+    {
+      var items = Reflection.ObjectExtensions._Map(target);
+      items.ForEach(x => Add(x.Key, Change.To<T>(x.Value)));
+    }
   }
 }

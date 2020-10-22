@@ -115,7 +115,7 @@ namespace Keep.Paper.Catalog
       return await Task.FromResult(actions);
     }
 
-    public Types.Entity Search(HashMap<string> criteria, Pagination page)
+    public Api.Types.Entity Search(HashMap<string> criteria, Pagination page)
     {
       criteria ??= new HashMap<string>();
 
@@ -148,67 +148,67 @@ namespace Keep.Paper.Catalog
         records = records.Take(page.Limit.Value);
       }
 
-      return new Types.Action
+      return new Api.Types.Action
       {
-        Props = new Types.GridView
+        Props = new Api.Types.GridView
         {
         },
-        Actions = new Types.ActionCollection
+        Actions = new Api.Types.ActionCollection
         {
-          new Types.Action
+          new Api.Types.Action
           {
-            Props = new Types.FormView
+            Props = new Api.Types.FormView
             {
               Name = "Filter"
             },
-            Fields = new Types.FieldCollection
+            Fields = new Api.Types.FieldCollection
             {
-              new Types.Field
+              new Api.Types.Field
               {
-                Props = new Types.IntWidget
+                Props = new Api.Types.IntWidget
                 {
                   Name = nameof(DB.Item.Id)
                 }
               },
-              new Types.Field
+              new Api.Types.Field
               {
-                Props = new Types.TextWidget
+                Props = new Api.Types.TextWidget
                 {
                   Name = nameof(DB.Item.Name)
                 }
               },
-              new Types.Field
+              new Api.Types.Field
               {
-                Props = new Types.DecimalWidget
+                Props = new Api.Types.DecimalWidget
                 {
                   Name = nameof(DB.Item.Price)
                 }
               }
             }
           },
-          new Types.Action
+          new Api.Types.Action
           {
-            Props = new Types.FormView
+            Props = new Api.Types.FormView
             {
               Name = nameof(DB.Create),
-              Target = new Types.Link
+              Target = new Api.Types.Link
               {
                  Rel = Rel.Action,
                  Href =  $"/Api/1/Papers/Items.Create"
               }
             },
-            Fields = new Types.FieldCollection
+            Fields = new Api.Types.FieldCollection
             {
-              new Types.Field
+              new Api.Types.Field
               {
-                Props = new Types.TextWidget
+                Props = new Api.Types.TextWidget
                 {
                   Name = nameof(DB.Item.Name)
                 }
               },
-              new Types.Field
+              new Api.Types.Field
               {
-                Props = new Types.DecimalWidget
+                Props = new Api.Types.DecimalWidget
                 {
                   Name = nameof(DB.Item.Price)
                 }
@@ -216,15 +216,15 @@ namespace Keep.Paper.Catalog
             }
           }
         },
-        Embedded = new Types.EntityCollection(records.Select(record =>
-          new Types.Action
+        Embedded = new Api.Types.EntityCollection(records.Select(record =>
+          new Api.Types.Action
           {
             Href = $"/Api/1/Papers/Items.Read({record.Id})"
           }
         )),
-        Links = new Types.LinkCollection
+        Links = new Api.Types.LinkCollection
         {
-          new Types.Link
+          new Api.Types.Link
           {
              Rel = Rel.Self,
              Href =  $"/Api/1/Papers/Items.Search"
@@ -233,55 +233,55 @@ namespace Keep.Paper.Catalog
       };
     }
 
-    public Types.Entity Read(int id)
+    public Api.Types.Entity Read(int id)
     {
       var record = DB.Read<DB.Item>(id);
       if (record == null)
         throw new HttpException(StatusCodes.Status404NotFound);
 
-      return new Types.Action
+      return new Api.Types.Action
       {
-        Data = new Types.Data(record),
-        Props = new Types.CardView
+        Data = new Api.Types.Data(record),
+        Props = new Api.Types.CardView
         {
         },
-        Actions = new Types.ActionCollection
+        Actions = new Api.Types.ActionCollection
         {
-          new Types.Action
+          new Api.Types.Action
           {
-            Props = new Types.FormView
+            Props = new Api.Types.FormView
             {
               Name = nameof(DB.Update),
-              Target = new Types.Link
+              Target = new Api.Types.Link
               {
                  Rel = Rel.Action,
                  Href =  $"/Api/1/Papers/Items.Update({id})"
               }
             },
-            Fields = new Types.FieldCollection
+            Fields = new Api.Types.FieldCollection
             {
-              new Types.Field
+              new Api.Types.Field
               {
-                Props = new Types.TextWidget
+                Props = new Api.Types.TextWidget
                 {
                   Name = nameof(DB.Item.Name)
                 }
               },
-              new Types.Field
+              new Api.Types.Field
               {
-                Props = new Types.DecimalWidget
+                Props = new Api.Types.DecimalWidget
                 {
                   Name = nameof(DB.Item.Price)
                 }
               }
             }
           },
-          new Types.Action
+          new Api.Types.Action
           {
-            Props = new Types.FormView
+            Props = new Api.Types.FormView
             {
               Name = nameof(DB.Delete),
-              Target = new Types.Link
+              Target = new Api.Types.Link
               {
                  Rel = Rel.Action,
                  Href =  $"/Api/1/Papers/Items.Delete({id})"
@@ -289,14 +289,14 @@ namespace Keep.Paper.Catalog
             }
           }
         },
-        Links = new Types.LinkCollection
+        Links = new Api.Types.LinkCollection
         {
-          new Types.Link
+          new Api.Types.Link
           {
              Rel = Rel.Self,
              Href =  $"/Api/1/Papers/Items.Read({id})"
           },
-          new Types.Link
+          new Api.Types.Link
           {
              Rel = Rel.Link,
              Href =  $"/Api/1/Papers/Items.Search"
@@ -305,19 +305,19 @@ namespace Keep.Paper.Catalog
       };
     }
 
-    public Types.Entity Create(DB.Item item)
+    public Api.Types.Entity Create(DB.Item item)
     {
       item = DB.Create(item);
       return Read(item.Id.Value);
     }
 
-    public Types.Entity Update(int id, DB.Item item)
+    public Api.Types.Entity Update(int id, DB.Item item)
     {
       item = DB.Update(item);
       return Read(item.Id.Value);
     }
 
-    public Types.Entity Delete(int id)
+    public Api.Types.Entity Delete(int id)
     {
       DB.Delete<DB.Item>(id);
       return Search(null, null);
@@ -326,14 +326,14 @@ namespace Keep.Paper.Catalog
     [Action("Echo(...)")]
     public async Task<object> EchoAsync(IPath path, IPathArgs args)
     {
-      return await Task.FromResult(new Types.Status
+      return await Task.FromResult(new Api.Types.Status
       {
-        Data = new Types.Data(new
+        Data = new Api.Types.Data(new
         {
           path,
           args
         }),
-        Props = new Types.Status.Info
+        Props = new Api.Types.Status.Info
         {
           Reason = "Ok",
           Severity = Severity.Success

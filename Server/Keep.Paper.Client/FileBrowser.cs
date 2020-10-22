@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Keep.Tools;
 using Keep.Tools.Collections;
+using Keep.Tools.IO;
 
 namespace Keep.Paper.Client
 {

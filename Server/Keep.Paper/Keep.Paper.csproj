@@ -28,8 +28,7 @@
     <Folder Include="Formatters\" />
     <Folder Include="Papers\" />
     <Folder Include="Services\" />
-    <Folder Include="Domain\" />
-    <Folder Include="Models\" />
+    <Folder Include="Types\" />
     <Folder Include="Data\" />
     <Folder Include="Jobs\" />
     <Folder Include="Interceptors\" />
@@ -37,5 +36,6 @@
     <Folder Include="Templating\" />
     <Folder Include="Catalog\" />
     <Folder Include="Rendering\" />
+    <Folder Include="Security\" />
   </ItemGroup>
 </Project>

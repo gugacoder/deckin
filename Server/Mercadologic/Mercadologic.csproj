@@ -45,5 +45,18 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Dominio.Director.dbo\" />
+    <Folder Include="Dominio.Concentrador\" />
+    <Folder Include="Dominio.Director.mlogic\" />
+    <Folder Include="Negocios\" />
+    <Folder Include="Negocios.Algoritmos.Carga\" />
+    <Folder Include="Tarefas\" />
+    <Folder Include="Tipos\" />
+    <Folder Include="_draft\" />
+    <Folder Include="_draft\Mercadologic\" />
+    <Folder Include="_draft\Mercadologic.Carga\" />
+    <Folder Include="_draft\Mercadologic.Replicacao\" />
+    <Folder Include="Negocios.Algoritmos.Replicacao\" />
+    <Folder Include="meta\" />
+    <Folder Include="Paginas\" />
   </ItemGroup>
 </Project>

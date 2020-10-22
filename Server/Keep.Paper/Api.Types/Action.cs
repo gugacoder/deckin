@@ -26,7 +26,6 @@ namespace Keep.Paper.Api.Types
       set => this.Props = (View)value;
     }
 
-    [JsonProperty(Order = -1010)]
     public virtual new View Props { get; set; }
   }
 }

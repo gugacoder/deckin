@@ -2,9 +2,7 @@
 using System.Threading.Tasks;
 using Keep.Paper.Api;
 using Types = Keep.Paper.Api.Types;
-using Keep.Paper.Domain;
-using Keep.Paper.Models;
-using Keep.Paper.Helpers;
+using Keep.Paper.Types;
 using Keep.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +11,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using Keep.Paper.Services;
 using Keep.Tools.Collections;
+using Keep.Paper.Security;
 
 namespace Keep.Paper.Papers
 {
@@ -37,7 +36,7 @@ namespace Keep.Paper.Papers
       this.paperCatalog = paperCatalog;
     }
 
-    public Types.Action<Types.LoginView> Index(Options options)
+    public Api.Types.Action<Api.Types.LoginView> Index(Options options)
     {
       if (options == null)
       {
@@ -49,32 +48,32 @@ namespace Keep.Paper.Papers
         options.RedirectTo = Href.To(HttpContext, "Keep.Paper", "Home", "Index");
       }
 
-      return new Types.Action<Types.LoginView>
+      return new Api.Types.Action<Api.Types.LoginView>
       {
-        Props = new Types.LoginView
+        Props = new Api.Types.LoginView
         {
           Title = Title,
           Extent = Extent.Small,
-          Target = new Types.Link
+          Target = new Api.Types.Link
           {
             Title = "Autenticar",
             Href = Href.To(HttpContext, GetType(), nameof(AuthenticateAsync))
           }
         },
-        Data = new Types.Data(options),
-        Fields = new Types.FieldCollection
+        Data = new Api.Types.Data(options),
+        Fields = new Api.Types.FieldCollection
         {
-          new Types.Field
+          new Api.Types.Field
           {
-            Props = new Types.UriWidget
+            Props = new Api.Types.UriWidget
             {
               Name = nameof(Options.RedirectTo).ToCamelCase(),
               Hidden = true
             }
           },
-          new Types.Field
+          new Api.Types.Field
           {
-            Props = new Types.TextWidget
+            Props = new Api.Types.TextWidget
             {
               Name = nameof(Credential.Username).ToCamelCase(),
               Title = "Usuário",
@@ -83,9 +82,9 @@ namespace Keep.Paper.Papers
               Icon = Icon.MdiAccount
             }
           },
-          new Types.Field
+          new Api.Types.Field
           {
-            Props = new Types.TextWidget
+            Props = new Api.Types.TextWidget
             {
               Name = nameof(Credential.Password).ToCamelCase(),
               Title = "Senha",
@@ -102,7 +101,7 @@ namespace Keep.Paper.Papers
     {
       try
       {
-        var model = ActivatorUtilities.CreateInstance<AuthModel>(serviceProvider);
+        var auth = ActivatorUtilities.CreateInstance<UserAuth>(serviceProvider);
 
         var redirectHref = options.RedirectTo;
         if (redirectHref == null)
@@ -110,29 +109,29 @@ namespace Keep.Paper.Papers
           redirectHref = Href.To(HttpContext, "Keep.Paper", "Home", "Index");
         }
 
-        var ret = await model.AuthenticateAsync(credential);
+        var ret = await auth.AuthenticateUserAsync(credential);
         if (!ret.Ok)
         {
-          return new Types.Status
+          return new Api.Types.Status
           {
-            Props = new Types.Status.Info
+            Props = new Api.Types.Status.Info
             {
               Fault = Fault.InvalidData
             },
-            Embedded = new Types.EntityCollection
+            Embedded = new Api.Types.EntityCollection
             {
-              new Types.Status
+              new Api.Types.Status
               {
-                Props = new Types.Status.Info
+                Props = new Api.Types.Status.Info
                 {
                   Field = nameof(credential.Username).ToCamelCase(),
                   Reason = ret.Fault.Message ?? "Usuário e senha não conferem.",
                   Severity = Severity.Warning
                 }
               },
-              new Types.Status
+              new Api.Types.Status
               {
-                Props = new Types.Status.Info
+                Props = new Api.Types.Status.Info
                 {
                   Field = nameof(credential.Password).ToCamelCase(),
                   Reason = ret.Fault.Message ?? "Usuário e senha não conferem.",
@@ -168,7 +167,7 @@ namespace Keep.Paper.Papers
       }
       catch (Exception ex)
       {
-        return Types.Status.FromException(ex);
+        return Api.Types.Status.FromException(ex);
       }
     }
   }

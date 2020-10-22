@@ -33,7 +33,7 @@
     <ProjectReference Include="..\AppSuite\AppSuite.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
-    <ProjectReference Include="..\Mercadologic.Replicacao\Mercadologic.Replicacao.csproj">
+    <ProjectReference Include="..\Mercadologic\Mercadologic.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>

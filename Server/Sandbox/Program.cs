@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using Keep.Paper.Api;
 using Keep.Paper.Api.Types;
-using Keep.Paper.Helpers;
 using Keep.Tools;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
@@ -18,26 +17,18 @@ using System.Collections;
 using System.Xml.Serialization;
 using Keep.Paper.Templating;
 using System.Diagnostics.CodeAnalysis;
-using Mercadologic.Carga.Utilitarios;
 using System.Data;
+using System.Text.RegularExpressions;
+using Keep.Paper.Security;
 
 namespace Mercadologic.Replicacao
 {
   public class Program
   {
-    [SuppressMessage("Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "<Pending>")]
     public static void Main(string[] args)
     {
       try
       {
-        var file = "/tmp/file.json";
-
-        SalvarJson(file);
-
-        Console.WriteLine(Files.LoadTextFile(file));
-
-        Console.WriteLine();
-        Console.WriteLine("DONE!!!");
       }
       catch (Exception ex)
       {
@@ -47,32 +38,59 @@ namespace Mercadologic.Replicacao
       }
     }
 
-    private static void SalvarJson(string arquivo)
-    {
-      using var stream = new StreamWriter(arquivo);
-      using var gravador = new GravadorDeJson(stream);
+    //public const string Anonymous = nameof(Anonymous);
 
-      gravador.BeginArray();
+    //private Regex regex = new Regex(@"^(?:([\w-._]+)?([/\\:]))?(.+)$");
+    //private char? separator;
 
-      gravador.BeginObject();
-      gravador.WriteProperty("id", -1);
-      gravador.WriteProperty("name", "Yesterday");
-      gravador.WriteProperty("date", DateTime.Today.AddDays(-1));
-      gravador.EndObject();
+    //public string User { get; private set; }
+    //public string Domain { get; private set; }
 
-      gravador.BeginObject();
-      gravador.WriteProperty("id", 0);
-      gravador.WriteProperty("name", "Today");
-      gravador.WriteProperty("date", DateTime.Today);
-      gravador.EndObject();
+    //public string GetLoginName() => $"{Domain}{separator}{User}";
 
-      gravador.BeginObject();
-      gravador.WriteProperty("id", 1);
-      gravador.WriteProperty("name", "Tomorrow");
-      gravador.WriteProperty("date", DateTime.Today.AddDays(1));
-      gravador.EndObject();
+    //public void SetLoginName(string user, string domain)
+    //{
+    //  this.User = user;
+    //  if (!string.IsNullOrEmpty(domain))
+    //  {
+    //    this.Domain = domain;
+    //    this.separator = '/';
+    //  }
+    //  else
+    //  {
+    //    this.Domain = null;
+    //    this.separator = null;
+    //  }
+    //}
 
-      gravador.EndArray();
-    }
+    //public void SetLoginName(string login)
+    //{
+    //  var match = regex.Match(login);
+    //  if (!match.Success)
+    //  {
+    //    this.User = login;
+    //    this.Domain = null;
+    //    this.separator = null;
+    //    return;
+    //  }
+
+    //  var domain = match.Groups[1].Value;
+    //  var separator = match.Groups[2].Value;
+    //  var username = match.Groups[3].Value;
+
+    //  if (string.IsNullOrEmpty(domain))
+    //  {
+    //    domain = null;
+    //    separator = null;
+    //  }
+    //  else if (separator != ":")
+    //  {
+    //    separator = "/";
+    //  }
+
+    //  this.User = username;
+    //  this.Domain = domain;
+    //  this.separator = separator?.First();
+    //}
   }
 }

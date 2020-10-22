@@ -60,6 +60,9 @@ namespace AppSuite
 
       app.UseRouting();
 
+      //app.UsePaperAuthentication();
+      //app.UsePaperAuthorization();
+
       app.UseEndpoints(endpoints =>
       {
         endpoints.MapControllers();
