@@ -28,6 +28,16 @@ namespace Keep.Paper.Security
       this.expiration = TimeSpan.FromMinutes(30);
     }
 
+    public void AddUserInfo(UserInfo userInfo)
+    {
+      AddName(userInfo.Name);
+      AddGivenName(userInfo.GivenName);
+      AddRole(userInfo.Role);
+      AddEmail(userInfo.Email);
+      AddDomain(userInfo.Domain);
+      AddClaims(userInfo.Claims);
+    }
+
     public void AddName(string value)
       => this.properties.Add(PaperClaimTypes.Name, value);
 

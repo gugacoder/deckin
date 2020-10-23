@@ -103,9 +103,21 @@ namespace Keep.Paper.Middlewares
     private async Task<bool> ValidateTokenAsync(
       HttpContext context, string credentials)
     {
+      var res = context.Response;
+
       var secretKey = serviceProvider.Instantiate<SecretKey>();
       var validation = new TokenValidation(secretKey);
-      var principal = validation.ValidateToken(credentials);
+      var ret = validation.ValidateToken(credentials);
+      if (!ret.Ok)
+      {
+        res.StatusCode = StatusCodes.Status401Unauthorized;
+        res.Headers[HeaderNames.WWWAuthenticate] =
+          $@"Basic realm=""{App.Title}"", charset=""ISO-8859-1""";
+        await res.SendJsonAsync(Status.FromRet(ret));
+        return false;
+      }
+
+      var principal = ret.Value;
 
       context.User = principal;
 
@@ -146,14 +158,9 @@ namespace Keep.Paper.Middlewares
       out JwtToken jwtToken)
     {
       var secretKey = serviceProvider.Instantiate<SecretKey>();
-      var builder = new TokenBuilder(secretKey);
 
-      builder.AddName(userInfo.Name);
-      builder.AddGivenName(userInfo.GivenName);
-      builder.AddRole(userInfo.Role);
-      builder.AddEmail(userInfo.Email);
-      builder.AddDomain(userInfo.Domain);
-      builder.AddClaims(userInfo.Claims);
+      var builder = new TokenBuilder(secretKey);
+      builder.AddUserInfo(userInfo);
 
       jwtToken = builder.BuildJwtToken();
 

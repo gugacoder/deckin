@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using Keep.Tools;
@@ -21,23 +22,30 @@ namespace Keep.Paper.Security
     public void AddParameters(TokenValidationParameters parameters)
       => this.parameters = parameters;
 
-    public ClaimsPrincipal ValidateToken(string token)
+    public Ret<ClaimsPrincipal> ValidateToken(string token)
     {
-      var validationParameters = parameters ?? new TokenValidationParameters
+      try
       {
-        ValidateLifetime = true,
-        ValidateAudience = false,
-        ValidateIssuer = false,
-        ValidIssuer = App.Title,
-        ValidAudience = App.Title,
-        IssuerSigningKey = new SymmetricSecurityKey(secretKey.Bits)
-      };
+        var validationParameters = parameters ?? new TokenValidationParameters
+        {
+          ValidateLifetime = true,
+          ValidateAudience = false,
+          ValidateIssuer = false,
+          ValidIssuer = App.Title,
+          ValidAudience = App.Title,
+          IssuerSigningKey = new SymmetricSecurityKey(secretKey.Bits)
+        };
 
-      var tokenHandler = new JwtSecurityTokenHandler();
-      var principal = tokenHandler.ValidateToken(token,
-        validationParameters, out SecurityToken validatedToken);
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var principal = tokenHandler.ValidateToken(token,
+          validationParameters, out SecurityToken validatedToken);
 
-      return principal;
+        return principal;
+      }
+      catch (Exception ex)
+      {
+        return Ret.Fail(HttpStatusCode.Unauthorized, ex);
+      }
     }
   }
 }
