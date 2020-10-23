@@ -30,7 +30,7 @@ namespace Keep.Paper.Middlewares
       {
         path = "/index.html";
       }
-      
+
       if (path.StartsWithSegments("/!"))
       {
         path = "/index.html";

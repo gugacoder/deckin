@@ -128,7 +128,7 @@ namespace Keep.Paper.Security
 
         if (!string.IsNullOrEmpty(domain))
         {
-          theIdentity.AddClaim(new Claim(PaperClaimTypes.UserDomain, domain));
+          theIdentity.AddClaim(new Claim(PaperClaimTypes.Domain, domain));
         }
 
         var handler = new JwtSecurityTokenHandler();

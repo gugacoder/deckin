@@ -101,7 +101,7 @@ namespace Keep.Paper.Papers
     {
       try
       {
-        var auth = ActivatorUtilities.CreateInstance<UserAuth>(serviceProvider);
+        var auth = ActivatorUtilities.CreateInstance<UserAuthenticator>(serviceProvider);
 
         var redirectHref = options.RedirectTo;
         if (redirectHref == null)

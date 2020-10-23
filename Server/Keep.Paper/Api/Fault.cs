@@ -11,7 +11,7 @@ namespace Keep.Paper.Api
     public const string Forbidden = nameof(Forbidden);
     public const string InvalidData = nameof(InvalidData);
 
-    public static string GetFaultForStatus(HttpStatusCode statusCode)
+    public static string FromStatus(HttpStatusCode statusCode)
       => GetFaultForStatus((int)statusCode);
 
     public static string GetFaultForStatus(int statusCode)

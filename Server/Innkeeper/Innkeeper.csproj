@@ -52,4 +52,7 @@
       <LogicalName>papers\Sample.paper.xml</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Sandbox\" />
+  </ItemGroup>
 </Project>

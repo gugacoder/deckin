@@ -9,13 +9,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Keep.Paper.Security
 {
-  public class UserAuth
+  public class UserAuthenticator
   {
     private readonly IServiceProvider serviceProvider;
     private readonly IAuthCatalog authenticators;
     private readonly IUserContext userContext;
 
-    public UserAuth(IServiceProvider serviceProvider,
+    public UserAuthenticator(IServiceProvider serviceProvider,
         IAuthCatalog authenticators, IUserContext userContext)
     {
       this.serviceProvider = serviceProvider;
@@ -23,7 +23,7 @@ namespace Keep.Paper.Security
       this.userContext = userContext;
     }
 
-    public async Task<Ret<UserIdentity>> AuthenticateUserAsync(Credential credential)
+    public async Task<Ret<UserInfo>> AuthenticateUserAsync(Credential credential)
     {
       try
       {

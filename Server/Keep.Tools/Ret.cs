@@ -93,7 +93,13 @@ namespace Keep.Tools
 
     public struct RetFault
     {
-      public string Message { get; set; }
+      private string _message;
+
+      public string Message
+      {
+        get => _message;
+        set => _message = !string.IsNullOrWhiteSpace(value) ? value.Trim() : null;
+      }
 
       public Exception Exception { get; set; }
 

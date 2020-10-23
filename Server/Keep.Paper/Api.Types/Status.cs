@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Xml.Serialization;
+using Keep.Paper.Types;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Newtonsoft.Json;
@@ -45,17 +46,37 @@ namespace Keep.Paper.Api.Types
 
     public virtual new Info Props { get; set; }
 
-    public static object FromException(Exception ex)
+    public static Status FromException(Exception ex)
       => new Status
       {
         Props = new Info
         {
-          Fault = Api.Fault.Failure,
+          Fault = Fault.Failure,
           Reason = ex.Message,
-          Detail = ex.GetCauseMessage()
+          Detail = ex.GetCauseMessage(),
+          Severity = Severity.Danger
 #if DEBUG
-            ,
+          ,
           StackTrace = ex.GetStackTrace()
+#endif
+        }
+      };
+
+    public static Status FromRet(Ret ret)
+      => new Status
+      {
+        Props = new Info
+        {
+          Fault = Fault.FromStatus(ret.Status.Code),
+          Reason = ret.Fault.Message ?? ret.Status.Code.ToString().ToProperCase(),
+          Severity = ret.Status.CodeValue >= 500 ? Severity.Danger
+                   : ret.Status.CodeValue >= 400 ? Severity.Warning
+                   : ret.Status.CodeValue >= 300 ? Severity.Default
+                   : ret.Status.CodeValue >= 200 ? Severity.Success
+                   : Severity.Information
+#if DEBUG
+          ,
+          StackTrace = ret.Fault.Exception?.GetStackTrace()
 #endif
         }
       };

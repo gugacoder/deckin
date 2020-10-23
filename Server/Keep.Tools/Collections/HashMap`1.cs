@@ -39,6 +39,9 @@ namespace Keep.Tools.Collections
 
     public void Add(object target)
     {
+      if (target == null)
+        return;
+
       var items = Reflection.ObjectExtensions._Map(target);
       items.ForEach(x => Add(x.Key, Change.To<T>(x.Value)));
     }

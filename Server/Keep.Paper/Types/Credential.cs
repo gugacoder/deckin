@@ -7,6 +7,17 @@ namespace Keep.Paper.Types
   {
     private string _username;
 
+    public Credential()
+    {
+    }
+
+    public Credential(string username, string password, string domain = null)
+    {
+      this.Domain = domain;
+      this.Username = username;
+      this.Password = password;
+    }
+
     public string Domain
     {
       get;

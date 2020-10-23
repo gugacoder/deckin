@@ -3,6 +3,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Keep.Paper.Types;
 using Microsoft.AspNetCore.Http;
 
 namespace Keep.Paper.Security
@@ -17,39 +18,55 @@ namespace Keep.Paper.Security
     {
       var anonymous = "Anonymous";
       var identity = new ClaimsIdentity(null, anonymous);
-      identity.AddClaim(new Claim(PaperClaimTypes.UserName, anonymous));
+      identity.AddClaim(new Claim(PaperClaimTypes.Name, anonymous));
       AnonymousUser = new ClaimsPrincipal(identity);
     }
 
     public UserContext(IHttpContextAccessor httpContextAccessor)
     {
       this.httpContextAccessor = httpContextAccessor;
+      this.User = new UserProxy(this);
     }
 
-    public ClaimsPrincipal User
+    public ClaimsPrincipal UserPrincipal
     {
       get => httpContextAccessor.HttpContext?.User ?? AnonymousUser;
       set => httpContextAccessor.HttpContext.User = value;
     }
 
-    public string Username
-    {
-      get
-      {
-        var claim = User.FindFirst(PaperClaimTypes.UserName)
-                 ?? User.FindFirst("nameid")
-                 ?? User.FindFirst("unique_name");
-        return claim?.Value;
-      }
-    }
+    public IUser User { get; }
 
-    public string Domain
+    private class UserProxy : IUser
     {
-      get
+      private readonly UserContext ctx;
+
+      public UserProxy(UserContext ctx)
       {
-        var claim = User.FindFirst(PaperClaimTypes.UserDomain)
-                 ?? User.FindFirst("domain");
-        return claim?.Value;
+        this.ctx = ctx;
+      }
+
+      private ClaimsPrincipal UserPrincipal => ctx.UserPrincipal;
+
+      public string Name =>
+        Find(PaperClaimTypes.Name, "nameid", "unique_name");
+
+      public string GivenName =>
+        Find(PaperClaimTypes.GivenName, "given_name", "unique_name", "nameid");
+
+      public string Role => Find(PaperClaimTypes.Role, "role");
+
+      public string Email => Find(PaperClaimTypes.Email, "email");
+
+      public string Domain => Find(PaperClaimTypes.Domain);
+
+      private string Find(params string[] claims)
+      {
+        return (
+          from claim in claims
+          let value = UserPrincipal.FindFirstValue(claim)
+          where value != null
+          select value
+          ).FirstOrDefault();
       }
     }
   }

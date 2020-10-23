@@ -1,10 +1,14 @@
-﻿using System;
+﻿#if DEBUG
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Keep.Paper.Security;
 using System.Security.Claims;
+using Keep.Paper.Controllers;
+using Keep.Paper.Api.Types;
+using Keep.Paper.Types;
 
-namespace Keep.Paper.Controllers
+namespace Innkeeper.Sandbox
 {
   [NewtonsoftJsonFormatter]
   public class SandboxController : Controller
@@ -19,11 +23,14 @@ namespace Keep.Paper.Controllers
     [Route("/SayHi")]
     public IActionResult SayHi()
     {
-      return Ok(new
+      return Ok(new Entity
       {
-        userContext.Username,
-        userContext.Domain
+        Data = new Data(new
+        {
+          userContext.User
+        })
       });
     }
   }
 }
+#endif

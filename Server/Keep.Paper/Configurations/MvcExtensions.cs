@@ -141,6 +141,16 @@ namespace Keep.Paper.Configurations
       app.UseMiddleware<StaticFilesMiddleware>(fileOptions);
     }
 
+    public static void UsePaperApi(this IApplicationBuilder app)
+    {
+      app.UseMiddleware<ApiMiddleware>();
+    }
+
+    public static void UsePaperAuthentication(this IApplicationBuilder app)
+    {
+      app.UseMiddleware<AuthenticationMiddleware>();
+    }
+
     public static void MapPapers(this IEndpointRouteBuilder endpoints,
         Action<MapPaperOptions> configuration = null)
     {

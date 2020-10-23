@@ -2,15 +2,13 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading;
+using Keep.Paper.Types;
 
 namespace Keep.Paper.Security
 {
   public interface IUserContext
   {
-    ClaimsPrincipal User { get; set; }
-
-    string Username { get; }
-
-    string Domain { get; }
+    ClaimsPrincipal UserPrincipal { get; set; }
+    IUser User { get; }
   }
 }

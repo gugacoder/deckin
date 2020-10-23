@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using Keep.Paper.Types;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
@@ -13,67 +14,83 @@ namespace Keep.Paper.Security
 {
   public class TokenBuilder
   {
-    private byte[] secretKey;
-    private HashMap<string> claims = new HashMap<string>();
-    private TimeSpan expiration = TimeSpan.FromMinutes(30);
+    private readonly SecretKey secretKey;
 
-    public void AddSecretKey(byte[] secretKey)
-      => this.secretKey = secretKey;
+    private HashMap<string> properties;
+    private Collection<Claim> claims;
+    private TimeSpan expiration;
 
-    public void AddSecretKey(string secretKey)
-      => this.secretKey = Encoding.UTF8.GetBytes(secretKey.PadRight(16, '.'));
+    public TokenBuilder(SecretKey secretKey)
+    {
+      this.secretKey = secretKey;
+      this.properties = new HashMap<string>();
+      this.claims = new Collection<Claim>();
+      this.expiration = TimeSpan.FromMinutes(30);
+    }
 
-    public void AddUserId(string userId)
-      => this.claims.Add(PaperClaimTypes.UserId, userId);
+    public void AddName(string value)
+      => this.properties.Add(PaperClaimTypes.Name, value);
 
-    public void AddUserName(string userName)
-      => this.claims.Add(PaperClaimTypes.UserName, userName);
+    public void AddGivenName(string value)
+      => this.properties.Add(PaperClaimTypes.GivenName, value);
 
-    public void AddUserDomain(string userDomain)
-      => this.claims.Add(PaperClaimTypes.UserDomain, userDomain);
+    public void AddRole(string value)
+      => this.properties.Add(PaperClaimTypes.Role, value);
 
-    public void AddExpiration(TimeSpan expiration)
-      => this.expiration = expiration;
+    public void AddEmail(string value)
+      => this.properties.Add(PaperClaimTypes.Email, value);
+
+    public void AddDomain(string value)
+      => this.properties.Add(PaperClaimTypes.Domain, value);
+
+    public void AddExpiration(TimeSpan value)
+      => this.expiration = value;
 
     public void AddClaim(string claim, string value)
-      => this.claims.Add(claim, value);
+      => this.properties.Add(claim, value);
+
+    public void AddClaim(Claim claim)
+    {
+      if (claim != null) this.claims.Add(claim);
+    }
 
     public void AddClaims(object claims)
-      => this.claims.Add(claims);
+    {
+      if (claims != null) this.properties.Add(claims);
+    }
 
-    public JwtSecurityToken BuildJwtToken()
+    public void AddClaims(IEnumerable<Claim> claims)
+    {
+      if (claims != null) this.claims.AddMany(claims);
+    }
+
+    public JwtToken BuildJwtToken()
     {
       var subject = new ClaimsIdentity();
+      subject.AddClaims(claims);
       subject.AddClaims(
-        from claim in claims
-        where !string.IsNullOrEmpty(claim.Value)
-        select new Claim(claim.Key, claim.Value));
+        from property in properties
+        where !string.IsNullOrEmpty(property.Value)
+        select new Claim(property.Key, property.Value));
 
-      var key = secretKey ?? Encoding.UTF8.GetBytes(App.Name.PadRight(16, '.'));
       var signingCredentials = new SigningCredentials(
-        new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
+        new SymmetricSecurityKey(secretKey.Bits),
+        SecurityAlgorithms.HmacSha256Signature);
 
       var descriptor = new SecurityTokenDescriptor
       {
+        Issuer = App.Title,
         Subject = subject,
+        Audience = App.Title,
         Expires = DateTime.UtcNow.Add(expiration),
         SigningCredentials = signingCredentials
       };
 
       var handler = new JwtSecurityTokenHandler();
       var token = handler.CreateJwtSecurityToken(descriptor);
-      return token;
-    }
+      var image = handler.WriteToken(token);
 
-    public string BuildJwtTokenAsString()
-    {
-      var token = BuildJwtToken();
-      return ToString(token);
-    }
-
-    public static string ToString(JwtSecurityToken token)
-    {
-      return new JwtSecurityTokenHandler().WriteToken(token);
+      return new JwtToken(token, image);
     }
   }
 }

@@ -88,11 +88,11 @@ namespace Keep.Paper.Interceptors
       }
 
       var identity = new ClaimsIdentity();
-      identity.AddClaim(new Claim(PaperClaimTypes.UserName, user));
-      identity.AddClaim(new Claim(PaperClaimTypes.UserDomain, domain));
+      identity.AddClaim(new Claim(PaperClaimTypes.Name, user));
+      identity.AddClaim(new Claim(PaperClaimTypes.Domain, domain));
       var principal = new ClaimsPrincipal(identity);
 
-      userContext.User = principal;
+      userContext.UserPrincipal = principal;
 
       return await nextAsync(info);
     }

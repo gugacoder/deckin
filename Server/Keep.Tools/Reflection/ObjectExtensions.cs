@@ -277,6 +277,17 @@ namespace Keep.Tools.Reflection
       return map;
     }
 
+    public static void _Map(this object target, Action<string, object> mapper)
+    {
+      var keys = _Keys(target);
+      var map = new HashMap();
+      foreach (var propertyName in keys)
+      {
+        var propertyValue = target._Get(propertyName);
+        mapper.Invoke(propertyName, propertyValue);
+      }
+    }
+
     public static void _Set(this object target, string key, object value)
     {
       var member = _Define(target, key);
@@ -389,6 +400,30 @@ namespace Keep.Tools.Reflection
         throw new FormatException(
           $"O resultado do método {method} não é compatível com o tipo esperado { typeof(TResult).FullName}: \"{value}\""
           , ex);
+      }
+    }
+
+    public static Ret<object> _TryCall(this object target, string method, params object[] args)
+    {
+      try
+      {
+        return _Call(target, method, args);
+      }
+      catch (Exception ex)
+      {
+        return ex;
+      }
+    }
+
+    public static Ret<TResult> _TryCall<TResult>(this object target, string method, params object[] args)
+    {
+      try
+      {
+        return _Call<TResult>(target, method, args);
+      }
+      catch (Exception ex)
+      {
+        return ex;
       }
     }
 
