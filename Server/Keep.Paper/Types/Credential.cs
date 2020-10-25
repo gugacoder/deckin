@@ -47,5 +47,10 @@ namespace Keep.Paper.Types
       get;
       set;
     }
+
+    public override string ToString()
+    {
+      return (Domain != null) ? $"{Domain}/{Username}" : Username;
+    }
   }
 }

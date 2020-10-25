@@ -47,6 +47,9 @@ namespace Keep.Paper.Security
 
       private ClaimsPrincipal UserPrincipal => ctx.UserPrincipal;
 
+      public string Provider =>
+        Find(PaperClaimTypes.Provider) ?? UserPrincipal.Identity.AuthenticationType;
+
       public string Name =>
         Find(PaperClaimTypes.Name, "nameid", "unique_name");
 

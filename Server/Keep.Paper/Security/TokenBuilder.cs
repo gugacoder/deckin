@@ -30,6 +30,7 @@ namespace Keep.Paper.Security
 
     public void AddUserInfo(UserInfo userInfo)
     {
+      AddProvider(userInfo.Provider);
       AddName(userInfo.Name);
       AddGivenName(userInfo.GivenName);
       AddRole(userInfo.Role);
@@ -37,6 +38,9 @@ namespace Keep.Paper.Security
       AddDomain(userInfo.Domain);
       AddClaims(userInfo.Claims);
     }
+
+    public void AddProvider(string value)
+      => this.properties.Add(PaperClaimTypes.Provider, value);
 
     public void AddName(string value)
       => this.properties.Add(PaperClaimTypes.Name, value);

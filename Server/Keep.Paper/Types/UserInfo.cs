@@ -12,5 +12,6 @@ namespace Keep.Paper.Types
     public string Email { get; set; }
     public string Domain { get; set; }
     public ICollection<Claim> Claims { get; set; }
+    public string Provider { get; set; }
   }
 }

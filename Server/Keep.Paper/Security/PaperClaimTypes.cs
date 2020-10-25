@@ -5,6 +5,7 @@ namespace Keep.Paper.Security
 {
   public static class PaperClaimTypes
   {
+    public const string Provider = "provider";
     public const string Name = ClaimTypes.Name;
     public const string GivenName = ClaimTypes.GivenName;
     public const string Role = ClaimTypes.Role;

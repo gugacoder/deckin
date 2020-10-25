@@ -6,6 +6,7 @@ namespace Keep.Paper.Types
 {
   public interface IUser
   {
+    string Provider { get; }
     string Name { get; }
     string GivenName { get; }
     string Role { get; }

@@ -9,6 +9,6 @@ namespace Keep.Paper.Api
 {
   public interface IAuth
   {
-    Task<Ret<UserInfo>> AuthenticateAsync(Credential credential);
+    Task<Ret<UserInfo>> AuthenticateAsync(Credential credential, ChainAsync chain);
   }
 }

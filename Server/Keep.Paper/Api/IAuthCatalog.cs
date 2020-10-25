@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+
 namespace Keep.Paper.Api
 {
   public interface IAuthCatalog
   {
-    Type FindAuthType(string domain);
+    ICollection<Type> FindAuthTypes(string domain);
   }
 }
