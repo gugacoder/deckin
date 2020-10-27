@@ -324,7 +324,7 @@ namespace Keep.Paper.Catalog
     }
 
     [Action("Echo(...)")]
-    public async Task<object> EchoAsync(IPath path, IPathArgs args)
+    public async Task<object> EchoAsync(IActionRef path, IActionRefArgs args)
     {
       return await Task.FromResult(new Api.Types.Status
       {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Keep.Paper.Api;
 using Keep.Paper.Catalog;
@@ -12,16 +13,22 @@ namespace Keep.Paper.Rendering
   public class MethodRenderer : IRenderer
   {
     private readonly MethodInfo method;
+    private readonly Func<IServiceProvider, object> typeFactory;
 
-    public MethodRenderer(MethodInfo method)
+    public MethodRenderer(MethodInfo method,
+      Func<IServiceProvider, object> typeFactory = null)
     {
       this.method = method;
+      this.typeFactory = typeFactory ??
+        new Func<IServiceProvider, object>(
+          provider => provider.Instantiate(method.DeclaringType));
     }
 
-    public async Task<object> RenderAsync(IRenderingContext ctx, RenderingChain next)
+    public async Task<object> RenderAsync(IRenderingContext ctx,
+      CancellationToken stopToken, RenderingChain next)
     {
       var matcher = new ParameterMatcher();
-      var ret = await matcher.TryMatchParametersAsync(ctx, method);
+      var ret = await matcher.TryMatchParametersAsync(ctx, method, stopToken);
 
       if (!ret.Ok)
         return new Api.Types.Status
@@ -40,7 +47,7 @@ namespace Keep.Paper.Rendering
       if (!method.IsStatic)
       {
         var type = method.DeclaringType;
-        host = ActivatorUtilities.CreateInstance(ctx.ServiceProvider, type);
+        host = typeFactory.Invoke(ctx.ServiceProvider);
       }
 
       var result = method.Invoke(host, args);

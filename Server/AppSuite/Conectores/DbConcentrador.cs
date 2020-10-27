@@ -20,7 +20,7 @@ namespace AppSuite.Conectores
     public DbConcentrador(IDbConnector dbConnector)
       : base("Concentrador", dbConnector)
     {
-      this.SetProvider(DataProviders.PostgreSQL);
+      this.SetProvider(DataProviders.PostgreSql);
       this.SetConnectionString("Server=;Database=DBMercadologic;User ID=postgres;Password=local;Timeout=60");
     }
   }

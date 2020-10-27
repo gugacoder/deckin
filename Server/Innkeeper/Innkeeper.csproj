@@ -32,27 +32,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Remove="appsettings.Development.json" />
-    <Content Remove="appsettings.json" />
-    <None Include="appsettings.Development.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="meta\papers\CadastroDeBasesDoMercadologic %28copy%29.xml">
-      <LogicalName>papers\CadastroDeBasesDoMercadologic.xml</LogicalName>
-    </EmbeddedResource>
-    <EmbeddedResource Update="meta\papers\Sample.module.xml">
-      <LogicalName>papers\Sample.paper.xml</LogicalName>
-    </EmbeddedResource>
-    <EmbeddedResource Update="meta\papers\Sample.paper-module.xml">
-      <LogicalName>papers\Sample.paper.xml</LogicalName>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Sandbox\" />
+    <EmbeddedResource Include="meta\papers\**" />
   </ItemGroup>
 </Project>

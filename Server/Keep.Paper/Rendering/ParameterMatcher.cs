@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Keep.Paper.Api;
 using Keep.Paper.Catalog;
@@ -17,7 +18,7 @@ namespace Keep.Paper.Rendering
   public class ParameterMatcher
   {
     public async Task<Ret<object[]>> TryMatchParametersAsync(
-      IRenderingContext context, MethodInfo method)
+      IRenderingContext context, MethodInfo method, CancellationToken stopToken)
     {
       try
       {
@@ -87,15 +88,15 @@ namespace Keep.Paper.Rendering
             continue;
           }
 
-          if (Is.OfType<IPathArgs>(parameterType))
+          if (Is.OfType<IActionRefArgs>(parameterType))
           {
             parameterValues.Add(context.ActionArgs);
             continue;
           }
 
-          if (Is.OfType<IPath>(parameterType))
+          if (Is.OfType<IActionRef>(parameterType))
           {
-            parameterValues.Add(context.Action.Path);
+            parameterValues.Add(context.Action.Ref);
             continue;
           }
 
@@ -114,6 +115,12 @@ namespace Keep.Paper.Rendering
           if (Is.OfType<Stream>(parameterType))
           {
             parameterValues.Add(body);
+            continue;
+          }
+
+          if (Is.OfType<CancellationToken>(parameterType))
+          {
+            parameterValues.Add(stopToken);
             continue;
           }
 

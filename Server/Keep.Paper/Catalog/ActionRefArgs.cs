@@ -3,7 +3,7 @@ using Keep.Tools.Collections;
 
 namespace Keep.Paper.Catalog
 {
-  internal class PathArgs : HashMap<string>, IPathArgs
+  internal class ActionRefArgs : HashMap<string>, IActionRefArgs
   {
   }
 }

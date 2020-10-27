@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Data.Common;
 using System.Linq;
-using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Keep.Paper.Api;
+using Keep.Paper.Catalog;
+using Keep.Paper.Data;
+using Keep.Paper.Papers;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
-using Keep.Tools.Xml;
+using Keep.Tools.Sequel;
+using Keep.Tools.Sequel.Runner;
 
 namespace Keep.Paper.Templating
 {
@@ -22,57 +25,61 @@ namespace Keep.Paper.Templating
       this.audit = audit;
     }
 
-    public async IAsyncEnumerable<Template> LoadTemplatesAsync()
+    public ICollection<IAction> LoadActions(Template template)
     {
-      var assemblies = (
-        from type in ExposedTypes.GetTypes()
-        select type.Assembly
-        ).Distinct();
-
-      var manifests =
-        from assembly in assemblies
-        from name in assembly.GetManifestResourceNames()
-        where name.EndsWith(".paper.xml")
-        select new { assembly, name };
-
-      foreach (var manifest in manifests)
+      var paperTemplate = template as PaperTemplate;
+      if (paperTemplate == null)
       {
-        var template = await ReadTemplateAsync(manifest.assembly, manifest.name);
-        if (template != null)
-        {
-          yield return template;
-        }
+        audit.LogWarning(
+          "Não existe um algoritmo de interpretação de templates do tipo: " +
+            template.GetType().FullName,
+          GetType());
+
+        return new IAction[0];
       }
+
+      return paperTemplate.Actions
+        .Select(actionTemplate => BuildAction(paperTemplate, actionTemplate))
+        .NotNull()
+        .ToArray();
     }
 
-    private async Task<Template> ReadTemplateAsync(Assembly assembly, string name)
+    private IAction BuildAction(PaperTemplate template, Action action)
     {
       try
       {
-        var parser = new TemplateParser();
+        if (string.IsNullOrWhiteSpace(action.Name))
+        {
+          audit.LogWarning(
+            $"Não é permitido a declaração de uma ação sem nome em um " +
+            $"template do Paper. {template.Name}",
+            GetType());
+          return null;
+        }
 
-        using var stream = assembly.GetManifestResourceStream(name);
-        using var reader = new StreamReader(stream);
+        var actionPattern = action.Name.Trim();
+        if (!string.IsNullOrWhiteSpace(template.Collection))
+        {
+          actionPattern = $"{template.Collection.Trim()}.{actionPattern}";
+        }
 
-        var text = await reader.ReadToEndAsync();
-        var xml = text.ToXElement();
+        Console.WriteLine($"Template: /Api/1/Papers/{actionPattern}");
 
-        var template = parser.ParseTemplate(xml);
+        var @ref = ActionRef.Parse(actionPattern);
+        var methodName = nameof(TemplatePaper.ResolveAsync);
+        var method = typeof(TemplatePaper).GetMethod(methodName);
+        var typeFactory = new Func<IServiceProvider, object>(provider =>
+          provider.Instantiate<TemplatePaper>(template, action));
 
-        template.AssemblyName = assembly.FullName.Split(',', ';').First();
-
-        return template;
+        return new MethodAction(@ref, method, typeFactory);
       }
       catch (Exception ex)
       {
         audit.LogDanger(
           To.Text(
-            "Falhou a tentativa de construir um Paper a partir de um manifesto. ",
-            $"Assembly: {assembly.FullName}; Manifesto: {name}",
-            ex
-          ),
-          GetType()
-        );
+            $"Falhou a tentativa de interpretar uma ação definida em um " +
+            $"template do Paper.",
+            ex), GetType());
         return null;
       }
     }

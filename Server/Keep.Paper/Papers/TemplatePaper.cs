@@ -15,43 +15,57 @@ using System.Linq;
 using Keep.Tools.Reflection;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Keep.Paper.Catalog;
+using System.Data.Common;
 
 namespace Keep.Paper.Papers
 {
-  public class QueryTemplatePaper : AbstractPaper
+  public class TemplatePaper : AbstractPaper
   {
-    private readonly IActionInfo info;
-    private readonly QueryTemplate baseTemplate;
-    private readonly Templating.Action actionTemplate;
     private readonly IDbConnector connector;
+    private readonly IAudit audit;
+    private readonly PaperTemplate paperTemplate;
+    private readonly Paper.Templating.Action actionTemplate;
 
-    public QueryTemplatePaper(IActionInfo info, Templating.Action action,
-      IDbConnector connector)
+    public TemplatePaper(IDbConnector connector, IAudit audit,
+      PaperTemplate paperTemplate, Paper.Templating.Action actionTemplate)
     {
-      this.info = info;
-      this.baseTemplate = action.Template as QueryTemplate;
-      this.actionTemplate = action;
       this.connector = connector;
+      this.audit = audit;
+      this.paperTemplate = paperTemplate;
+      this.actionTemplate = actionTemplate;
     }
 
     [Fallback]
-    public async Task<Api.Types.Entity> ResolveAsync(KeyCollection keys,
-      object options, Pagination pagination)
+    public async Task<Api.Types.Entity> ResolveAsync(
+      IAction action,
+      IActionRefArgs actionArgs,
+      object options,
+      Pagination pagination,
+      CancellationToken stopToken)
     {
       var target = new Api.Types.Action();
-
-      // FIXME: Deveria ser recebido via parametro
-      var stopToken = default(CancellationToken);
 
       PreBuild(target);
 
       if (actionTemplate is GridAction gridTemplate)
       {
-        await BuildGridAsync(target, gridTemplate, keys, options, pagination, stopToken);
+        await BuildGridAsync(
+          gridTemplate,
+          target,
+          actionArgs,
+          options,
+          pagination,
+          stopToken);
       }
-      else if (actionTemplate is CardAction cardAction)
+      else if (actionTemplate is CardAction cardTemplate)
       {
-        await BuildCardAsync(target, cardAction, keys, options, stopToken);
+        await BuildCardAsync(
+          cardTemplate,
+          target,
+          actionArgs,
+          options,
+          stopToken);
       }
 
       PostBuild(target);
@@ -72,39 +86,55 @@ namespace Keep.Paper.Papers
 
     private void PostBuild(Api.Types.Action target)
     {
-      var links = target.Links ??= new Api.Types.LinkCollection();
-      baseTemplate?.Links.ForEach(template =>
+      paperTemplate.Links?.ForEach(template =>
       {
         var link = new Api.Types.Link()._CopyFrom(template);
-        links.Add(link);
+        (target.Links ??= new Api.Types.LinkCollection()).Add(link);
       });
     }
 
     #region Card Templating
 
-    private async Task BuildCardAsync(Api.Types.Action target, CardAction template,
-      KeyCollection keys, object options, CancellationToken stopToken)
+    private async Task BuildCardAsync(
+      CardAction template,
+      Api.Types.Action target,
+      IActionRefArgs actionArgs,
+      object options,
+      CancellationToken stopToken)
     {
       target.Props = new Api.Types.CardView();
 
-      baseTemplate._CopyTo(target.Props);
+      paperTemplate._CopyTo(target.Props);
       template._CopyTo(target.Props);
 
-      await FetchCardDataAsync(target, template, keys, options, stopToken);
+      await FetchCardDataAsync(
+        template,
+        target,
+        actionArgs,
+        options,
+        stopToken);
     }
 
-    private async Task FetchCardDataAsync(Api.Types.Action target, CardAction template,
-      KeyCollection keys, object options, CancellationToken stopToken)
+    private async Task FetchCardDataAsync(
+      CardAction template,
+      Api.Types.Action target,
+      IActionRefArgs actionArgs,
+      object options,
+      CancellationToken stopToken)
     {
-      var connectionName = template.Connection ?? baseTemplate.Connection;
-      var sql = template.Query;
+      var query = template.Query;
 
-      using var cn = await connector.ConnectAsync(connectionName, stopToken);
+      var sql = query.Text;
+
+      using var cn = await ConnectAsync(query, stopToken);
+
       using var reader = await sql
         .AsSql()
         .Set(options)
-        .Set(new { key = keys.FirstOrDefault() })
-        .Set(keys.SelectMany((key, i) => new[] { $"key{i}", key }).ToArray())
+        .Set(new { key = actionArgs.FirstOrDefault() })
+        .Set(actionArgs.Values
+          .SelectMany((key, i) => new[] { $"key{i}", key })
+          .ToArray())
         .ReadAsync(cn, null, stopToken);
 
       var ok = await reader.ReadAsync(stopToken);
@@ -118,7 +148,7 @@ namespace Keep.Paper.Papers
         BuildFieldsFromQuery(target.Fields, reader, mappedFields);
         BuildDataEntityFromQuery(target, reader, mappedFields);
 
-        target.Data.SetType(template.EntityName);
+        target.Data.SetType(query.Name);
       }
     }
 
@@ -126,8 +156,13 @@ namespace Keep.Paper.Papers
 
     #region Grid Templating
 
-    private async Task BuildGridAsync(Api.Types.Action target, GridAction template,
-      KeyCollection keys, object options, Pagination pagination, CancellationToken stopToken)
+    private async Task BuildGridAsync(
+      GridAction template,
+      Api.Types.Action target,
+      IActionRefArgs actionArgs,
+      object options,
+      Pagination pagination,
+      CancellationToken stopToken)
     {
       var defaultOffset = template.Offset ?? 0;
       var defaultLimit = template.Limit ?? (int)PageLimit.UpTo50;
@@ -138,28 +173,46 @@ namespace Keep.Paper.Papers
 
       target.Props = new Api.Types.GridView();
 
-      baseTemplate._CopyTo(target.Props);
+      paperTemplate._CopyTo(target.Props);
       template._CopyTo(target.Props);
 
-      await FetchGridDataAsync(target, template, keys, options, pagination, stopToken);
+      await FetchGridDataAsync(
+        template,
+        target,
+        actionArgs,
+        options,
+        pagination,
+        stopToken);
 
-      BuildGridFilter(target, template, options);
+      BuildGridFilter(
+        template,
+        target,
+        options);
     }
 
-    private async Task FetchGridDataAsync(Api.Types.Action target,
-      GridAction template, KeyCollection keys, object options, Pagination pagination,
+    private async Task FetchGridDataAsync(
+      GridAction template,
+      Api.Types.Action target,
+      IActionRefArgs actionArgs,
+      object options,
+      Pagination pagination,
       CancellationToken stopToken)
     {
-      var connectionName = template.Connection ?? baseTemplate.Connection;
-      var sql = template.Query;
+      var query = template.Query;
 
-      using var cn = await connector.ConnectAsync(connectionName, stopToken);
+      var sql = query.Text;
+
+      using var cn = await ConnectAsync(query, stopToken);
+
       using var reader = await sql
         .AsSql()
         .Set(options)
         .Set(pagination)
-        .Set(new { key = keys.FirstOrDefault() })
-        .Set(keys.SelectMany((key, i) => new[] { $"key{i}", key }).ToArray())
+        .Set(new { key = actionArgs.FirstOrDefault() })
+        .Set(actionArgs.Values
+          .SelectMany((key, i) =>
+            new[] { $"key{i}", key }
+          ).ToArray())
         .ReadAsync(cn, null, stopToken);
 
       var ok = await reader.ReadAsync(stopToken);
@@ -179,7 +232,7 @@ namespace Keep.Paper.Papers
 
           BuildDataEntityFromQuery(entity, reader, mappedFields);
 
-          entity.Data.SetType(template.EntityName);
+          entity.Data.SetType(query.Name);
 
           target.Embedded.Add(entity);
 
@@ -188,7 +241,22 @@ namespace Keep.Paper.Papers
       }
     }
 
-    private void BuildGridFilter(Api.Types.Action target, GridAction template,
+    private async Task<DbConnection> ConnectAsync(Query query,
+      CancellationToken stopToken)
+    {
+      return await connector.ConnectAsync(
+        query.Connection ?? paperTemplate.DefaultConnection,
+        query.Server,
+        query.Database,
+        query.Port,
+        query.Username,
+        query.Password,
+        stopToken);
+    }
+
+    private void BuildGridFilter(
+      GridAction template,
+      Api.Types.Action target,
       object options)
     {
       var filter = template.Filter;
@@ -267,7 +335,9 @@ namespace Keep.Paper.Papers
 
     private static Api.Types.Field CreateField(Type fieldType)
     {
-      if (fieldType == typeof(int))
+      if (fieldType == typeof(int) ||
+          fieldType == typeof(long) ||
+          fieldType == typeof(short))
         return new Api.Types.Field { Props = new Api.Types.IntWidget() };
 
       if (fieldType == typeof(DateTime))

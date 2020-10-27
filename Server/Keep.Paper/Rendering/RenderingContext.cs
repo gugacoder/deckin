@@ -13,6 +13,6 @@ namespace Keep.Paper.Rendering
 
     public IAction Action { get; set; }
 
-    public IPathArgs ActionArgs { get; set; }
+    public IActionRefArgs ActionArgs { get; set; }
   }
 }

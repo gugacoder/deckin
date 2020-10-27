@@ -446,7 +446,7 @@ namespace Keep.Tools.Reflection
           continue;
 
         var targetMember = _Define(target, sourceProperty.Name);
-        if (targetMember == null)
+        if (targetMember == null || !target._CanWrite(targetMember.Name))
           continue;
 
         object sourceValue = sourceProperty.GetValue(source);

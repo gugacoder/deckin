@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Keep.Paper.Catalog;
 using Keep.Paper.Rendering;
+using System.Threading;
 
 namespace Keep.Paper.Controllers
 {
@@ -41,7 +42,8 @@ namespace Keep.Paper.Controllers
     }
 
     [Route("{path}")]
-    public async Task<IActionResult> InvokeActionAsync(string path)
+    public async Task<IActionResult> InvokeActionAsync(string path,
+      CancellationToken stopToken)
     {
       try
       {
@@ -51,12 +53,14 @@ namespace Keep.Paper.Controllers
           ServiceProvider = serviceProvider
         };
 
-        var result = await RenderActionAsync(path, ctx, RenderNotFoundAsync);
+        var result = await RenderActionAsync(path, ctx, stopToken,
+          RenderNotFoundAsync);
 
         return StatusCode(Response.StatusCode, result);
       }
       catch (Exception ex)
       {
+        ex.Debug();
         return base.Ok(new Api.Types.Status
         {
           Props = new Api.Types.Status.Info
@@ -74,22 +78,22 @@ namespace Keep.Paper.Controllers
     }
 
     private async Task<object> RenderActionAsync(string path,
-      IRenderingContext ctx, RenderingChain next)
+      IRenderingContext ctx, CancellationToken stopToken, RenderingChain next)
     {
       // Path tem a forma: Nome.Nome(Arg;Arg)
       //
-      var actionName = Catalog.Path.GetName(path);
-      var action = catalog.Get(actionName);
+      var actionName = Catalog.ActionRef.GetName(path);
+      var action = catalog.GetAction(actionName);
       if (action == null)
         return await next.Invoke(ctx, next);
 
       if (ctx is RenderingContext actionContext)
       {
         actionContext.Action = action;
-        actionContext.ActionArgs = action.Path.ParseArgs(path);
+        actionContext.ActionArgs = action.Ref.ParseArgs(path);
       }
 
-      var result = await action.RenderAsync(ctx, next);
+      var result = await action.RenderAsync(ctx, stopToken, next);
       return result;
     }
 

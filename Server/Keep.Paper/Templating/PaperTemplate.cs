@@ -18,14 +18,21 @@ using System.Xml.Serialization;
 
 namespace Keep.Paper.Templating
 {
-  public class QueryTemplate : Template
+  public class PaperTemplate : Template
   {
+    private DataCollection _localData;
     private ActionCollection _actions;
     private LinkCollection _links;
 
-    public string Connection { get; set; }
+    public string DefaultConnection { get; set; }
     //public string Entity { get; set; }
     //public Fields Fields { get; set; }
+
+    public DataCollection LocalData
+    {
+      get => _localData;
+      set => _localData = Adopt(value);
+    }
 
     public ActionCollection Actions
     {

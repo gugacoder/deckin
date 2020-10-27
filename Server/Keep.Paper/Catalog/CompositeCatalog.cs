@@ -7,10 +7,10 @@ namespace Keep.Paper.Catalog
 {
   public class CompositeCatalog : Collection<ICatalog>, ICompositeCatalog, ICatalog
   {
-    public IAction Get(string pathName)
+    public IAction GetAction(string pathName)
     {
       return this
-        .Select(catalog => catalog.Get(pathName))
+        .Select(catalog => catalog.GetAction(pathName))
         .FirstOrDefault(action => action != null);
     }
   }

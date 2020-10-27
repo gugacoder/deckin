@@ -3,6 +3,8 @@ namespace Keep.Paper.Api
 {
   public static class FieldDesign
   {
+    public const string Bit = "bit";
+
     public const string Int = "number";
 
     public const string Decimal = "decimal";

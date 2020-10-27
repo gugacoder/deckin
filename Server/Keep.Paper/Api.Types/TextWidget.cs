@@ -18,6 +18,7 @@ namespace Keep.Paper.Api.Types
         if (AutoComplete?.ContainsAnyIgnoreCase("Password") == true) return true;
         return null;
       }
+      set => _password = value;
     }
 
     [JsonProperty(Order = 30)]

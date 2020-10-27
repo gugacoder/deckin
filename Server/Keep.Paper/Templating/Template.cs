@@ -27,12 +27,47 @@ namespace Keep.Paper.Templating
   [XmlInclude(typeof(LinkFrom))]
   public class Template : Node
   {
-    internal string AssemblyName { get; set; }
+    volatile private static int randomNameCountGenerator = 0;
+    private int randomNameCount;
 
-    public string Catalog { get; set; }
+    private string _name;
+    private string _assemblyName;
+    private string _manifestName;
+
+    internal string AssemblyName
+    {
+      get => _assemblyName;
+      set
+      {
+        _assemblyName = value;
+        _name = null;
+      }
+    }
+
+    internal string ManifestName
+    {
+      get => _manifestName;
+      set
+      {
+        _manifestName = value;
+        _name = null;
+      }
+    }
+
+    public string Name
+    {
+      get => _name ??= $"{AssemblyName}.{ManifestName ?? MakeRandonName()}";
+      set => _name = value;
+    }
 
     public string Collection { get; set; }
 
     public bool Disabled { get; set; }
+
+    private string MakeRandonName()
+    {
+      this.randomNameCount = ++randomNameCountGenerator;
+      return $"Template-{++randomNameCount}";
+    }
   }
 }

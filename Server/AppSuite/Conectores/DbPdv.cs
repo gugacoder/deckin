@@ -20,7 +20,7 @@ namespace AppSuite.Conectores
     public DbPdv(IDbConnector dbConnector)
       : base("Pdv", dbConnector)
     {
-      this.SetProvider(DataProviders.PostgreSQL);
+      this.SetProvider(DataProviders.PostgreSql);
       this.SetConnectionString("Server=;Database=DBPDV;User ID=postgres;Password=local;Timeout=60");
     }
   }

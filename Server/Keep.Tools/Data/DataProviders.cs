@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.Common;
 using System.Data.SqlClient;
+using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
 
 namespace Keep.Tools.Data
@@ -8,40 +9,40 @@ namespace Keep.Tools.Data
   public static class DataProviders
   {
     public const string SqlServer = "System.Data.SqlClient";
-    public const string PostgreSQL = "Npgsql";
+    public const string Sqlite = "System.Data.SQLite";
+    public const string PostgreSql = "Npgsql";
+
+    // Mapeamento de Nome-Do-Driver para Nome-Da-Classe-DbFactory correspondente.
+    private static readonly HashMap<string> providers = new HashMap<string>
+    {
+      { SqlServer, typeof(SqlClientFactory).FullName },
+      { Sqlite, "Microsoft.Data.Sqlite.SqliteFactory, Microsoft.Data.Sqlite" },
+      { PostgreSql, "Npgsql.NpgsqlFactory, Npgsql" }
+
+      // Outros DRIVERs disponiveis no futuro:
+      // MySql.Data.MySqlClient
+      // System.Data.SqlServerCe.3.5
+      // System.Data.SqlServerCe.4.0
+      // FirebirdSql.Data.FirebirdClient
+      // OleDb
+    };
 
     public static DbProviderFactory CreateProviderFactory(string provider)
     {
-      switch (provider)
-      {
-        case SqlServer:
-          return SqlClientFactory.Instance;
+      var typeName = providers[provider];
+      if (typeName == null)
+        throw new NotSupportedException(
+          $"Não há suporte para a base de dados. " +
+          $"O driver `{provider}` não está presente.");
 
-        case PostgreSQL:
-          {
-            var type = Type.GetType("Npgsql.NpgsqlFactory, Npgsql");
-            if (type == null)
-              throw new NotSupportedException(
-                $"Não há suporte para base de dados PostgreSQL. " +
-                $"O driver `{provider}` não está presente.");
+      var type = Type.GetType(typeName);
+      if (type == null)
+        throw new NotSupportedException(
+          $"Não há suporte para a base de dados. " +
+          $"O driver `{provider}` não está presente.");
 
-            var instance = type._Get<DbProviderFactory>("Instance");
-            return instance;
-          }
-
-        // Outros ainda não suportados:
-        case "MySql.Data.MySqlClient":
-        case "System.Data.SQLite":
-        case "System.Data.SqlServerCe.3.5":
-        case "System.Data.SqlServerCe.4.0":
-        case "FirebirdSql.Data.FirebirdClient":
-        case "OleDb":
-
-        default:
-          throw new NotSupportedException(
-            $"Provedor de base de dados não suportado: {provider}");
-      }
+      var factory = type._Get<DbProviderFactory>("Instance");
+      return factory;
     }
-
   }
 }

@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<PaperTemplate
+  Collection="Sample">
+  <LocalData>
+    <CsvData
+      Name="User"
+      HasHeaders="true">
+      <Fields>
+        <IntField
+          Name="Id" />
+      </Fields>
+      <Content><![CDATA[
+        "Id","Login"    ,"Name"     ,"Password","Role"
+         1  ,"fulano"   ,"Fulano"   ,"1234"    ,"Admin"
+         2  ,"beltrano" ,"Beltrano" ,"2938"    ,"User"
+         3  ,"sicrano"  ,"Sicrano"  ,"0021"    ,"User"
+         4  ,"alano"    ,"Alano"    ,"7362"    ,"Manager"
+         5  ,"mengano"  ,"Mengano"  ,"1096"    ,"User"
+         6  ,"zutano"   ,"Zutano"   ,"5826"    ,"Manager"
+         7  ,"citano"   ,"Citano"   ,"9962"    ,"User"
+         8  ,"perengano","Perengano","7777"    ,"User"
+      ]]></Content>
+    </CsvData>
+  </LocalData>
+  <Actions>
+    <GridAction
+      Name="Users">
+      <Query
+        Connection="LocalData"><![CDATA[
+        select *
+          from User
+         where Login matches if set @Login
+           and Name matches if set @Name
+           and Role matches if set @Role
+      ]]></Query>
+      <Filter>
+        <IntField
+          Name="Id" />
+        <TextField
+          Name="Login" />
+        <TextField
+          Name="Name" />
+        <TextField
+          Name="Role" />
+      </Filter>
+    </GridAction>
+    <CardAction
+      Name="User(Id)"
+      Connection="LocalData">
+      <Query
+        Connection="LocalData"><![CDATA[
+        select *
+          from User
+         where Id = @Id
+      ]]></Query>
+      <Fields>
+        <IntField
+          Name="Id"
+          ReadOnly="true" />
+        <TextField
+          Name="Login"
+          ReadOnly="true" />
+        <TextField
+          Name="Name" />
+        <TextField
+          Type="Password"
+          Name="Password" />
+        <TextField
+          Name="Role">
+          <Options>
+            <Option
+              Text="User" />
+            <Option
+              Text="Manager" />
+            <Option
+              Text="Admin" />
+          </Options>
+        </TextField>
+      </Fields>
+    </CardAction>
+  </Actions>
+</PaperTemplate>

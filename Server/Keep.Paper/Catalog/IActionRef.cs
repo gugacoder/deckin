@@ -8,7 +8,7 @@ using Keep.Tools.Collections;
 
 namespace Keep.Paper.Catalog
 {
-  public interface IPath
+  public interface IActionRef
   {
     string Name { get; }
 
@@ -20,6 +20,6 @@ namespace Keep.Paper.Catalog
 
     string ToString(HashMap<string> args);
 
-    IPathArgs ParseArgs(string path);
+    IActionRefArgs ParseArgs(string path);
   }
 }

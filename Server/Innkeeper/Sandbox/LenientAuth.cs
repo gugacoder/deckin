@@ -12,10 +12,10 @@ namespace Innkeeper.Sandbox
   public class LenientAuth : IAuth
   {
     public async Task<Ret<UserInfo>> AuthenticateAsync(Credential credential,
-      ChainAsync chain)
+      AuthenticationChainAsync next)
     {
       if (!credential.Username.EndsWith("@sandbox"))
-        return await chain.Invoke(credential, chain);
+        return await next.Invoke(credential, next);
 
       if (string.IsNullOrWhiteSpace(credential.Password))
         return Ret.Fail(System.Net.HttpStatusCode.Unauthorized,

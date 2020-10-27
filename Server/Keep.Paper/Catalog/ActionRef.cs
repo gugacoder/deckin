@@ -8,7 +8,7 @@ using Keep.Tools.Collections;
 
 namespace Keep.Paper.Catalog
 {
-  public class Path : IPath
+  public class ActionRef : IActionRef
   {
     private string _path;
     private string _name;
@@ -83,9 +83,9 @@ namespace Keep.Paper.Catalog
       return path.ToString();
     }
 
-    public IPathArgs ParseArgs(string path)
+    public IActionRefArgs ParseArgs(string path)
     {
-      var args = new PathArgs();
+      var args = new ActionRefArgs();
       var keyNames = Keys ?? new string[0];
 
       // Inicializando com as chaves mas sem valor inicial
@@ -155,7 +155,7 @@ namespace Keep.Paper.Catalog
       return args;
     }
 
-    public static IPathArgs ParseArgs(string pathPattern, string path)
+    public static IActionRefArgs ParseArgs(string pathPattern, string path)
     {
       return Parse(pathPattern).ParseArgs(path);
     }
@@ -178,7 +178,7 @@ namespace Keep.Paper.Catalog
     /// </summary>
     /// <param name="pathPattern"></param>
     /// <returns></returns>
-    public static Path Parse(string pathPattern)
+    public static ActionRef Parse(string pathPattern)
     {
       var tokens = pathPattern.Trim().Replace(")", "").Split('(');
       var namePart = tokens.First().Trim();
@@ -192,7 +192,7 @@ namespace Keep.Paper.Catalog
       if (invalidKeyName != null)
         throw new Exception($"O nome do parâmetros não é válido: {invalidKeyName}");
 
-      return new Path
+      return new ActionRef
       {
         Name = namePart,
         Keys = keyNames

@@ -20,10 +20,24 @@ namespace Keep.Paper.Templating
 {
   public class Field : Node
   {
+    private OptionCollection _options;
+
     public virtual string Type { get; set; }
+
     public virtual string Rel { get; set; }
+
     public string Name { get; set; }
+
     public string Title { get; set; }
+
     public bool? Hidden { get; set; }
+
+    public bool? ReadOnly { get; set; }
+
+    public OptionCollection Options
+    {
+      get => _options;
+      set => _options = Adopt(value);
+    }
   }
 }

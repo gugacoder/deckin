@@ -5,6 +5,6 @@ namespace Keep.Paper.Catalog
 {
   public interface ICatalog
   {
-    IAction Get(string pathName);
+    IAction GetAction(string actionName);
   }
 }

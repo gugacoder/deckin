@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Linq;
 using System.Xml.Linq;
+using System.Xml.Serialization;
 using Keep.Tools;
 using Keep.Tools.Reflection;
 
@@ -50,6 +51,20 @@ namespace Keep.Paper.Templating
         if (!ok)
         {
           ParseError?.Invoke(this, $"A chave não é reconhecida: {key}");
+        }
+      }
+
+      foreach (var text in xml.Nodes().OfType<XText>())
+      {
+        var textProperty = (
+          from property in target.GetType().GetProperties()
+          where property._HasAttribute<XmlTextAttribute>()
+          select property.Name
+          ).FirstOrDefault();
+
+        if (textProperty != null)
+        {
+          target._Set(textProperty, text.Value);
         }
       }
 

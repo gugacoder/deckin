@@ -34,8 +34,8 @@ namespace Keep.Paper.Security
         var authenticators = EnumerateAuthenticators(credential.Domain);
         var enumerator = authenticators.GetEnumerator();
 
-        var chain = new ChainAsync((credential, chain) =>
-          CallNextAuthenticatorAsync(enumerator, credential, chain)
+        var chain = new AuthenticationChainAsync((credential, next) =>
+          CallNextAuthenticatorAsync(enumerator, credential, next)
         );
 
         return await chain.Invoke(credential, chain);
@@ -47,7 +47,8 @@ namespace Keep.Paper.Security
     }
 
     private async Task<Ret<UserInfo>> CallNextAuthenticatorAsync(
-      IEnumerator<IAuth> enumerator, Credential credential, ChainAsync chain)
+      IEnumerator<IAuth> enumerator, Credential credential,
+      AuthenticationChainAsync next)
     {
       if (!enumerator.MoveNext())
       {
@@ -62,7 +63,7 @@ namespace Keep.Paper.Security
       var authenticator = enumerator.Current;
       try
       {
-        var ret = await authenticator.AuthenticateAsync(credential, chain);
+        var ret = await authenticator.AuthenticateAsync(credential, next);
         if (ret.Ok)
         {
           // Arrematando informações de autenticação...

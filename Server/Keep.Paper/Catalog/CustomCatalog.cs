@@ -12,14 +12,14 @@ namespace Keep.Paper.Catalog
       this.catalog = new HashMap<IAction>();
     }
 
-    public IAction Get(string pathName)
+    public IAction GetAction(string pathName)
     {
       return catalog[pathName];
     }
 
     public void Add(IAction action)
     {
-      this.catalog[action.Path.Name] = action;
+      this.catalog[action.Ref.Name] = action;
     }
   }
 }

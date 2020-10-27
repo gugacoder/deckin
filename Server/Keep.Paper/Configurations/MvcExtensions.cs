@@ -113,13 +113,11 @@ namespace Keep.Paper.Configurations
       services.AddTransient(typeof(IAudit<>), typeof(Audit<>));
 
       services.AddSingleton<IDbConnector, DbConnector>();
+      services.AddTransient<LocalData>();
 
       services.AddTransient<IJwtSettings, JwtSettings>();
       services.AddTransient<IAuthCatalog, AuthCatalog>();
-
       services.AddSingleton<ICatalog, DefaultCatalog>();
-      // OBSOLETO: sera substituido por ICatalog
-      services.AddSingleton<IPaperCatalog, PaperCatalog>();
 
       services.AddSingleton<IJobScheduler, JobScheduler>();
 

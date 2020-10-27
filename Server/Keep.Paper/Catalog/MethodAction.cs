@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Keep.Paper.Rendering;
 using Keep.Tools;
@@ -12,18 +13,19 @@ namespace Keep.Paper.Catalog
   {
     private readonly MethodRenderer renderer;
 
-    public MethodAction(IPath path, MethodInfo method)
+    public MethodAction(IActionRef @ref, MethodInfo method,
+      Func<IServiceProvider, object> typeFactory = null)
     {
-      this.Path = path;
-      this.renderer = new MethodRenderer(method);
+      this.Ref = @ref;
+      this.renderer = new MethodRenderer(method, typeFactory);
     }
 
-    public IPath Path { get; }
+    public IActionRef Ref { get; }
 
     public async Task<object> RenderAsync(IRenderingContext ctx,
-      RenderingChain next)
+      CancellationToken stopToken, RenderingChain next)
     {
-      return await renderer.RenderAsync(ctx, next);
+      return await renderer.RenderAsync(ctx, stopToken, next);
     }
 
     public static MethodAction Create(object typeOrObject, string methodName)
@@ -61,7 +63,7 @@ namespace Keep.Paper.Catalog
         var hasAny = (
           from parameter in method.GetParameters()
           let parameterType = parameter.ParameterType
-          where Is.OfType<IPathArgs>(parameterType)
+          where Is.OfType<IActionRefArgs>(parameterType)
           select parameter).Any();
         if (hasAny)
         {
@@ -80,7 +82,7 @@ namespace Keep.Paper.Catalog
         pathName = $"{collection}{action}";
       }
 
-      var path = Catalog.Path.Parse(pathName);
+      var path = Catalog.ActionRef.Parse(pathName);
 
       return new MethodAction(path, method);
     }

@@ -6,6 +6,6 @@ using Keep.Tools;
 
 namespace Keep.Paper.Api
 {
-  public delegate Task<Ret<UserInfo>> ChainAsync(Credential credential,
-    ChainAsync chain);
+  public delegate Task<Ret<UserInfo>> AuthenticationChainAsync(
+    Credential credential, AuthenticationChainAsync next);
 }

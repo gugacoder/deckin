@@ -20,19 +20,20 @@ namespace Keep.Paper.Templating
 {
   public class GridAction : Action
   {
+    private Query _query;
     private FieldCollection _filter;
-
-    public string Connection { get; set; }
-
-    public string Query { get; set; }
-
-    public string EntityName { get; set; }
 
     public int? AutoRefresh { get; set; }
 
     public int? Offset { get; set; }
 
     public int? Limit { get; set; }
+
+    public Query Query
+    {
+      get => _query;
+      set => _query = Adopt(value);
+    }
 
     public FieldCollection Filter
     {

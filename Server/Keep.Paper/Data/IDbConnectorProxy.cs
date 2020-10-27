@@ -23,25 +23,27 @@ namespace Keep.Paper.Data
   ///     }
   ///   }
   /// </summary>
-  public interface IDbConnector
+  public interface IDbConnectorProxy
   {
-    DbConnection Connect(string name,
+    string Name { get; }
+
+    DbConnection Connect(
       string server = null, string database = null, int? port = null,
       string username = null, string password = null);
 
-    Task<DbConnection> ConnectAsync(string name,
+    Task<DbConnection> ConnectAsync(
       string server = null, string database = null, int? port = null,
       string username = null, string password = null,
       CancellationToken stopToken = default);
 
-    string GetProvider(string name);
+    string GetProvider();
 
-    void SetProvider(string name, string provider);
+    void SetProvider(string provider);
 
-    string GetConnectionString(string name,
+    string GetConnectionString(
       string server = null, string database = null, int? port = null,
       string username = null, string password = null);
 
-    void SetConnectionString(string name, string connectionString);
+    void SetConnectionString(string connectionString);
   }
 }

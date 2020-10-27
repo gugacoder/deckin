@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Keep.Tools.Sequel.Runner
@@ -33,7 +34,7 @@ namespace Keep.Tools.Sequel.Runner
       try
       {
         return Exists(sqlBuilder, cn, tx,
-          comment, callerName, callerFile, callerLine); 
+          comment, callerName, callerFile, callerLine);
       }
       catch { return false; }
     }
@@ -81,6 +82,7 @@ namespace Keep.Tools.Sequel.Runner
     /// </returns>
     public static async Task<Ret> TryExistsAsync(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
+      CancellationToken stopToken = default,
       string comment = null,
       [CallerMemberName] string callerName = null,
       [CallerFilePath] string callerFile = null,
@@ -88,7 +90,7 @@ namespace Keep.Tools.Sequel.Runner
     {
       try
       {
-        return await ExistsAsync(sqlBuilder, cn, tx,
+        return await ExistsAsync(sqlBuilder, cn, tx, stopToken,
           comment, callerName, callerFile, callerLine);
       }
       catch { return false; }
@@ -104,18 +106,19 @@ namespace Keep.Tools.Sequel.Runner
     /// </returns>
     public static async Task<bool> ExistsAsync(this SqlBuilder sqlBuilder,
       DbConnection cn, DbTransaction tx = null,
+      CancellationToken stopToken = default,
       string comment = null,
       [CallerMemberName] string callerName = null,
       [CallerFilePath] string callerFile = null,
       [CallerLineNumber] int callerLine = 0)
     {
-      using (var ctx = await ConnectionContext.CreateAsync(cn))
+      using (var ctx = await ConnectionContext.CreateAsync(cn, stopToken))
       {
         var dialect = Dialects.GetDialect(cn);
         var sql = sqlBuilder.Format(dialect,
           comment, callerName, callerFile, callerLine);
         var cm = ctx.CreateCommand(sql, tx);
-        var result = await cm.ExecuteScalarAsync();
+        var result = await cm.ExecuteScalarAsync(stopToken);
         return !Value.IsNull(result);
       }
     }

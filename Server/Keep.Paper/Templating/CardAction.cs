@@ -20,10 +20,12 @@ namespace Keep.Paper.Templating
 {
   public class CardAction : Action
   {
-    public string Connection { get; set; }
+    private Query _query;
 
-    public string Query { get; set; }
-
-    public string EntityName { get; set; }
+    public Query Query
+    {
+      get => _query;
+      set => _query = Adopt(value);
+    }
   }
 }

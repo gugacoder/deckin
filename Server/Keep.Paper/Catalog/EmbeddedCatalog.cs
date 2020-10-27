@@ -34,10 +34,10 @@ namespace Keep.Paper.Catalog
 
           var actions = factory.CreateActionsAsync().Await();
 
-          actions.ForEach(action => catalog.Add(action.Path.Name, action));
+          actions.ForEach(action => catalog.Add(action.Ref.Name, action));
 #if DEBUG
           actions.ForEach(action =>
-            Debug.WriteLine($"Action: /Api/1/Papers/{action.Path}"));
+            Debug.WriteLine($"Action: /Api/1/Papers/{action.Ref}"));
 #endif
         }
         catch (Exception ex)
@@ -50,7 +50,7 @@ namespace Keep.Paper.Catalog
       }
     }
 
-    public IAction Get(string pathName)
+    public IAction GetAction(string pathName)
     {
       return catalog[pathName];
     }

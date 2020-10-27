@@ -2,11 +2,12 @@
 using System.Threading.Tasks;
 using Keep.Paper.Api.Types;
 using Keep.Paper.Rendering;
+using Keep.Tools.Collections;
 
 namespace Keep.Paper.Catalog
 {
   public interface IAction : IRenderer
   {
-    IPath Path { get; }
+    IActionRef Ref { get; }
   }
 }
