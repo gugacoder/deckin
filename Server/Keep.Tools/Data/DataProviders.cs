@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
 
@@ -34,6 +35,9 @@ namespace Keep.Tools.Data
         throw new NotSupportedException(
           $"Não há suporte para a base de dados. " +
           $"O driver `{provider}` não está presente.");
+
+      if (typeName.EndsWith(nameof(SqlClientFactory)))
+        return SqlClientFactory.Instance;
 
       var type = Type.GetType(typeName);
       if (type == null)

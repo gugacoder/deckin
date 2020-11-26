@@ -7,12 +7,12 @@ namespace Keep.Paper.Jobs
 {
   public class Schedule : IComparable<Schedule>
   {
-    private readonly IEnumerator<DateTime> schedule;
+    private readonly NextRun nextRun;
 
     public Schedule(IJobAsync job, NextRun nextRun)
     {
       this.Job = job;
-      this.schedule = nextRun().GetEnumerator();
+      this.nextRun = nextRun;
       SetNextRun();
     }
 
@@ -22,11 +22,9 @@ namespace Keep.Paper.Jobs
 
     public bool SetNextRun()
     {
-      var ok = schedule.MoveNext();
-      if (ok)
-      {
-        Due = schedule.Current;
-      }
+      var date = nextRun.Invoke();
+      var ok = date != null;
+      Due = ok ? date.Value : default;
       return ok;
     }
 

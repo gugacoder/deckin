@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Keep.Paper.Api;
 using Keep.Paper.Catalog;
 using Keep.Paper.Client;
-using Keep.Paper.Data;
+using Keep.Paper.Databases;
 using Keep.Paper.Jobs;
 using Keep.Paper.Middlewares;
 using Keep.Paper.Papers;
@@ -112,8 +112,12 @@ namespace Keep.Paper.Configurations
       services.AddTransient<IAudit, Audit<object>>();
       services.AddTransient(typeof(IAudit<>), typeof(Audit<>));
 
-      services.AddSingleton<IDbConnector, DbConnector>();
-      services.AddTransient<LocalData>();
+      // [Obsolete("Mantidos apenas para compatibilidade.")]
+      services.AddSingleton<Data.IDbConnector, Data.DbConnector>();
+      services.AddTransient<Data.LocalData>();
+      //
+
+      services.AddTransient(typeof(IDbConnector<>), typeof(DbConnector<>));
 
       services.AddTransient<IJwtSettings, JwtSettings>();
       services.AddTransient<IAuthCatalog, AuthCatalog>();

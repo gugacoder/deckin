@@ -23,6 +23,7 @@ namespace Keep.Paper.Data
   ///     }
   ///   }
   /// </summary>
+  [Obsolete("Substituido por `Databases.IDbConnector`")]
   public interface IDbConnector
   {
     DbConnection Connect(string name,

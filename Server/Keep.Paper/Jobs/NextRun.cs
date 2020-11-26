@@ -4,5 +4,5 @@ using System.Threading;
 
 namespace Keep.Paper.Jobs
 {
-  public delegate IEnumerable<DateTime> NextRun();
+  public delegate DateTime? NextRun();
 }

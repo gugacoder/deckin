@@ -18,6 +18,11 @@ namespace Keep.Paper.Api
       this.settings = auditSettings;
     }
 
+    public IAudit<E> Derive<E>()
+    {
+      return new Audit<E>(this.settings);
+    }
+
     public void Log(Level level, string message, Type source,
       [CallerMemberName] string @event = null)
     {

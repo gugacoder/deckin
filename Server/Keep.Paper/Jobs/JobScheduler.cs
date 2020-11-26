@@ -28,90 +28,6 @@ namespace Keep.Paper.Jobs
       this.queue = new PriorityQueue<Schedule, DateTime>(x => x.Due);
       this.configuration = configuration;
       this.audit = audit;
-
-      LoadExposedJobs();
-    }
-
-    private void LoadExposedJobs()
-    {
-      try
-      {
-        var types = FilterJobs(ExposedTypes.GetTypes<IJobAsync>());
-        foreach (var type in types)
-        {
-          try
-          {
-            var job = (IJobAsync)ActivatorUtilities.CreateInstance(provider, type);
-            job.SetUp(this);
-            Console.WriteLine($"[JOB_ADDED]{GetTypeName(job.GetType())}");
-          }
-          catch (Exception ex)
-          {
-            audit.LogDanger(To.Text(ex));
-          }
-        }
-      }
-      catch (Exception ex)
-      {
-        audit.LogDanger(To.Text(ex));
-      }
-    }
-
-    private IEnumerable<Type> FilterJobs(IEnumerable<Type> types)
-    {
-      var jobs = configuration.GetSection("Host:Jobs");
-      var settings = (
-        from child in jobs.GetChildren()
-        let key = child.Key
-        let enabled = child["Enabled"]
-        select new
-        {
-          key,
-          enabled = Change.To(enabled ?? "true", false)
-        }
-      ).ToArray();
-
-      var allTypes = types.ToArray();
-      var enabledTypes = types.ToList();
-
-      foreach (var setting in settings)
-      {
-        try
-        {
-          var key = setting.key;
-          if (!key.Contains("."))
-          {
-            key = $"*.{key}";
-          }
-          var pattern = key.Replace("*", ".*");
-          var regex = new Regex(pattern);
-
-          if (setting.enabled)
-          {
-            var matchedTypes = allTypes.Where(type =>
-            {
-              var name = type.FullName.Split(',', ';').First();
-              return regex.IsMatch(GetTypeName(type));
-            });
-            enabledTypes.AddRange(matchedTypes.Except(enabledTypes));
-          }
-          else
-          {
-            enabledTypes.RemoveAll(type => regex.IsMatch(GetTypeName(type)));
-          }
-        }
-        catch (Exception ex)
-        {
-          ex.Trace();
-        }
-      }
-
-      return enabledTypes;
-    }
-
-    private string GetTypeName(Type type)
-    {
-      return type.FullName.Split(',', ';').First();
     }
 
     public Schedule Add(IJobAsync job, NextRun nextRun)
@@ -135,6 +51,11 @@ namespace Keep.Paper.Jobs
     {
       try
       {
+        if (queue.Count() == 0)
+        {
+          await CreateJobsAsync();
+        }
+
         while (!stopToken.IsCancellationRequested)
         {
           var notAfter = DateTime.Now;
@@ -163,6 +84,23 @@ namespace Keep.Paper.Jobs
         if (schedule.SetNextRun())
         {
           queue.Add(schedule);
+        }
+      }
+    }
+
+    private async Task CreateJobsAsync()
+    {
+      var types = ExposedTypes.GetTypes<IJobFactoryAsync>();
+      foreach (var type in types)
+      {
+        try
+        {
+          var factory = (IJobFactoryAsync)provider.Instantiate(type);
+          await factory.AddJobsAsync(this);
+        }
+        catch (Exception ex)
+        {
+          audit.LogDanger(To.Text(ex));
         }
       }
     }

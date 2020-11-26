@@ -33,5 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Jobs\" />
+    <Folder Include="Business\" />
+    <Folder Include="Databases\" />
   </ItemGroup>
 </Project>

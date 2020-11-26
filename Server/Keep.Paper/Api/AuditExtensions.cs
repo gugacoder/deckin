@@ -11,6 +11,10 @@ namespace Keep.Paper.Api
       Type source, [CallerMemberName] string @event = null)
       => audit.Log(Level.Default, message, source, @event);
 
+    public static void LogDefault(this IAudit audit, string message,
+      Type source, [CallerMemberName] string @event = null)
+      => audit.Log(Level.Default, message, source, @event);
+
     public static void LogTrace(this IAudit audit, string message,
       Type source, [CallerMemberName] string @event = null)
       => audit.Log(Level.Trace, message, source, @event);
@@ -36,6 +40,10 @@ namespace Keep.Paper.Api
     #region IAudit<T>
 
     public static void Log<T>(this IAudit<T> audit, string message,
+      [CallerMemberName] string @event = null)
+      => audit.Log(Level.Default, message, @event);
+
+    public static void LogDefault<T>(this IAudit<T> audit, string message,
       [CallerMemberName] string @event = null)
       => audit.Log(Level.Default, message, @event);
 
