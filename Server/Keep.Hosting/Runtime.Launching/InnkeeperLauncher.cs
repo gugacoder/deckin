@@ -6,7 +6,7 @@ using Keep.Tools;
 using Keep.Tools.Reflection;
 using Microsoft.Extensions.Configuration;
 
-namespace Keep.Paper.Api
+namespace Keep.Hosting.Runtime.Launching
 {
   public class InnkeeperLauncher
   {

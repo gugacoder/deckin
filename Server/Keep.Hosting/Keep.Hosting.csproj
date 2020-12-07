@@ -25,21 +25,13 @@
     <ProjectReference Include="..\Keep.Tools\Keep.Tools.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Helpers\" />
-    <Folder Include="Formatters\" />
-    <Folder Include="Papers\" />
-    <Folder Include="Services\" />
-    <Folder Include="Types\" />
-    <Folder Include="Data\" />
+    <Folder Include="Core\" />
     <Folder Include="Jobs\" />
-    <Folder Include="Interceptors\" />
-    <Folder Include="Api.Types\" />
-    <Folder Include="Templating\" />
-    <Folder Include="Catalog\" />
-    <Folder Include="Rendering\" />
-    <Folder Include="Security\" />
-    <Folder Include="Databases\" />
-    <Folder Include="AspNet\" />
-    <Folder Include="Hosting\" />
+    <Folder Include="Auditing\" />
+    <Folder Include="Core.Extensions\" />
+    <Folder Include="Jobs.Sql\" />
+    <Folder Include="Runtime\" />
+    <Folder Include="Runtime.Launching\" />
+    <Folder Include="Utilities\" />
   </ItemGroup>
 </Project>

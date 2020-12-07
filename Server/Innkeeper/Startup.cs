@@ -8,12 +8,7 @@ using System.Net.Mime;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using Keep.Paper.Api;
-using Keep.Paper.Api.Types;
-using Keep.Paper.Configurations;
-using Keep.Paper.Middlewares;
-using Keep.Paper.Security;
-using Keep.Paper.Services;
+using Keep.Hosting.Core;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.IO;
@@ -28,7 +23,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AppSuite
+namespace Innkeeper
 {
   public class Startup
   {
@@ -42,7 +37,10 @@ namespace AppSuite
     public void ConfigureServices(IServiceCollection services)
     {
       services.AddControllers();
-      services.AddPapers();
+
+      services.AddInnkeeper();
+      services.AddInnkeeperJobs();
+      services.AddInnkeeperSqlJobs();
 
       services.AddCors(o => o.AddPolicy("AllowCorsPolicy", builder => builder
         .AllowAnyOrigin()
@@ -60,17 +58,17 @@ namespace AppSuite
 
       app.UseCors("AllowCorsPolicy");
 
-      app.UsePaperStaticFiles(options => options.UseDefaultFiles());
+      //app.UsePaperStaticFiles(options => options.UseDefaultFiles());
 
       app.UseRouting();
 
-      app.UsePaperApi();
-      app.UsePaperAuthentication();
+      //app.UsePaperApi();
+      //app.UsePaperAuthentication();
 
       app.UseEndpoints(endpoints =>
       {
         endpoints.MapControllers();
-        endpoints.MapPapers();
+        //endpoints.MapPapers();
       });
     }
   }

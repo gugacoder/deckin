@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Keep.Paper.Api;
-using Keep.Paper.Configurations;
+using Keep.Hosting.Core;
+using Keep.Hosting.Runtime;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Microsoft.AspNetCore.Hosting;
@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging.EventLog;
 
 #nullable enable
 
-namespace AppSuite
+namespace Innkeeper
 {
   public class Program
   {
@@ -31,7 +31,7 @@ namespace AppSuite
 
     public static IHostBuilder CreateHostBuilder(string[] args) =>
       Host.CreateDefaultBuilder(args)
-        .ConfigurePaperWebHost(webBuilder =>
+        .ConfigureInnkeeper(webBuilder =>
         {
           webBuilder.UseStartup<Startup>();
         });

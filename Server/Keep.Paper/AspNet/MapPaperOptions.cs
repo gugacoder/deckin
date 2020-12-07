@@ -2,7 +2,7 @@
 using Keep.Paper.Api;
 using Keep.Paper.Papers;
 
-namespace Keep.Paper.Configurations
+namespace Keep.Paper.AspNet
 {
   public class MapPaperOptions
   {

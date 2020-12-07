@@ -26,15 +26,14 @@
       <GlobalPropertiesToRemove>
       </GlobalPropertiesToRemove>
     </ProjectReference>
-    <ProjectReference Include="..\Keep.Paper\Keep.Paper.csproj">
-      <GlobalPropertiesToRemove>
-      </GlobalPropertiesToRemove>
-    </ProjectReference>
-    <ProjectReference Include="..\Mercadologic.Replicacao\Mercadologic.Replicacao.csproj">
+    <ProjectReference Include="..\Keep.Hosting\Keep.Hosting.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="meta\papers\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Sandbox\" />
   </ItemGroup>
 </Project>

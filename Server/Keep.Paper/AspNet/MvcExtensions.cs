@@ -25,7 +25,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.EventLog;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Keep.Paper.Configurations
+namespace Keep.Paper.AspNet
 {
   public static class MvcExtensions
   {
