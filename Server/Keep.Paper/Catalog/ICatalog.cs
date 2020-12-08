@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Keep.Paper.Catalog
+namespace Keep.Hosting.Catalog
 {
   public interface ICatalog
   {

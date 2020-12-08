@@ -1,7 +1,7 @@
 ﻿using System;
 using Keep.Hosting.Auditing;
 
-namespace Keep.Hosting.Core
+namespace Keep.Hosting.Runtime.Core
 {
   public class InnkeeperOptions
   {

@@ -8,7 +8,7 @@ using Keep.Tools;
 using Keep.Tools.Collections;
 using Newtonsoft.Json;
 
-namespace Keep.Paper.Api.Types
+namespace Keep.Hosting.Api.Types
 {
   [Serializable]
   public class Entity

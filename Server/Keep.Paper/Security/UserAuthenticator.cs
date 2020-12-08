@@ -4,12 +4,12 @@ using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Keep.Paper.Api;
-using Keep.Paper.Types;
+using Keep.Hosting.Api;
+using Keep.Hosting.Auth;
 using Keep.Tools;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Keep.Paper.Security
+namespace Keep.Hosting.Auth
 {
   public class UserAuthenticator
   {

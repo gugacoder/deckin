@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Keep.Tools.Collections;
 
-namespace Keep.Paper.Catalog
+namespace Keep.Hosting.Catalog
 {
   public class CompositeCatalog : Collection<ICatalog>, ICompositeCatalog, ICatalog
   {

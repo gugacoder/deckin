@@ -5,7 +5,7 @@ using Keep.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Keep.Paper.Api
+namespace Keep.Hosting.Api
 {
   internal class AuditListenerLoggerAdapter : IAuditListener
   {

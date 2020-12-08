@@ -1,9 +1,9 @@
 ﻿using System;
-using Keep.Paper.Api;
-using Keep.Paper.Api.Types;
+using Keep.Hosting.Api;
+using Keep.Hosting.Api.Types;
 using Keep.Tools;
 
-namespace Keep.Paper.Catalog
+namespace Keep.Hosting.Catalog
 {
   [Expose]
   public class CatalogPaper : AbstractPaper

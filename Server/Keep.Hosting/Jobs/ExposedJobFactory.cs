@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Keep.Hosting.Auditing;
 using Keep.Tools;
@@ -25,7 +26,7 @@ namespace Keep.Hosting.Jobs
       this.audit = audit;
     }
 
-    public Task AddJobsAsync(IJobScheduler jobScheduler)
+    public Task AddJobsAsync(IJobScheduler jobScheduler, CancellationToken stopToken)
     {
       try
       {
@@ -33,6 +34,9 @@ namespace Keep.Hosting.Jobs
         types = FilterJobs(types);
         foreach (var type in types)
         {
+          if (stopToken.IsCancellationRequested)
+            break;
+
           try
           {
             var job = (IJob)ActivatorUtilities.CreateInstance(provider, type);

@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Keep.Paper.Api
+namespace Keep.Hosting.Api
 {
   [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface,
     AllowMultiple = false, Inherited = true)]

@@ -1,9 +1,9 @@
 ﻿using System;
-using Keep.Paper.Catalog;
+using Keep.Hosting.Catalog;
 using Keep.Tools.Collections;
 using Microsoft.AspNetCore.Http;
 
-namespace Keep.Paper.Rendering
+namespace Keep.Hosting.Rendering
 {
   internal class RenderingContext : IRenderingContext
   {

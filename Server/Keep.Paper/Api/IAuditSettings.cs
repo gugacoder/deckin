@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Keep.Paper.Api
+namespace Keep.Hosting.Api
 {
   public interface IAuditSettings
   {

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Keep.Paper.Types;
+using Keep.Hosting.Auth;
 using Keep.Tools;
 
-namespace Keep.Paper.Api
+namespace Keep.Hosting.Api
 {
   public interface IAuth
   {

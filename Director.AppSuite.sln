@@ -27,6 +27,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{40D850
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keep.Hosting", "Server\Keep.Hosting\Keep.Hosting.csproj", "{23180CCA-67F7-4C36-A182-11AE18666DD2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keep.Hosting.Jobs.Sql", "Server\Keep.Hosting.Jobs.Sql\Keep.Hosting.Jobs.Sql.csproj", "{A726853D-38CC-4801-9864-C0124D6B2C00}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -132,6 +134,18 @@ Global
 		{23180CCA-67F7-4C36-A182-11AE18666DD2}.Release|x64.Build.0 = Release|Any CPU
 		{23180CCA-67F7-4C36-A182-11AE18666DD2}.Release|x86.ActiveCfg = Release|Any CPU
 		{23180CCA-67F7-4C36-A182-11AE18666DD2}.Release|x86.Build.0 = Release|Any CPU
+		{A726853D-38CC-4801-9864-C0124D6B2C00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A726853D-38CC-4801-9864-C0124D6B2C00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A726853D-38CC-4801-9864-C0124D6B2C00}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A726853D-38CC-4801-9864-C0124D6B2C00}.Debug|x64.Build.0 = Debug|Any CPU
+		{A726853D-38CC-4801-9864-C0124D6B2C00}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A726853D-38CC-4801-9864-C0124D6B2C00}.Debug|x86.Build.0 = Debug|Any CPU
+		{A726853D-38CC-4801-9864-C0124D6B2C00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A726853D-38CC-4801-9864-C0124D6B2C00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A726853D-38CC-4801-9864-C0124D6B2C00}.Release|x64.ActiveCfg = Release|Any CPU
+		{A726853D-38CC-4801-9864-C0124D6B2C00}.Release|x64.Build.0 = Release|Any CPU
+		{A726853D-38CC-4801-9864-C0124D6B2C00}.Release|x86.ActiveCfg = Release|Any CPU
+		{A726853D-38CC-4801-9864-C0124D6B2C00}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -142,5 +156,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{23180CCA-67F7-4C36-A182-11AE18666DD2} = {40D850E1-1ABA-41A4-9FB5-5D0A562F66A6}
 		{F96FACB5-FF6B-4EF1-AA85-D81782B3038A} = {40D850E1-1ABA-41A4-9FB5-5D0A562F66A6}
+		{A726853D-38CC-4801-9864-C0124D6B2C00} = {40D850E1-1ABA-41A4-9FB5-5D0A562F66A6}
 	EndGlobalSection
 EndGlobal

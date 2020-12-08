@@ -2,7 +2,7 @@
 using Keep.Tools;
 using Newtonsoft.Json;
 
-namespace Keep.Paper.Api.Types
+namespace Keep.Hosting.Api.Types
 {
   public static class EntityExtensions
   {

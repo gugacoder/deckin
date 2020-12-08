@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Keep.Tools;
 
-namespace Keep.Paper.Jobs
+namespace Keep.Hosting.Jobs
 {
   public static class JobSchedulerExtensions
   {

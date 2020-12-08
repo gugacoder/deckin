@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading.Tasks;
-using Keep.Paper.Types;
+using Keep.Hosting.Auth;
 using Keep.Tools;
 
-namespace Keep.Paper.Api
+namespace Keep.Hosting.Api
 {
   public delegate Task<Ret<UserInfo>> AuthenticationChainAsync(
     Credential credential, AuthenticationChainAsync next);

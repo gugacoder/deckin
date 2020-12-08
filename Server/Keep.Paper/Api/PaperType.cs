@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using Keep.Tools;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Keep.Paper.Api
+namespace Keep.Hosting.Api
 {
   public class PaperType
   {

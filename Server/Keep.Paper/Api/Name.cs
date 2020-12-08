@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using Keep.Tools;
 using Microsoft.CSharp;
 
-namespace Keep.Paper.Api
+namespace Keep.Hosting.Api
 {
   public static class Name
   {

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Keep.Paper.Api.Types;
-using Keep.Paper.Rendering;
+using Keep.Hosting.Api.Types;
+using Keep.Hosting.Rendering;
 using Keep.Tools.Collections;
 
-namespace Keep.Paper.Catalog
+namespace Keep.Hosting.Catalog
 {
   public interface IAction : IRenderer
   {

@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Keep.Paper.Api;
-using Types = Keep.Paper.Api.Types;
-using Keep.Paper.Types;
+using Keep.Hosting.Api;
+using Types = Keep.Hosting.Api.Types;
+using Keep.Hosting.Auth;
 using Keep.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
-using Keep.Paper.Services;
+using Keep.Hosting.Services;
 using Keep.Tools.Collections;
-using Keep.Paper.Security;
+using Keep.Hosting.Auth;
 
-namespace Keep.Paper.Papers
+namespace Keep.Hosting.Papers
 {
   [Expose]
   [AllowAnonymous]

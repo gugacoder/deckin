@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using Keep.Tools;
 using Keep.Tools.Collections;
 
-namespace Keep.Paper.Catalog
+namespace Keep.Hosting.Catalog
 {
   public interface IActionRef
   {

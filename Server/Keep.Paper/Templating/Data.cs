@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
 
-namespace Keep.Paper.Templating
+namespace Keep.Hosting.Templating
 {
   [XmlInclude(typeof(CsvData))]
   public class Data : Node

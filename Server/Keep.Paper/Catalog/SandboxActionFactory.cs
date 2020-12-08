@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Keep.Paper.Api;
-using Types = Keep.Paper.Api.Types;
-using Keep.Paper.Rendering;
+using Keep.Hosting.Api;
+using Types = Keep.Hosting.Api.Types;
+using Keep.Hosting.Rendering;
 using Keep.Tools;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
@@ -11,7 +11,7 @@ using System.Linq;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
 
-namespace Keep.Paper.Catalog
+namespace Keep.Hosting.Catalog
 {
   public class DB : List<DB.IData>
   {

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
-using Keep.Paper.Api;
+using Keep.Hosting.Api;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Keep.Paper.Catalog
+namespace Keep.Hosting.Catalog
 {
   public class EmbeddedCatalog : ICatalog
   {

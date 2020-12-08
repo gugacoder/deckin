@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Keep.Paper.Catalog
+namespace Keep.Hosting.Catalog
 {
   public class DefaultCatalog : CompositeCatalog
   {

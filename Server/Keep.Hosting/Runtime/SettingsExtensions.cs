@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Keep.Tools;
 using Keep.Tools.Reflection;
 
-namespace Keep.Hosting
+namespace Keep.Hosting.Runtime
 {
   public static class SettingsExtensions
   {

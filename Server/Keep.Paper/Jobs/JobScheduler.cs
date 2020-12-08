@@ -5,14 +5,14 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Keep.Paper.Api;
+using Keep.Hosting.Api;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Keep.Paper.Jobs
+namespace Keep.Hosting.Jobs
 {
   internal class JobScheduler : IJobScheduler
   {

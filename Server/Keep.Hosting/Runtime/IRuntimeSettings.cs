@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Keep.Hosting
+namespace Keep.Hosting.Runtime
 {
   public interface IRuntimeSettings : ISettings
   {

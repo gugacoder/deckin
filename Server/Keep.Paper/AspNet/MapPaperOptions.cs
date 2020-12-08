@@ -1,8 +1,8 @@
 ﻿using System;
-using Keep.Paper.Api;
-using Keep.Paper.Papers;
+using Keep.Hosting.Api;
+using Keep.Hosting.Papers;
 
-namespace Keep.Paper.AspNet
+namespace Keep.Hosting.AspNet
 {
   public class MapPaperOptions
   {

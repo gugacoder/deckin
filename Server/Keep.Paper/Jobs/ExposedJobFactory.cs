@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Keep.Paper.Api;
+using Keep.Hosting.Api;
 using Keep.Tools;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Keep.Paper.Jobs
+namespace Keep.Hosting.Jobs
 {
   [Expose]
   public class ExposedJobFactory : IJobFactoryAsync

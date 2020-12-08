@@ -3,11 +3,11 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Keep.Paper.Rendering;
+using Keep.Hosting.Rendering;
 using Keep.Tools;
 using Keep.Tools.Reflection;
 
-namespace Keep.Paper.Catalog
+namespace Keep.Hosting.Catalog
 {
   public class MethodAction : IAction
   {

@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Keep.Paper.Templating
+namespace Keep.Hosting.Templating
 {
   public class CsvData : Data
   {

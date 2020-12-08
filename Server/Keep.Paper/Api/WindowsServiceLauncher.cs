@@ -5,7 +5,7 @@ using System.Text;
 using Keep.Tools;
 using Keep.Tools.Reflection;
 
-namespace Keep.Paper.Api
+namespace Keep.Hosting.Api
 {
   [Obsolete("Substituído pelo InnkeeperLauncher.")]
   public class WindowsServiceLauncher

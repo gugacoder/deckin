@@ -5,12 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
-using Keep.Paper.Api;
+using Keep.Hosting.Api;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Microsoft.Extensions.Configuration;
 
-namespace Keep.Paper.Services
+namespace Keep.Hosting.Services
 {
   internal class CommonSettings : ICommonSettings
   {

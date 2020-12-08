@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
-using Keep.Paper.Api;
-using Keep.Paper.Api.Types;
+using Keep.Hosting.Api;
+using Keep.Hosting.Api.Types;
 using Keep.Tools;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
@@ -15,11 +15,11 @@ using System.Linq;
 using Keep.Tools.Reflection;
 using System.Collections;
 using System.Xml.Serialization;
-using Keep.Paper.Templating;
+using Keep.Hosting.Templating;
 using System.Diagnostics.CodeAnalysis;
 using System.Data;
 using System.Text.RegularExpressions;
-using Keep.Paper.Security;
+using Keep.Hosting.Auth;
 
 namespace Mercadologic.Replicacao
 {

@@ -8,7 +8,7 @@ using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
 using Newtonsoft.Json;
 
-namespace Keep.Paper.Api.Types
+namespace Keep.Hosting.Api.Types
 {
   public class Data : IDictionary<string, object>
   {

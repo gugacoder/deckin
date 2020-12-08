@@ -8,7 +8,7 @@ using Keep.Tools.Collections;
 using Keep.Tools.Data;
 using Microsoft.Extensions.Configuration;
 
-namespace Keep.Paper.Data
+namespace Keep.Hosting.Data
 {
   /// <summary>
   /// Gerenciador central de strings de conexão do Paper.

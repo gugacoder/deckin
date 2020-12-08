@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Keep.Tools.Data;
 
-namespace Keep.Paper.Databases
+namespace Keep.Hosting.Databases
 {
   public interface IDbConnector<T>
     where T : class, IDbContext

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Keep.Paper.Hosting
+namespace Keep.Hosting.Hosting
 {
   public interface ISettingsManager
   {

@@ -2,7 +2,7 @@
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Keep.Paper.Api
+namespace Keep.Hosting.Api
 {
   public static class AuditSettingsExtensions
   {

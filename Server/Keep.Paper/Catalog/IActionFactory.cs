@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Keep.Paper.Catalog
+namespace Keep.Hosting.Catalog
 {
   public interface IActionFactory
   {

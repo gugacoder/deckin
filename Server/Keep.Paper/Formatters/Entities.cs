@@ -5,7 +5,7 @@ using System.Net;
 using Keep.Tools;
 using Keep.Tools.Collections;
 
-namespace Keep.Paper.Formatters
+namespace Keep.Hosting.Formatters
 {
   public static class Entities
   {

@@ -1,7 +1,7 @@
 ﻿using System;
 using Keep.Tools.Collections;
 
-namespace Keep.Paper.Catalog
+namespace Keep.Hosting.Catalog
 {
   public class CustomCatalog : ICatalog
   {

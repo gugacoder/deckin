@@ -1,34 +1,34 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Types = Keep.Paper.Api.Types;
-using Keep.Paper.Data;
-using Keep.Paper.Templating;
+using Types = Keep.Hosting.Api.Types;
+using Keep.Hosting.Data;
+using Keep.Hosting.Templating;
 using Keep.Tools.Collections;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
 using Microsoft.AspNetCore.Http.Extensions;
-using Keep.Paper.Api;
+using Keep.Hosting.Api;
 using Keep.Tools.Data;
 using Keep.Tools;
 using System.Linq;
 using Keep.Tools.Reflection;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Keep.Paper.Catalog;
+using Keep.Hosting.Catalog;
 using System.Data.Common;
 
-namespace Keep.Paper.Papers
+namespace Keep.Hosting.Papers
 {
   public class TemplatePaper : AbstractPaper
   {
     private readonly IDbConnector connector;
     private readonly IAudit audit;
     private readonly PaperTemplate paperTemplate;
-    private readonly Paper.Templating.Action actionTemplate;
+    private readonly Keep.Hosting.Templating.Action actionTemplate;
 
     public TemplatePaper(IDbConnector connector, IAudit audit,
-      PaperTemplate paperTemplate, Paper.Templating.Action actionTemplate)
+      PaperTemplate paperTemplate, Keep.Hosting.Templating.Action actionTemplate)
     {
       this.connector = connector;
       this.audit = audit;

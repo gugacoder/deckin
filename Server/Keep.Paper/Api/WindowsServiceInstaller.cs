@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Keep.Tools;
 
-namespace Keep.Paper.Api
+namespace Keep.Hosting.Api
 {
   public class WindowsServiceInstaller
   {

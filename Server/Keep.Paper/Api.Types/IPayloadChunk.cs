@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Keep.Tools.Collections;
 
-namespace Keep.Paper.Api.Types
+namespace Keep.Hosting.Api.Types
 {
   public interface IPayloadChunk
   {

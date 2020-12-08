@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Keep.Paper.Middlewares
+namespace Keep.Hosting.Middlewares
 {
   public class StaticFileOptions
   {

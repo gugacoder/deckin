@@ -36,12 +36,14 @@ namespace Keep.Hosting.Jobs
       }));
     }
 
-    public static Schedule Add(this IJobScheduler scheduler, IJob job, TimeSpan timeSpan)
+    public static Schedule Add(this IJobScheduler scheduler, IJob job,
+      TimeSpan timeSpan)
     {
       return scheduler.Add(job, new NextRun(() => DateTime.Now.Add(timeSpan)));
     }
 
-    public static Schedule Add(this IJobScheduler scheduler, IJob job, DateTime due)
+    public static Schedule Add(this IJobScheduler scheduler, IJob job,
+      DateTime due)
     {
       return scheduler.Add(job, new NextRun(() => due));
     }

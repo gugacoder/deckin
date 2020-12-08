@@ -6,7 +6,7 @@ using Keep.Tools.Collections;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 
-namespace Keep.Paper.Api
+namespace Keep.Hosting.Api
 {
   public static class Href
   {

@@ -3,12 +3,12 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Keep.Paper.Api;
-using Keep.Paper.Catalog;
+using Keep.Hosting.Api;
+using Keep.Hosting.Catalog;
 using Microsoft.Extensions.DependencyInjection;
-using Types = Keep.Paper.Api.Types;
+using Types = Keep.Hosting.Api.Types;
 
-namespace Keep.Paper.Rendering
+namespace Keep.Hosting.Rendering
 {
   public class MethodRenderer : IRenderer
   {

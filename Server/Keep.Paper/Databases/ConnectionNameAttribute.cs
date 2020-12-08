@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Keep.Paper.Databases
+namespace Keep.Hosting.Databases
 {
   [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface,
     AllowMultiple = false, Inherited = true)]

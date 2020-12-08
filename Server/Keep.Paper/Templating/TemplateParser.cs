@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 using Keep.Tools;
 using Keep.Tools.Reflection;
 
-namespace Keep.Paper.Templating
+namespace Keep.Hosting.Templating
 {
   public class TemplateParser
   {

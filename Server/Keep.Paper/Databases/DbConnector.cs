@@ -4,14 +4,14 @@ using System.Data.Common;
 using System.Data.SqlClient;
 using System.Threading;
 using System.Threading.Tasks;
-using Keep.Paper.Security;
+using Keep.Hosting.Auth;
 using Keep.Tools;
 using Keep.Tools.Data;
 using Keep.Tools.Reflection;
 using Keep.Tools.Sequel.Runner;
 using Microsoft.Extensions.Configuration;
 
-namespace Keep.Paper.Databases
+namespace Keep.Hosting.Databases
 {
   public class DbConnector<T> : IDbConnector<T>
     where T : class, IDbContext

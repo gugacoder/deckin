@@ -5,14 +5,14 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Keep.Hosting.Core;
-using Keep.Hosting.Core.Extensions;
+using Keep.Hosting.Runtime;
 using Keep.Hosting.Auditing;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Keep.Hosting.Extensions;
 
 namespace Keep.Hosting.Jobs
 {
@@ -39,6 +39,17 @@ namespace Keep.Hosting.Jobs
       return schedule;
     }
 
+    public void Unschedule(IJob job)
+    {
+      var schedules = queue.Find(schedule => schedule.Job == job);
+      schedules.ForEach(schedule => queue.Remove(schedule));
+    }
+
+    public void Unschedule(Schedule schedule)
+    {
+      queue.Remove(schedule);
+    }
+
     public Schedule[] Find(Func<IJob, bool> criteria)
     {
       return queue.Find(x => criteria.Invoke(x.Job));
@@ -59,7 +70,7 @@ namespace Keep.Hosting.Jobs
       {
         if (queue.Count() == 0)
         {
-          createJobsTask = CreateJobsAsync();
+          createJobsTask = CreateJobsAsync(stopToken);
         }
 
         while (!stopToken.IsCancellationRequested)
@@ -99,7 +110,7 @@ namespace Keep.Hosting.Jobs
       }
     }
 
-    private async Task CreateJobsAsync()
+    private async Task CreateJobsAsync(CancellationToken stopToken)
     {
       var tasks = new List<Task>();
 
@@ -109,7 +120,7 @@ namespace Keep.Hosting.Jobs
         try
         {
           var factory = (IJobFactory)provider.Instantiate(type);
-          var task = factory.AddJobsAsync(this);
+          var task = factory.AddJobsAsync(this, stopToken);
           tasks.Add(task);
         }
         catch (Exception ex)

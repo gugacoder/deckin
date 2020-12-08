@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Keep.Paper.Hosting
+namespace Keep.Hosting.Hosting
 {
   public interface ISettings
   {

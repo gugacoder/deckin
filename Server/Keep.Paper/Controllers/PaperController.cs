@@ -7,12 +7,12 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
-using Keep.Paper.Api;
-using Types = Keep.Paper.Api.Types;
-using Keep.Paper.Formatters;
-using Keep.Paper.Interceptors;
-using Keep.Paper.Papers;
-using Keep.Paper.Services;
+using Keep.Hosting.Api;
+using Types = Keep.Hosting.Api.Types;
+using Keep.Hosting.Formatters;
+using Keep.Hosting.Interceptors;
+using Keep.Hosting.Papers;
+using Keep.Hosting.Services;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
@@ -25,7 +25,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Keep.Paper.Controllers
+namespace Keep.Hosting.Controllers
 {
   [Obsolete("Replaced by ActionController")]
   [Route(Href.ApiPrefix)]

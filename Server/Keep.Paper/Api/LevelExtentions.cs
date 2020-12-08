@@ -2,7 +2,7 @@
 using System.Drawing;
 using Microsoft.Extensions.Logging;
 
-namespace Keep.Paper.Api
+namespace Keep.Hosting.Api
 {
   public static class LevelExtentions
   {

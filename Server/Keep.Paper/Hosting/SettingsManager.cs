@@ -6,7 +6,7 @@ using Keep.Tools;
 using Keep.Tools.Collections;
 using static System.Environment;
 
-namespace Keep.Paper.Hosting
+namespace Keep.Hosting.Hosting
 {
   public class SettingsManager : ISettingsManager
   {

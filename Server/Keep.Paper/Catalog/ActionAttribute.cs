@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace Keep.Paper.Catalog
+namespace Keep.Hosting.Catalog
 {
   [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
   public class ActionAttribute : Attribute

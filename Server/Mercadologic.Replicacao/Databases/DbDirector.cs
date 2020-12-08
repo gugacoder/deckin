@@ -1,6 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
-using Keep.Paper.Databases;
+using Keep.Hosting.Databases;
 
 namespace Mercadologic.Replicacao.Databases
 {

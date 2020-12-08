@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Keep.Paper.Jobs
+namespace Keep.Hosting.Jobs
 {
   public interface IJobScheduler
   {

@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 
-namespace Keep.Paper.Templating
+namespace Keep.Hosting.Templating
 {
   public abstract class Node : INode
   {

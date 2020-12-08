@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Keep.Hosting.Auditing;
+using Keep.Hosting.Auth;
 using Keep.Hosting.Jobs;
 using Keep.Tools;
 using Keep.Tools.Reflection;
@@ -18,9 +19,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.EventLog;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Keep.Hosting.Core
+namespace Keep.Hosting.Runtime.Core
 {
-  public static class CoreConfiguration
+  public static class AspNetCoreConfiguration
   {
     public static IHostBuilder ConfigureInnkeeper(
       this IHostBuilder hostBuilder, Action<IWebHostBuilder> webBuilder)
@@ -59,13 +60,22 @@ namespace Keep.Hosting.Core
       return hostBuilder;
     }
 
+    #region Add common Innkeeper features
+
     public static void AddInnkeeper(this IServiceCollection services,
       Action<InnkeeperOptions> builder = null)
     {
-      AddInnkeeperAuditing(services, builder);
+      InstallSettings(services, builder);
+      InstallAuditing(services, builder);
+      InstallMultitenantSupport(services, builder);
     }
 
-    private static void AddInnkeeperAuditing(IServiceCollection services,
+    private static void InstallSettings(IServiceCollection services,
+      Action<InnkeeperOptions> builder)
+    {
+    }
+
+    private static void InstallAuditing(IServiceCollection services,
       Action<InnkeeperOptions> builder)
     {
       var options = new InnkeeperOptions();
@@ -80,19 +90,19 @@ namespace Keep.Hosting.Core
       services.AddTransient(typeof(IAudit<>), typeof(Audit<>));
     }
 
-    public static void AddInnkeeperJobs(this IServiceCollection services,
-      Action<JobOptions> builder)
+    private static void InstallMultitenantSupport(IServiceCollection services,
+      Action<InnkeeperOptions> builder)
     {
-      var options = new JobOptions();
-      builder?.Invoke(options);
-
-      services.AddSingleton<IJobScheduler, JobScheduler>();
-      services.AddHostedService<JobSchedulerHostedService>();
+      services.AddHttpContextAccessor();
+      services.AddTransient<IUserContext, UserContext>();
     }
 
-    public static void AddInnkeeperSqlJobs(IServiceCollection services)
+    #endregion
+
+    public static void AddInnkeeperJobs(this IServiceCollection services)
     {
-      
+      services.AddSingleton<IJobScheduler, JobScheduler>();
+      services.AddHostedService<JobSchedulerHostedService>();
     }
 
     //public static void AddPaperDefaults(this IServiceCollection services)

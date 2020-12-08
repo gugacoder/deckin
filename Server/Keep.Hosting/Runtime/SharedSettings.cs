@@ -6,11 +6,11 @@ using Keep.Hosting.Utilities;
 
 namespace Keep.Hosting.Runtime
 {
-  public class CommonSettings : ISettings
+  public class SharedSettings : ISharedSettings
   {
     private readonly string folder;
 
-    public CommonSettings(string folder, ISettings fallback = null)
+    public SharedSettings(string folder, ISettings fallback = null)
     {
       this.folder = folder;
       this.FallbackSettings = fallback;

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading.Tasks;
-using Keep.Paper.Api;
-using Types = Keep.Paper.Api.Types;
-using Keep.Paper.Papers;
-using Keep.Paper.Services;
+using Keep.Hosting.Api;
+using Types = Keep.Hosting.Api.Types;
+using Keep.Hosting.Papers;
+using Keep.Hosting.Services;
 using Keep.Tools;
 using Keep.Tools.Reflection;
 using Keep.Tools.Web;
@@ -13,11 +13,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Keep.Tools.Collections;
-using Keep.Paper.Security;
+using Keep.Hosting.Auth;
 using System.Linq;
 using System.Security.Claims;
 
-namespace Keep.Paper.Interceptors
+namespace Keep.Hosting.Interceptors
 {
   public class AuthInterceptor : AbstractPaperInterceptor
   {

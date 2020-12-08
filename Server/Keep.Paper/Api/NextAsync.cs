@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Keep.Paper.Api
+namespace Keep.Hosting.Api
 {
   public delegate Task<object> NextAsync(PaperInfo info);
 }

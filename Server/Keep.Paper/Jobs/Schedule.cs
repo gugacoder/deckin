@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
-namespace Keep.Paper.Jobs
+namespace Keep.Hosting.Jobs
 {
   public class Schedule : IComparable<Schedule>
   {

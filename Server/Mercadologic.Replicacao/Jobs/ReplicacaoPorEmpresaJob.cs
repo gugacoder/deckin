@@ -2,8 +2,8 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Keep.Paper.Api;
-using Keep.Paper.Jobs;
+using Keep.Hosting.Api;
+using Keep.Hosting.Jobs;
 using Keep.Tools;
 using Mercadologic.Replicacao.Business;
 

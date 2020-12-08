@@ -21,17 +21,16 @@
     <PackageReference Include="Microsoft.Data.Sqlite" Version="3.1.9" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Keep.Paper.Client\Keep.Paper.Client.csproj" />
     <ProjectReference Include="..\Keep.Tools\Keep.Tools.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Core\" />
     <Folder Include="Jobs\" />
     <Folder Include="Auditing\" />
-    <Folder Include="Core.Extensions\" />
-    <Folder Include="Jobs.Sql\" />
+    <Folder Include="Extensions\" />
     <Folder Include="Runtime\" />
     <Folder Include="Runtime.Launching\" />
     <Folder Include="Utilities\" />
+    <Folder Include="Runtime.Core\" />
+    <Folder Include="Auth\" />
   </ItemGroup>
 </Project>
