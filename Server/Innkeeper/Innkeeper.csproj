@@ -29,7 +29,7 @@
     <ProjectReference Include="..\Keep.Hosting\Keep.Hosting.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
-    <ProjectReference Include="..\Keep.Hosting.Jobs.Sql\Keep.Hosting.Jobs.Sql.csproj">
+    <ProjectReference Include="..\Keep.Hosting.Modules.SqlJobs\Keep.Hosting.Modules.SqlJobs.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>

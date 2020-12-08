@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Keep.Hosting.Jobs.Sql
+namespace Keep.Hosting.Modules.SqlJobs
 {
   public interface ISqlJobScheduler
   {

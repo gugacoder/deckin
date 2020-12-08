@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Keep.Hosting.Jobs.Sql
+namespace Keep.Hosting.Modules.SqlJobs
 {
   public static class CoreConfiguration
   {

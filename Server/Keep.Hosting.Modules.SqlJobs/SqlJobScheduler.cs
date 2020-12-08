@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Keep.Hosting.Jobs;
 using Keep.Tools;
 
-namespace Keep.Hosting.Jobs.Sql
+namespace Keep.Hosting.Modules.SqlJobs
 {
   public class SqlJobScheduler : ISqlJobScheduler
   {

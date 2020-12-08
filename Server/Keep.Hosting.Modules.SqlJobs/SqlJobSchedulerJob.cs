@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Keep.Hosting.Jobs;
 
-namespace Keep.Hosting.Jobs.Sql
+namespace Keep.Hosting.Modules.SqlJobs
 {
   public class SqlJobSchedulerJob : IJob
   {

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Keep.Hosting.Jobs;
 using Keep.Tools;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Keep.Hosting.Jobs.Sql
+namespace Keep.Hosting.Modules.SqlJobs
 {
   [Expose]
   public class SqlJobFactory : IJobFactory
