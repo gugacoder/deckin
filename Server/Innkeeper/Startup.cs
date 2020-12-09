@@ -43,6 +43,7 @@ namespace Innkeeper
       services.AddInnkeeper();
       services.AddInnkeeperJobs();
       services.AddInnkeeperSqlJobs();
+      services.AddInnkeeperPaper();
 
       services.AddCors(o => o.AddPolicy("AllowCorsPolicy", builder => builder
         .AllowAnyOrigin()

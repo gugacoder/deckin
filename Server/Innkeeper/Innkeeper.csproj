@@ -32,6 +32,9 @@
     <ProjectReference Include="..\Keep.Hosting.Modules.SqlJobs\Keep.Hosting.Modules.SqlJobs.csproj">
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
+    <ProjectReference Include="..\Keep.Hosting.Modules.Paper\Keep.Hosting.Modules.Paper.csproj">
+      <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="meta\papers\**" />
