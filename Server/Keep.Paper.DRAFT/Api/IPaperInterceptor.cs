@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Keep.Hosting.Api
+namespace Keep.Paper.Api
 {
   public interface IPaperInterceptor
   {

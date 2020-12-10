@@ -3,11 +3,11 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Keep.Hosting.Rendering;
+using Keep.Paper.Rendering;
 using Keep.Tools;
 using Keep.Tools.Reflection;
 
-namespace Keep.Hosting.Catalog
+namespace Keep.Paper.Runtime
 {
   public class MethodAction : IAction
   {
@@ -82,7 +82,7 @@ namespace Keep.Hosting.Catalog
         pathName = $"{collection}{action}";
       }
 
-      var path = Catalog.ActionRef.Parse(pathName);
+      var path = Runtime.ActionRef.Parse(pathName);
 
       return new MethodAction(path, method);
     }

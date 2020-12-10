@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Keep.Hosting.Api;
+using Keep.Paper.Api;
 using Keep.Tools;
 
-namespace Keep.Hosting.Services
+namespace Keep.Paper.Services
 {
   internal class AuthCatalog : IAuthCatalog
   {

@@ -6,7 +6,7 @@ using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
 
-namespace Keep.Hosting.Api.Types
+namespace Keep.Paper.Api.Types
 {
   public class Data<T> : Data
   {

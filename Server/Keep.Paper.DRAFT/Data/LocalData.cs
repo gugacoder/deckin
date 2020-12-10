@@ -2,12 +2,12 @@
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
-using Keep.Hosting.Auth;
+using Keep.Paper.Auth;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Data;
 
-namespace Keep.Hosting.Data
+namespace Keep.Paper.Data
 {
   //
   // In-Memory Sqlite DB

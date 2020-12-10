@@ -3,7 +3,7 @@ using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
 
-namespace Keep.Hosting
+namespace Keep.Paper
 {
   public static class DataExtensions
   {

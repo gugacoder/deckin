@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Keep.Hosting.Client;
+using Keep.Paper.Client;
 using Microsoft.AspNetCore.Http;
 
-namespace Keep.Hosting.Middlewares
+namespace Keep.Paper.Middlewares
 {
   internal class StaticFilesMiddleware
   {

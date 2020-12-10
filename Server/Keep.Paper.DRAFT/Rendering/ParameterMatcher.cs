@@ -6,14 +6,14 @@ using System.Net;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Keep.Hosting.Api;
-using Keep.Hosting.Catalog;
+using Keep.Paper.Api;
+using Keep.Paper.Runtime;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 
-namespace Keep.Hosting.Rendering
+namespace Keep.Paper.Rendering
 {
   public class ParameterMatcher
   {

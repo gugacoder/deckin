@@ -4,17 +4,17 @@ using System.Data.Common;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Keep.Hosting.Api;
-using Keep.Hosting.Catalog;
-using Keep.Hosting.Data;
-using Keep.Hosting.Papers;
+using Keep.Paper.Api;
+using Keep.Paper.Runtime;
+using Keep.Paper.Data;
+using Keep.Paper.Papers;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
 using Keep.Tools.Sequel;
 using Keep.Tools.Sequel.Runner;
 
-namespace Keep.Hosting.Templating
+namespace Keep.Paper.Templating
 {
   public class TemplateLoader
   {

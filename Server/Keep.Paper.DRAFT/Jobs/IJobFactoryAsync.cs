@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Keep.Hosting.Jobs
+namespace Keep.Paper.Jobs
 {
   public interface IJobFactoryAsync
   {

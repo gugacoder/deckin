@@ -6,7 +6,7 @@ using System.Text;
 using Keep.Tools;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Keep.Hosting.Auth
+namespace Keep.Paper.Auth
 {
   public class TokenValidation
   {

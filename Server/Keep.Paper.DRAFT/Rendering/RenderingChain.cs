@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Keep.Hosting.Api.Types;
+using Keep.Paper.Api.Types;
 
-namespace Keep.Hosting.Rendering
+namespace Keep.Paper.Rendering
 {
   public delegate Task<object> RenderingChain(IRenderingContext ctx, RenderingChain next);
 }

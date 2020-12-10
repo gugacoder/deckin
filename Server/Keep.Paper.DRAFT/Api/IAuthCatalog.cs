@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Keep.Hosting.Api
+namespace Keep.Paper.Api
 {
   public interface IAuthCatalog
   {

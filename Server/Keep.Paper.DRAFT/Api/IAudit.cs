@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace Keep.Hosting.Api
+namespace Keep.Paper.Api
 {
   public interface IAudit
   {

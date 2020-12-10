@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Keep.Hosting.Templating
+namespace Keep.Paper.Templating
 {
   public interface INode
   {

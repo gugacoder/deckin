@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System.Buffers;
 
-namespace Keep.Hosting.Controllers
+namespace Keep.Paper.Controllers
 {
   [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
   public class NewtonsoftJsonFormatterAttribute : ActionFilterAttribute

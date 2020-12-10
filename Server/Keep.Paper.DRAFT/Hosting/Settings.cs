@@ -2,9 +2,9 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Keep.Hosting.Api;
+using Keep.Paper.Api;
 
-namespace Keep.Hosting.Hosting
+namespace Keep.Paper.Hosting
 {
   public class Settings : ISettings
   {

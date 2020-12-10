@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace Keep.Hosting.Api
+namespace Keep.Paper.Api
 {
   public static class Fault
   {

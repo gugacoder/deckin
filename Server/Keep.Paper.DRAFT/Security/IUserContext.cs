@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading;
-using Keep.Hosting.Auth;
+using Keep.Paper.Auth;
 
-namespace Keep.Hosting.Auth
+namespace Keep.Paper.Auth
 {
   public interface IUserContext
   {

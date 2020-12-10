@@ -9,14 +9,14 @@ using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
-using Keep.Hosting.Auth;
+using Keep.Paper.Auth;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
 using Keep.Tools.Xml;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Keep.Hosting.Auth
+namespace Keep.Paper.Auth
 {
   public class UserIdentityBuilder
   {

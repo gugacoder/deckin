@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using Keep.Hosting.Api;
-using Keep.Hosting.Api.Types;
+using Keep.Paper.Api;
+using Keep.Paper.Api.Types;
 using Keep.Tools;
 using Microsoft.AspNetCore.Http;
 
-namespace Keep.Hosting.Middlewares
+namespace Keep.Paper.Middlewares
 {
   public class ApiMiddleware
   {

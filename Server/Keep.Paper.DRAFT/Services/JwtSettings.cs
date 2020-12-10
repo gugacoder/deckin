@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 
-namespace Keep.Hosting.Services
+namespace Keep.Paper.Services
 {
   internal class JwtSettings : Api.IJwtSettings
   {

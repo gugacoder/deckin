@@ -23,37 +23,14 @@
   <ItemGroup>
     <ProjectReference Include="..\Keep.Paper.Client\Keep.Paper.Client.csproj" />
     <ProjectReference Include="..\Keep.Tools\Keep.Tools.csproj" />
+    <ProjectReference Include="..\Keep.Hosting\Keep.Hosting.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="_draft\" />
-    <Folder Include="_draft\Api\" />
-    <Folder Include="_draft\Api.Types\" />
-    <Folder Include="_draft\AspNet\" />
-    <Folder Include="_draft\Catalog\" />
-    <Folder Include="_draft\Controllers\" />
-    <Folder Include="_draft\Data\" />
-    <Folder Include="_draft\Databases\" />
-    <Folder Include="_draft\Formatters\" />
-    <Folder Include="_draft\Helpers\" />
-    <Folder Include="_draft\Hosting\" />
-    <Folder Include="_draft\Interceptors\" />
-    <Folder Include="_draft\Jobs\" />
-    <Folder Include="_draft\Middlewares\" />
-    <Folder Include="_draft\Papers\" />
-    <Folder Include="_draft\Rendering\" />
-    <Folder Include="_draft\Security\" />
-    <Folder Include="_draft\Services\" />
-    <Folder Include="_draft\Templating\" />
-    <Folder Include="_draft\Types\" />
-    <Folder Include="Rendering\" />
-    <Folder Include="Templating\" />
+    <Folder Include="Design.Modeling\" />
     <Folder Include="Design\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="_draft\Types\Credential.cs" Condition=" '$(EnableDefaultCompileItems)' == 'true' " />
-    <Compile Include="_draft\Types\IUser.cs" Condition=" '$(EnableDefaultCompileItems)' == 'true' " />
-    <Compile Include="_draft\Types\JwtToken.cs" Condition=" '$(EnableDefaultCompileItems)' == 'true' " />
-    <Compile Include="_draft\Types\UserIdentity.cs" Condition=" '$(EnableDefaultCompileItems)' == 'true' " />
-    <Compile Include="_draft\Types\UserInfo.cs" Condition=" '$(EnableDefaultCompileItems)' == 'true' " />
+    <Folder Include="Runtime.Middlewares\" />
+    <Folder Include="Runtime.Interceptors\" />
+    <Folder Include="Runtime.Papers\" />
+    <Folder Include="DesignX\" />
   </ItemGroup>
 </Project>

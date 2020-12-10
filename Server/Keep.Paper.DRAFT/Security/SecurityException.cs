@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Keep.Hosting.Auth
+namespace Keep.Paper.Auth
 {
   public class SecurityException : Exception
   {

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Keep.Tools.Collections;
 
-namespace Keep.Hosting.Api.Types
+namespace Keep.Paper.Api.Types
 {
   public class Payload : IPayload, IPayloadChunk
   {

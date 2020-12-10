@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Keep.Tools;
 
-namespace Keep.Hosting.Api
+namespace Keep.Paper.Api
 {
   public interface IPaperCatalog
   {

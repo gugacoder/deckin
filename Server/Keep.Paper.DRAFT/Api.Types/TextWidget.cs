@@ -2,7 +2,7 @@
 using Keep.Tools;
 using Newtonsoft.Json;
 
-namespace Keep.Hosting.Api.Types
+namespace Keep.Paper.Api.Types
 {
   [Serializable]
   public class TextWidget : Widget

@@ -2,7 +2,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 
-namespace Keep.Hosting.Auth
+namespace Keep.Paper.Auth
 {
   public static class TokenParser
   {

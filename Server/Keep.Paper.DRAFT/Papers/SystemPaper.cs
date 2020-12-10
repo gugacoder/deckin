@@ -1,6 +1,6 @@
 ﻿using System;
-using Keep.Hosting.Api;
-using Types = Keep.Hosting.Api.Types;
+using Keep.Paper.Api;
+using Types = Keep.Paper.Api.Types;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +10,7 @@ using System.Collections;
 using Keep.Tools.Reflection;
 using System.Linq;
 
-namespace Keep.Hosting.Papers
+namespace Keep.Paper.Papers
 {
   [Expose]
   public class SystemPaper : AbstractPaper

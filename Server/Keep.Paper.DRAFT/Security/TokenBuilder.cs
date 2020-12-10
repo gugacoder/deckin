@@ -4,13 +4,13 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using Keep.Hosting.Auth;
+using Keep.Paper.Auth;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Keep.Hosting.Auth
+namespace Keep.Paper.Auth
 {
   public class TokenBuilder
   {

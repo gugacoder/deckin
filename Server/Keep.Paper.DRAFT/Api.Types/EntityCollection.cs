@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Keep.Tools.Collections;
 
-namespace Keep.Hosting.Api.Types
+namespace Keep.Paper.Api.Types
 {
   public class EntityCollection : Collection<Entity>
   {

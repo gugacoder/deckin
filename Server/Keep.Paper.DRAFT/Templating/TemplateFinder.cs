@@ -5,13 +5,13 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Keep.Hosting.Api;
+using Keep.Paper.Api;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
 using Keep.Tools.Xml;
 
-namespace Keep.Hosting.Templating
+namespace Keep.Paper.Templating
 {
   public class TemplateFinder
   {

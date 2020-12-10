@@ -6,10 +6,10 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using Keep.Hosting.Api;
-using Keep.Hosting.Api.Types;
-using Keep.Hosting.Auth;
-using Keep.Hosting.Auth;
+using Keep.Paper.Api;
+using Keep.Paper.Api.Types;
+using Keep.Paper.Auth;
+using Keep.Paper.Auth;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
@@ -17,7 +17,7 @@ using Keep.Tools.Web;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Keep.Hosting.Middlewares
+namespace Keep.Paper.Middlewares
 {
   public class AuthenticationMiddleware
   {

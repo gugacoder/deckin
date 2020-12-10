@@ -3,15 +3,15 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Keep.Hosting.Api;
-using Keep.Hosting.Catalog;
-using Keep.Hosting.Client;
-using Keep.Hosting.Databases;
-using Keep.Hosting.Jobs;
-using Keep.Hosting.Middlewares;
-using Keep.Hosting.Papers;
-using Keep.Hosting.Auth;
-using Keep.Hosting.Services;
+using Keep.Paper.Api;
+using Keep.Paper.Runtime;
+using Keep.Paper.Client;
+using Keep.Paper.Databases;
+using Keep.Paper.Jobs;
+using Keep.Paper.Middlewares;
+using Keep.Paper.Papers;
+using Keep.Paper.Auth;
+using Keep.Paper.Services;
 using Keep.Tools;
 using Keep.Tools.Reflection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -25,7 +25,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.EventLog;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Keep.Hosting.AspNet
+namespace Keep.Paper.AspNet
 {
   public static class MvcExtensions
   {

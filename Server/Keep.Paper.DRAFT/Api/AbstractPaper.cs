@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Http;
 
-namespace Keep.Hosting.Api
+namespace Keep.Paper.Api
 {
   public abstract class AbstractPaper : IPaper
   {

@@ -3,10 +3,10 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading;
-using Keep.Hosting.Auth;
+using Keep.Paper.Auth;
 using Microsoft.AspNetCore.Http;
 
-namespace Keep.Hosting.Auth
+namespace Keep.Paper.Auth
 {
   public class UserContext : IUserContext
   {

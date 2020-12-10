@@ -3,7 +3,7 @@ using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Keep.Hosting.Databases
+namespace Keep.Paper.Databases
 {
   public interface IDbContext
   {

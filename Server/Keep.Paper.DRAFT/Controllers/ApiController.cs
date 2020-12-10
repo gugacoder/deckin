@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Net;
-using Keep.Hosting.Api;
-using Types = Keep.Hosting.Api.Types;
-using Keep.Hosting.Formatters;
+using Keep.Paper.Api;
+using Types = Keep.Paper.Api.Types;
+using Keep.Paper.Formatters;
 using Keep.Tools;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Keep.Hosting.Controllers
+namespace Keep.Paper.Controllers
 {
   [Route("/Api/1")]
   public class ApiController : Controller

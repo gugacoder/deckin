@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
-namespace Keep.Hosting.Data
+namespace Keep.Paper.Data
 {
   public abstract class DbConnector<T> : IDbConnector, IDbConnectorProxy
     where T : IDbConnector

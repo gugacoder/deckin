@@ -190,4 +190,8 @@ Global
 		{BF814B2B-9090-4872-B7E2-141B5F849FE5} = {40D850E1-1ABA-41A4-9FB5-5D0A562F66A6}
 		{E9D57FCC-EBA0-417D-937A-E0D624230040} = {40D850E1-1ABA-41A4-9FB5-5D0A562F66A6}
 	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.VersionControlPolicy = $1
+	EndGlobalSection
 EndGlobal

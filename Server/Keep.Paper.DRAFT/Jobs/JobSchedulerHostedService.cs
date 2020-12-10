@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
-namespace Keep.Hosting.Jobs
+namespace Keep.Paper.Jobs
 {
   public class JobSchedulerHostedService : IHostedService
   {

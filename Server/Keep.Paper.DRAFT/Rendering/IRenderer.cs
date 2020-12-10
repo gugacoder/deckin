@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Keep.Hosting.Rendering
+namespace Keep.Paper.Rendering
 {
   public interface IRenderer
   {

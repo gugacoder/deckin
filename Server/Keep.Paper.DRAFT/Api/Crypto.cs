@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Keep.Hosting.Api
+namespace Keep.Paper.Api
 {
   public static class Crypto
   {

@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace Keep.Hosting.Api
+namespace Keep.Paper.Api
 {
   public abstract class AbstractPaperInterceptor : IPaperInterceptor
   {

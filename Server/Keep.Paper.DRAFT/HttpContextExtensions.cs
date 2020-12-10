@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Keep.Hosting.Api.Types;
+using Keep.Paper.Api.Types;
 using Keep.Tools;
 using Keep.Tools.IO;
 using Microsoft.AspNetCore.Http;
 
-namespace Keep.Hosting
+namespace Keep.Paper
 {
   public static class HttpContextExtensions
   {

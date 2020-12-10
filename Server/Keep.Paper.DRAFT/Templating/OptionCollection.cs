@@ -1,7 +1,7 @@
 ﻿using System;
 using Keep.Tools.Collections;
 
-namespace Keep.Hosting.Templating
+namespace Keep.Paper.Templating
 {
   public class OptionCollection : NodeCollection<Option>
   {

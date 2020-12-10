@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Text;
-using Keep.Hosting.Api;
+using Keep.Paper.Api;
 using Keep.Tools;
 using Microsoft.Extensions.Configuration;
 
-namespace Keep.Hosting.Auth
+namespace Keep.Paper.Auth
 {
   public class SecretKey
   {

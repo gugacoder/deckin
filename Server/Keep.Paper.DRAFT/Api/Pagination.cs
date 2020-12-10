@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Keep.Hosting.Api
+namespace Keep.Paper.Api
 {
   [DataContract(Namespace = "")]
   public class Pagination

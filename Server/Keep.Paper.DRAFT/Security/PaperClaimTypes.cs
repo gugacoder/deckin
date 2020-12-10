@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Claims;
 
-namespace Keep.Hosting.Auth
+namespace Keep.Paper.Auth
 {
   public static class PaperClaimTypes
   {

@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using Keep.Tools;
 
-namespace Keep.Hosting.Templating
+namespace Keep.Paper.Templating
 {
   public class Query : Node
   {

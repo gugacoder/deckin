@@ -1,25 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Diagnostics;
-using System.IO;
-using Keep.Hosting.Api;
-using Keep.Hosting.Api.Types;
 using Keep.Tools;
-using Keep.Tools.Sequel;
-using Keep.Tools.Sequel.Runner;
-using Keep.Tools.Xml;
 using Keep.Tools.Collections;
-using System.Xml.Linq;
 using System.Linq;
-using Keep.Tools.Reflection;
-using System.Collections;
-using System.Xml.Serialization;
-using Keep.Hosting.Templating;
-using System.Diagnostics.CodeAnalysis;
-using System.Data;
-using System.Text.RegularExpressions;
-using Keep.Hosting.Auth;
+using Keep.Paper.Draft;
 
 namespace Mercadologic.Replicacao
 {
@@ -29,6 +13,34 @@ namespace Mercadologic.Replicacao
     {
       try
       {
+
+        var data = new DataSet.Cached();
+        data.Add(new { Id = 10, Name = "Tenth" });
+        data.Add(new { Id = 20, Name = "Twenty" });
+        data.Add(new { Id = 30, Name = "Thirty", Age = 3000 });
+
+        Debug.WriteLine(string.Join(",", data.Rows.FirstOrDefault().Keys));
+        Debug.WriteLine(string.Join(",", data.Rows.LastOrDefault().Keys));
+
+        Debug.WriteLine(data.GetValue(0, 0));
+        Debug.WriteLine(data.GetValue(0, "Name"));
+        
+        Debug.WriteLine(data.Rows[0].GetValue(0));
+        Debug.WriteLine(data.Rows[0].GetValue("Name"));
+        
+        Debug.WriteLine(data.Rows[0].Cells[0].GetValue());
+        Debug.WriteLine(data.Rows[0].Cells["Name"].GetValue());
+
+        foreach (var cell in data.Rows.SelectMany(row => row.Cells))
+        {
+          Debug.WriteLine("- - -");
+          Debug.WriteLine($"RowCount: {cell.ParentSet.Rows.Count}");
+          Debug.WriteLine($"RowIndex: {cell.ParentRow.Index}");
+          Debug.WriteLine($"ColCount: {cell.ParentRow.Cells.Count}");
+          Debug.WriteLine($"ColIndex: {cell.Index}");
+          Debug.WriteLine($"ColValue: {cell.GetValue()}");
+        }
+
       }
       catch (Exception ex)
       {
@@ -37,60 +49,5 @@ namespace Mercadologic.Replicacao
         Console.WriteLine(ex.GetStackTrace());
       }
     }
-
-    //public const string Anonymous = nameof(Anonymous);
-
-    //private Regex regex = new Regex(@"^(?:([\w-._]+)?([/\\:]))?(.+)$");
-    //private char? separator;
-
-    //public string User { get; private set; }
-    //public string Domain { get; private set; }
-
-    //public string GetLoginName() => $"{Domain}{separator}{User}";
-
-    //public void SetLoginName(string user, string domain)
-    //{
-    //  this.User = user;
-    //  if (!string.IsNullOrEmpty(domain))
-    //  {
-    //    this.Domain = domain;
-    //    this.separator = '/';
-    //  }
-    //  else
-    //  {
-    //    this.Domain = null;
-    //    this.separator = null;
-    //  }
-    //}
-
-    //public void SetLoginName(string login)
-    //{
-    //  var match = regex.Match(login);
-    //  if (!match.Success)
-    //  {
-    //    this.User = login;
-    //    this.Domain = null;
-    //    this.separator = null;
-    //    return;
-    //  }
-
-    //  var domain = match.Groups[1].Value;
-    //  var separator = match.Groups[2].Value;
-    //  var username = match.Groups[3].Value;
-
-    //  if (string.IsNullOrEmpty(domain))
-    //  {
-    //    domain = null;
-    //    separator = null;
-    //  }
-    //  else if (separator != ":")
-    //  {
-    //    separator = "/";
-    //  }
-
-    //  this.User = username;
-    //  this.Domain = domain;
-    //  this.separator = separator?.First();
-    //}
   }
 }

@@ -3,7 +3,7 @@ using System.Xml.Serialization;
 using Keep.Tools.Collections;
 using Newtonsoft.Json;
 
-namespace Keep.Hosting.Api.Types
+namespace Keep.Paper.Api.Types
 {
   [Serializable]
   public class GridView : View

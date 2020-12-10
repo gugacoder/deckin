@@ -7,12 +7,12 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
-using Keep.Hosting.Api;
-using Types = Keep.Hosting.Api.Types;
-using Keep.Hosting.Formatters;
-using Keep.Hosting.Interceptors;
-using Keep.Hosting.Papers;
-using Keep.Hosting.Services;
+using Keep.Paper.Api;
+using Types = Keep.Paper.Api.Types;
+using Keep.Paper.Formatters;
+using Keep.Paper.Interceptors;
+using Keep.Paper.Papers;
+using Keep.Paper.Services;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Reflection;
@@ -22,11 +22,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using Keep.Hosting.Catalog;
-using Keep.Hosting.Rendering;
+using Keep.Paper.Runtime;
+using Keep.Paper.Rendering;
 using System.Threading;
 
-namespace Keep.Hosting.Controllers
+namespace Keep.Paper.Controllers
 {
   [Route(Href.ApiPrefix)]
   [NewtonsoftJsonFormatter]
@@ -82,7 +82,7 @@ namespace Keep.Hosting.Controllers
     {
       // Path tem a forma: Nome.Nome(Arg;Arg)
       //
-      var actionName = Catalog.ActionRef.GetName(path);
+      var actionName = Runtime.ActionRef.GetName(path);
       var action = catalog.GetAction(actionName);
       if (action == null)
         return await next.Invoke(ctx, next);

@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Keep.Hosting
+namespace Keep.Paper
 {
   public static class ServiceProviderExtensions
   {

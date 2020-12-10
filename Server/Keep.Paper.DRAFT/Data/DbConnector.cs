@@ -4,13 +4,13 @@ using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Keep.Hosting.Api;
+using Keep.Paper.Api;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Keep.Tools.Data;
 using Microsoft.Extensions.Configuration;
 
-namespace Keep.Hosting.Data
+namespace Keep.Paper.Data
 {
   /// <summary>
   /// Gerenciador central de strings de conexão  Paper.

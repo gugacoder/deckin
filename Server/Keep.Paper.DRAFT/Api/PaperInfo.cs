@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace Keep.Hosting.Api
+namespace Keep.Paper.Api
 {
   public class PaperInfo
   {

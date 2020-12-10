@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Keep.Hosting.Api
+namespace Keep.Paper.Api
 {
   [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Method)]
   public class CatalogNameAttribute : Attribute

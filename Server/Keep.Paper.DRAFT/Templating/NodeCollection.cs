@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using Keep.Hosting.Templating;
+using Keep.Paper.Templating;
 using Keep.Tools.Collections;
 
-namespace Keep.Hosting.Templating
+namespace Keep.Paper.Templating
 {
   public class NodeCollection<T> : Collection<T>, INode
     where T : INode

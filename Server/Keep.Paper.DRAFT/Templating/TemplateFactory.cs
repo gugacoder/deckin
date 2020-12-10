@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Keep.Hosting.Api;
-using Keep.Hosting.Catalog;
-using Keep.Hosting.Data;
-using Keep.Hosting.Papers;
+using Keep.Paper.Api;
+using Keep.Paper.Runtime;
+using Keep.Paper.Data;
+using Keep.Paper.Papers;
 using Keep.Tools;
 using Keep.Tools.Collections;
 
-namespace Keep.Hosting.Templating
+namespace Keep.Paper.Templating
 {
   [Expose]
   public class TemplateFactory : IActionFactory

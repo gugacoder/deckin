@@ -9,14 +9,14 @@ using Keep.Tools;
 using Keep.Tools.Collections;
 using Newtonsoft.Json;
 
-namespace Keep.Hosting.Api.Types
+namespace Keep.Paper.Api.Types
 {
   [Serializable]
   public class Action : Entity
   {
     protected override string BaseKind
     {
-      get => base.BaseKind ?? Keep.Hosting.Api.Kind.Action;
+      get => base.BaseKind ?? Keep.Paper.Api.Kind.Action;
       set => base.BaseKind = value;
     }
 

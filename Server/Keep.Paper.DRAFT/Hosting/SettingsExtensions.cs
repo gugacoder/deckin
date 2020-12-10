@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Keep.Tools;
 using Keep.Tools.Reflection;
 
-namespace Keep.Hosting.Hosting
+namespace Keep.Paper.Hosting
 {
   public static class SettingsExtensions
   {

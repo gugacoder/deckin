@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Keep.Hosting.Api
+namespace Keep.Paper.Api
 {
   [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
   public class FallbackAttribute : Attribute

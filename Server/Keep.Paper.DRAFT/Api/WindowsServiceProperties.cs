@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
-namespace Keep.Hosting.Api
+namespace Keep.Paper.Api
 {
   public class WindowsServiceProperties
   {

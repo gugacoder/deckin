@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Linq;
-using Keep.Hosting.Api;
-using Types = Keep.Hosting.Api.Types;
-using Keep.Hosting.Services;
+using Keep.Paper.Api;
+using Types = Keep.Paper.Api.Types;
+using Keep.Paper.Services;
 using Keep.Tools;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Keep.Tools.Collections;
 
-namespace Keep.Hosting.Papers
+namespace Keep.Paper.Papers
 {
   [Expose]
   public class HomePaper : AbstractPaper

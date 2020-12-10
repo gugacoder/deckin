@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Xml.Serialization;
-using Keep.Hosting.Auth;
+using Keep.Paper.Auth;
 using Keep.Tools;
 using Keep.Tools.Collections;
 using Newtonsoft.Json;
 
-namespace Keep.Hosting.Api.Types
+namespace Keep.Paper.Api.Types
 {
   public class Status : Entity
   {
