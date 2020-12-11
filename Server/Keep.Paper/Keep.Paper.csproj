@@ -32,5 +32,15 @@
     <Folder Include="Runtime.Interceptors\" />
     <Folder Include="Runtime.Papers\" />
     <Folder Include="DesignX\" />
+    <Folder Include="DesignX\Rendering\" />
+    <Folder Include="DesignX\Modeling\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="DesignX\.Draft\DataSet.cs" />
+    <Compile Remove="DesignX\.Draft\Row.cs" />
+    <Compile Remove="DesignX\.Draft\Cell.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DesignX\.Draft\_Sandbox.cs" />
   </ItemGroup>
 </Project>

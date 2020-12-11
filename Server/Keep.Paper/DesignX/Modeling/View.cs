@@ -3,15 +3,17 @@ using Keep.Tools.Collections;
 
 namespace Keep.Paper.DesignX
 {
-  public class Form
+  public class View
   {
-    public string Name { get; set; }
+    public Resource Resource { get; set; }
 
     public string Title { get; set; }
 
-    public DataSet Data { get; set; }
+    public string Target { get; set; }
 
-    public View View { get; set; }
+    public Data Data { get; set; }
+
+    public Disposition Disposition { get; set; }
 
     public FieldCollection Fields { get; set; }
 
