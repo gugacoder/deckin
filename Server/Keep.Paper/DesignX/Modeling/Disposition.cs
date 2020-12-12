@@ -1,5 +1,6 @@
 ﻿using System;
-namespace Keep.Paper.DesignX
+
+namespace Keep.Paper.DesignX.Modeling
 {
   public abstract class Disposition
   {

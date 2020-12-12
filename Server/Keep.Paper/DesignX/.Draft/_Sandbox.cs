@@ -1,16 +1,35 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using Keep.Paper.DesignX.Modeling;
 
 namespace Keep.Paper.DesignX
 {
+  public class Page { }
+  public class Sort { }
+
+  public class User { }
+  public class UserFilter { }
+  public class UserEdit { }
+  public class UserForm { }
+
+  public interface IUserManager
+  {
+    User[] ListUsers(UserFilter filter, Page page, Sort sort);
+
+    User CreateUser(UserForm form);
+
+    User[] EditUser(UserEdit edit, User[] users);
+  }
+
+
   public class _Sandbox
   {
     void Sample()
     {
       var view = new View();
 
-      view.Name = "MyFirstForm";
+      view.Resource = "MyFirstForm(Id=10)";
       view.Title = "My First Form";
 
       // DataSet é exibido como grade

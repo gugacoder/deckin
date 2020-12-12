@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 
-namespace Keep.Paper.DesignX
+namespace Keep.Paper.DesignX.Modeling
 {
   public abstract class Data
   {

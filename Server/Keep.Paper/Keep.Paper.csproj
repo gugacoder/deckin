@@ -43,4 +43,7 @@
   <ItemGroup>
     <Compile Include="DesignX\.Draft\_Sandbox.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="DesignX\.Draft\PaperLang.md" />
+  </ItemGroup>
 </Project>
