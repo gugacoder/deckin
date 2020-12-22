@@ -13,6 +13,11 @@ namespace Keep.Tools
 {
   public static class Change
   {
+    public static string Case(string sentence, TextCase textCase)
+    {
+      return StringExtensions.ChangeCase(sentence, textCase);
+    }
+
     public static object To(object value, Type targetType)
     {
       return Convert(value, targetType, Default.Of(targetType));

@@ -13,9 +13,6 @@ namespace Keep.Tools
 {
   public static class StringExtensions
   {
-    private static string delimiters = "_.:-";
-    private static char[] delimitersChars = delimiters.ToArray();
-
     #region Conversions
 
     public static string RemoveDiacritics(this string text)
@@ -77,191 +74,16 @@ namespace Keep.Tools
     #region Name Conventions
 
     public static string ToCamelCase(this string sentence)
-        => ChangeCase(sentence, TextCase.CamelCase);
+        => CaseChanger.ChangeCase(sentence, TextCase.CamelCase);
 
     public static string ToPascalCase(this string sentence)
-        => ChangeCase(sentence, TextCase.PascalCase);
+        => CaseChanger.ChangeCase(sentence, TextCase.PascalCase);
 
     public static string ToProperCase(this string sentence)
-        => ChangeCase(sentence, TextCase.ProperCase);
+        => CaseChanger.ChangeCase(sentence, TextCase.ProperCase);
 
     public static string ChangeCase(this string sentence, TextCase textCase)
-    {
-      var isPreserveData = textCase.HasFlag(TextCase.PreserveSpecialCharacters);
-      if (isPreserveData)
-      {
-        var separators = delimiters.Substring(1);
-        var matches = Regex.Matches(sentence, $"([^{separators}]+)([{separators}]+)?");
-        var sentences = (
-          from match in matches.Cast<Match>()
-          select new[]
-          {
-            DoChangeCase(match.Groups[1].Value, textCase),
-            match.Groups[2].Value
-          }
-        ).SelectMany();
-        return string.Join("", sentences);
-      }
-      else
-      {
-        return DoChangeCase(sentence, textCase);
-      }
-    }
-
-    private static string DoChangeCase(this string sentence, TextCase textCase)
-    {
-      if (sentence == null)
-        return null;
-
-      if (textCase == TextCase.Default || textCase == TextCase.KeepOriginal)
-        return sentence;
-
-      var canPrefix = !textCase.HasFlag(TextCase.NoPrefix);
-      textCase &= ~TextCase.NoPrefix;
-
-      var isPreserveData = textCase.HasFlag(TextCase.PreserveSpecialCharacters);
-      textCase &= ~TextCase.PreserveSpecialCharacters;
-
-      var isProperCase = (textCase == TextCase.ProperCase);
-      if (isProperCase)
-        textCase |= TextCase.Spaced;
-
-      var preserved = isPreserveData ? @"?!#$%&@*+/\;<>=^~()[]{}" : "";
-
-      sentence = Regex.Replace(sentence, $@"\s", " ");
-      sentence = Regex.Replace(sentence, $@"[^\s0-9a-zA-ZÀ-ÿ{delimiters}{preserved}]", " ");
-      if (isPreserveData)
-        sentence = Regex.Replace(sentence, $@"([{preserved}])", " $1 ");
-      if (!isProperCase)
-        sentence = sentence.RemoveDiacritics();
-
-      string prefix = null;
-      string suffix = null;
-      bool hasPrefix = false;
-      if (canPrefix && !isProperCase)
-      {
-        prefix = string.Concat(sentence.TakeWhile(delimitersChars.Contains));
-        suffix = string.Concat(sentence.Reverse().TakeWhile(delimitersChars.Contains).Reverse());
-        hasPrefix = (prefix.Length > 0 || suffix.Length > 0);
-      }
-
-      var words = EnumerateWords(sentence);
-      if (!words.Any())
-        return string.Empty;
-
-      var wordCaseMask = TextCase.UpperCase | TextCase.LowerCase | TextCase.ProperCase;
-      var wordCase = textCase & wordCaseMask;
-
-      var delimiterMask = TextCase.Hyphenated | TextCase.Underscore | TextCase.Dotted | TextCase.Spaced | TextCase.Joined;
-      var delimiter = textCase & delimiterMask;
-
-      // camel case recebe tratamento especial por este algoritmo
-      var camelCaseMask = (int)(TextCase.CamelCase ^ TextCase.ProperCase ^ TextCase.Joined);
-      var isCamelCase = (((int)textCase) & camelCaseMask) != 0;
-
-      switch (wordCase)
-      {
-        case TextCase.UpperCase:
-          words = words.Select(word => word.ToUpper());
-          break;
-
-        case TextCase.ProperCase:
-          words = words.Select(word => char.ToUpper(word[0]) + word.Substring(1));
-          break;
-      }
-
-      if (isCamelCase)
-      {
-        var firstWord = words.Take(1).Select(x => x.ToLower());
-        var otherWords = words.Skip(1);
-        words = firstWord.Concat(otherWords);
-      }
-
-      string text = null;
-
-      if (delimiter.HasFlag(TextCase.Spaced))
-      {
-        text = string.Join(" ", words);
-      }
-      else if (delimiter.HasFlag(TextCase.Joined))
-      {
-        text = string.Concat(words);
-      }
-      else if (delimiter.HasFlag(TextCase.Hyphenated))
-      {
-        text = string.Join("-", words);
-      }
-      else if (delimiter.HasFlag(TextCase.Underscore))
-      {
-        text = string.Join("_", words);
-      }
-      else if (delimiter.HasFlag(TextCase.Dotted))
-      {
-        text = string.Join(".", words);
-      }
-      else
-      {
-        text = string.Concat(words);
-      }
-
-      if (hasPrefix)
-      {
-        if (delimiter.HasFlag(TextCase.Hyphenated))
-        {
-          return '-'.Replicate(prefix.Length) + text + '-'.Replicate(suffix.Length);
-        }
-        else if (delimiter.HasFlag(TextCase.Underscore))
-        {
-          return '_'.Replicate(prefix.Length) + text + '_'.Replicate(suffix.Length);
-        }
-        else
-        {
-          return prefix + text + suffix;
-        }
-      }
-
-      return text;
-    }
-
-    public static IEnumerable<string> EnumerateWords(this string sentence)
-    {
-      var characters = ReplaceDelimiters(sentence);
-      var phrase = new string(characters.ToArray());
-      return phrase.Split(' ').Where(x => !string.IsNullOrWhiteSpace(x));
-    }
-
-    private static IEnumerable<char> ReplaceDelimiters(string sentence)
-    {
-      var previous = '\x0';
-      foreach (var current in sentence.Trim())
-      {
-        if (delimitersChars.Contains(current))
-        {
-          yield return ' ';
-        }
-        else if (char.IsNumber(current))
-        {
-          if (!char.IsNumber(previous))
-          {
-            yield return ' ';
-          }
-          yield return current;
-        }
-        else if (char.IsUpper(current))
-        {
-          if (!char.IsUpper(previous))
-          {
-            yield return ' ';
-          }
-          yield return char.ToLower(current);
-        }
-        else
-        {
-          yield return current;
-        }
-        previous = current;
-      }
-    }
+        => CaseChanger.ChangeCase(sentence, textCase);
 
     #endregion
 

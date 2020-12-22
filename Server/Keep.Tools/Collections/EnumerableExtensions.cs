@@ -67,6 +67,17 @@ namespace Keep.Tools.Collections
     }
 
     /// <summary>
+    /// Resulta um enumerado vazio caso o enumerado origem seja nulo.
+    /// </summary>
+    /// <typeparam name="T">O tipo do enumerado.</typeparam>
+    /// <param name="enumerable">O enumerador.</param>
+    /// <returns>O enumerado origem ou um enumerado vazio.</returns>
+    public static IEnumerable<T> EmptyIfNull<T>(this IEnumerable<T> enumerable)
+    {
+      return enumerable ?? Enumerable.Empty<T>();
+    }
+
+    /// <summary>
     /// Emite apenas os itens não nulos.
     /// </summary>
     /// <typeparam name="T">O tipo do enumerado.</typeparam>
