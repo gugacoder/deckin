@@ -33,10 +33,8 @@ namespace Keep.Hosting.Modules.SqlJobs
       return Task.CompletedTask;
     }
 
-    int counter = 0;
     private async Task SynchronizeAsync(CancellationToken stopToken)
     {
-      Debug.WriteLine($"Contando {++counter} ...");
       await Task.CompletedTask;
     }
   }

@@ -21,7 +21,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Keep.Hosting.Runtime.Core
 {
-  public static class AspNetCoreConfiguration
+  public static class CoreConfiguration
   {
     public static IHostBuilder ConfigureInnkeeper(
       this IHostBuilder hostBuilder, Action<IWebHostBuilder> webBuilder)

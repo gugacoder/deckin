@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keep.Hosting.Modules.SqlJob
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keep.Hosting.Modules.Paper", "Server\Keep.Hosting.Modules.Paper\Keep.Hosting.Modules.Paper.csproj", "{572FEEFE-1363-43ED-AB04-16DA1E6A2900}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Innkeeper.Sandbox", "Server\Innkeeper.Sandbox\Innkeeper.Sandbox.csproj", "{A669C03A-5106-46BE-9CA1-9A085B9D538B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -160,6 +162,18 @@ Global
 		{572FEEFE-1363-43ED-AB04-16DA1E6A2900}.Release|x64.Build.0 = Release|Any CPU
 		{572FEEFE-1363-43ED-AB04-16DA1E6A2900}.Release|x86.ActiveCfg = Release|Any CPU
 		{572FEEFE-1363-43ED-AB04-16DA1E6A2900}.Release|x86.Build.0 = Release|Any CPU
+		{A669C03A-5106-46BE-9CA1-9A085B9D538B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A669C03A-5106-46BE-9CA1-9A085B9D538B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A669C03A-5106-46BE-9CA1-9A085B9D538B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A669C03A-5106-46BE-9CA1-9A085B9D538B}.Debug|x64.Build.0 = Debug|Any CPU
+		{A669C03A-5106-46BE-9CA1-9A085B9D538B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A669C03A-5106-46BE-9CA1-9A085B9D538B}.Debug|x86.Build.0 = Debug|Any CPU
+		{A669C03A-5106-46BE-9CA1-9A085B9D538B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A669C03A-5106-46BE-9CA1-9A085B9D538B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A669C03A-5106-46BE-9CA1-9A085B9D538B}.Release|x64.ActiveCfg = Release|Any CPU
+		{A669C03A-5106-46BE-9CA1-9A085B9D538B}.Release|x64.Build.0 = Release|Any CPU
+		{A669C03A-5106-46BE-9CA1-9A085B9D538B}.Release|x86.ActiveCfg = Release|Any CPU
+		{A669C03A-5106-46BE-9CA1-9A085B9D538B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -174,6 +188,8 @@ Global
 		{572FEEFE-1363-43ED-AB04-16DA1E6A2900} = {40D850E1-1ABA-41A4-9FB5-5D0A562F66A6}
 		{5585C66E-A8F9-44F5-A87C-F1C6AE5D58A7} = {40D850E1-1ABA-41A4-9FB5-5D0A562F66A6}
 		{BF814B2B-9090-4872-B7E2-141B5F849FE5} = {40D850E1-1ABA-41A4-9FB5-5D0A562F66A6}
+		{A669C03A-5106-46BE-9CA1-9A085B9D538B} = {40D850E1-1ABA-41A4-9FB5-5D0A562F66A6}
+		{A1711D92-A194-402D-B8E9-B4F67B5399A8} = {40D850E1-1ABA-41A4-9FB5-5D0A562F66A6}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0

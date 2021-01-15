@@ -21,18 +21,8 @@
     <PackageReference Include="Microsoft.Data.Sqlite" Version="3.1.9" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Keep.Paper.Client\Keep.Paper.Client.csproj" />
     <ProjectReference Include="..\Keep.Tools\Keep.Tools.csproj" />
     <ProjectReference Include="..\Keep.Hosting\Keep.Hosting.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Design\" />
-    <Folder Include="Design.Serialization\" />
-    <Folder Include="Design.Rendering\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Design\ISerializable.cs" />
-    <Compile Remove="Design\SerializedValue.cs" />
-    <Compile Remove="Design\SerializedValue %28copy%29.cs" />
+    <ProjectReference Include="..\Keep.Paper\Keep.Paper.csproj" />
   </ItemGroup>
 </Project>

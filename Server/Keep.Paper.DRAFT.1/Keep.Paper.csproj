@@ -26,13 +26,24 @@
     <ProjectReference Include="..\Keep.Hosting\Keep.Hosting.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Design.Modeling\" />
     <Folder Include="Design\" />
-    <Folder Include="Design.Serialization\" />
-    <Folder Include="Design.Rendering\" />
+    <Folder Include="Runtime.Middlewares\" />
+    <Folder Include="Runtime.Interceptors\" />
+    <Folder Include="Runtime.Papers\" />
+    <Folder Include="DesignX\" />
+    <Folder Include="DesignX\Rendering\" />
+    <Folder Include="DesignX\Modeling\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Design\ISerializable.cs" />
-    <Compile Remove="Design\SerializedValue.cs" />
-    <Compile Remove="Design\SerializedValue %28copy%29.cs" />
+    <Compile Remove="DesignX\.Draft\DataSet.cs" />
+    <Compile Remove="DesignX\.Draft\Row.cs" />
+    <Compile Remove="DesignX\.Draft\Cell.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DesignX\.Draft\_Sandbox.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="DesignX\.Draft\PaperLang.md" />
   </ItemGroup>
 </Project>
