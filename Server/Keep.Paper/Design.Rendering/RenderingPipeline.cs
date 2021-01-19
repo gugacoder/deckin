@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Keep.Hosting.Extensions;
 using Keep.Tools;
+using Microsoft.AspNetCore.Http;
 
 namespace Keep.Paper.Design.Rendering
 {
@@ -44,19 +46,29 @@ namespace Keep.Paper.Design.Rendering
     public async Task RenderAsync(IDesignContext ctx, IRequest req,
       IResponse res)
     {
-      var chain = renderers.GetEnumerator();
-
-      NextAsync next = null;
-      next = new NextAsync(async (ctx, req, res) =>
+      try
       {
-        if (chain.MoveNext())
-        {
-          var renderer = chain.Current;
-          await renderer.RenderAsync(ctx, req, res, next);
-        }
-      });
+        var chain = renderers.GetEnumerator();
 
-      await next.Invoke(ctx, req, res);
+        NextAsync next = null;
+        next = new NextAsync(async (ctx, req, res) =>
+        {
+          if (!chain.MoveNext())
+          {
+            await res.WriteAsync(new Status(StatusCodes.Status404NotFound,
+              "O recurso procurado não existe."));
+            return;
+          }
+          await chain.Current.RenderAsync(ctx, req, res, next);
+        });
+
+        await next.Invoke(ctx, req, res);
+      }
+      catch (Exception ex)
+      {
+        await res.WriteAsync(new Status(HttpStatusCode.InternalServerError,
+          ex.GetCauseMessage()));
+      }
     }
   }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,6 +30,11 @@ namespace Keep.Hosting.Runtime.Core
     {
       hostBuilder.ConfigureServices(services =>
         {
+          // if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+          services.Configure<KestrelServerOptions>(options =>
+          {
+            options.AllowSynchronousIO = true;
+          });
           services.Configure<EventLogSettings>(config =>
           {
             config.LogName = App.Name;

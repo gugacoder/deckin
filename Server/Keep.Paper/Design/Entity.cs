@@ -5,6 +5,9 @@ using Newtonsoft.Json;
 
 namespace Keep.Paper.Design
 {
+  [JsonObject(
+    ItemNullValueHandling = NullValueHandling.Ignore,
+    ItemReferenceLoopHandling = ReferenceLoopHandling.Ignore)]
   public class Entity : IDesign
   {
     [JsonProperty(Order = -20000)]

@@ -64,6 +64,7 @@ namespace Innkeeper
       //app.UsePaperStaticFiles(options => options.UseDefaultFiles());
 
       app.UseRouting();
+      app.UseInnkeeperPaper();
 
       //app.UsePaperApi();
       //app.UsePaperAuthentication();

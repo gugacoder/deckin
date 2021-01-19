@@ -8,12 +8,14 @@ namespace Keep.Paper.Design.Serialization
   public static class DesignSerializerExtensions
   {
     public static async Task<string> SerializeAsync(
-      this IDesignSerializer serializer, IDesign design,
+      this IDesignSerializer serializer, IDesign @object,
       CancellationToken stopToken = default)
     {
-      using var writer = new StringWriter();
-      await serializer.SerializeAsync(design, writer, stopToken);
-      var image = writer.ToString();
+      using var memory = new MemoryStream();
+      await serializer.SerializeAsync(memory, @object, stopToken);
+      memory.Position = 0;
+      using var reader = new StreamReader(memory);
+      var image = await reader.ReadToEndAsync();
       return image;
     }
 
@@ -22,8 +24,11 @@ namespace Keep.Paper.Design.Serialization
       CancellationToken stopToken = default)
       where T : IDesign
     {
-      using var reader = new StringReader(image);
-      var design = await serializer.DeserializeAsync<T>(reader, stopToken);
+      using var memory = new MemoryStream();
+      using var writer = new StreamWriter(memory);
+      await writer.WriteAsync(image);
+      memory.Position = 0;
+      var design = await serializer.DeserializeAsync<T>(memory, stopToken);
       return design;
     }
   }

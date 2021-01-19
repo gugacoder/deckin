@@ -13,22 +13,14 @@ namespace Keep.Paper.Design.Rendering
     public static async Task WriteAsync(this IResponse res, IDesign @object,
       CancellationToken stopToken = default)
     {
-      res.Format = new Format
-      {
-        MimeType = "application/json",
-        Charset = "UTF-8",
-        Encoding = null,
-        Language = null
-      };
+      res.Format.MimeType = "application/json";
+      res.Format.Charset = "UTF-8";
+      res.Format.Compression = null;
+      res.Format.Language = null;
 
-      using var writer = new StreamWriter(
-        stream: res.Body,
-        encoding: Encoding.UTF8,
-        leaveOpen: true);
-
-      var serializer = new JsonDesignSerializer();
-      await serializer.SerializeAsync(@object, writer, stopToken);
-      await writer.FlushAsync();
+      var serializer = new DesignSerializer();
+      await serializer.SerializeAsync(res.Body, @object, stopToken);
+      await res.Body.FlushAsync();
     }
   }
 }

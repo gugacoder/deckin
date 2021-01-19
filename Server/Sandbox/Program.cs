@@ -10,11 +10,21 @@ using Keep.Paper.Design.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using Keep.Tools.IO;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Mercadologic.Replicacao
 {
   public class LocalContext : IDesignContext
   {
+  }
+
+  public class LocalFormat : IFormat
+  {
+    public string MimeType { get; set; }
+    public string Charset { get; set; }
+    public string Compression { get; set; }
+    public string Language { get; set; }
   }
 
   public class LocalResponse : IResponse, IDisposable
@@ -28,7 +38,7 @@ namespace Mercadologic.Replicacao
 
     public AcceptedFormats AcceptedFormats { get; } = new AcceptedFormats();
 
-    public Format Format { get; set; } = new Format();
+    public IFormat Format { get; } = new LocalFormat();
 
     public Stream Body => memory;
 
@@ -46,27 +56,50 @@ namespace Mercadologic.Replicacao
 
   public class Program
   {
-    public static void Do(string[] args)
+    public static async Task DoAsync(string[] args)
     {
-      var builder = new ServiceCollection();
-      var services = builder.BuildServiceProvider();
+      var source = new Data
+      {
+        Self = new Ref("Demo", "Sandbox", new { Id = 10 }),
+        Properties = new
+        {
+          Id = 10,
+          Name = "Tenth",
+          Date = DateTime.Now
+        }
+      };
 
-      var ctx = new LocalContext();
+      var memory = new MemoryStream();
+      using var writer = new StreamWriter(memory);
+      using var jsonWriter = new JsonTextWriter(writer);
 
-      var req = new Request();
-      req.Target = new Ref("Demo", "SayHi", new { Name = "Guga Coder" });
+      var jObject = JObject.FromObject(source);
+      await jObject.WriteToAsync(jsonWriter);
 
-      var res = new LocalResponse();
+      await jsonWriter.FlushAsync();
+      await writer.FlushAsync();
 
-      var pipeline = new RenderingPipeline(services);
-      var task = pipeline.RenderAsync(ctx, req, res);
 
-      task.Wait();
 
-      var json = res.ToString();
-      Debug.WriteLine(Json.Beautify(json));
+      memory.Position = 0;
+      var image = await new StreamReader(memory).ReadToEndAsync();
+      Debug.WriteLine("- - -");
+      Debug.WriteLine(Json.Beautify(image));
+      Debug.WriteLine("- - -");
+
+
+
+      memory.Position = 0;
+      using var reader = new StreamReader(memory);
+      using var jsonReader = new JsonTextReader(reader);
+
+      jObject = await JObject.LoadAsync(jsonReader);
+      var target = jObject.ToObject<Data>();
+
+      Debug.WriteLine(Json.Beautify(Json.ToJson(target)));
+      Debug.WriteLine("- - -");
     }
 
-    public static void Main(string[] args) { try { Do(args); } catch (Exception ex) { Debug.WriteLine("FAIL!!!"); Debug.WriteLine(ex.GetCauseMessage()); Debug.WriteLine(ex.GetStackTrace()); } }
+    public static async Task Main(string[] args) { try { await DoAsync(args); } catch (Exception ex) { Debug.WriteLine("FAIL!!!"); Debug.WriteLine(ex.GetCauseMessage()); Debug.WriteLine(ex.GetStackTrace()); } }
   }
 }

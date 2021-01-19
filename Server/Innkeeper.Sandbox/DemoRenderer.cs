@@ -15,7 +15,11 @@ namespace Innkeeper.Sandbox
     public async Task RenderAsync(IDesignContext ctx, IRequest req,
       IResponse res, NextAsync next)
     {
-      if (!req.Target.Type.EqualsIgnoreCase("Demo"))
+      var isDemo =
+        req.Target.Type.EqualsIgnoreCase("Data") &&
+        req.Target.Name.EqualsIgnoreCase("Sandbox");
+
+      if (!isDemo)
       {
         await next.Invoke(ctx, req, res);
         return;

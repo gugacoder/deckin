@@ -10,16 +10,17 @@ namespace Keep.Paper.Design
       return typeof(Ref).IsAssignableFrom(objectType);
     }
 
-    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+    public override object ReadJson(JsonReader reader, Type objectType,
+      object existingValue, JsonSerializer serializer)
     {
       var value = (string)reader.Value;
       return Ref.Parse(value);
     }
 
-    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    public override void WriteJson(JsonWriter writer, object value,
+      JsonSerializer serializer)
     {
       writer.WriteValue(((Ref)value).ToString());
     }
   }
-
 }

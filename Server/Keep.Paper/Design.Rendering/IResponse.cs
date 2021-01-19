@@ -9,7 +9,7 @@ namespace Keep.Paper.Design.Rendering
   {
     AcceptedFormats AcceptedFormats { get; }
 
-    Format Format { get; set; }
+    IFormat Format { get; }
 
     Stream Body { get; }
   }

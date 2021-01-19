@@ -7,11 +7,12 @@ namespace Keep.Paper.Design.Serialization
 {
   public interface IDesignSerializer
   {
-    Task SerializeAsync(IDesign design, TextWriter writer,
-      CancellationToken stopToken = default);
-
-    Task<T> DeserializeAsync<T>(TextReader reader,
+    Task SerializeAsync<T>(Stream output, T design,
       CancellationToken stopToken = default)
-      where T : IDesign;
+        where T : IDesign;
+
+    Task<T> DeserializeAsync<T>(Stream input,
+      CancellationToken stopToken = default)
+        where T : IDesign;
   }
 }

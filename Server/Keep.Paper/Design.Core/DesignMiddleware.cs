@@ -8,21 +8,29 @@ namespace Keep.Paper.Design.Core
 {
   public class DesignMiddleware : IMiddleware
   {
-    private readonly RequestDelegate next;
     private readonly IServiceProvider services;
 
-    public DesignMiddleware(RequestDelegate next, IServiceProvider services)
+    public DesignMiddleware(IServiceProvider services)
     {
-      this.next = next;
       this.services = services;
     }
 
-    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+    public async Task InvokeAsync(HttpContext httpContext, RequestDelegate next)
     {
-      var recover = new DefaultRequestRecover(context);
       var ctx = new DefaultContext();
-      var res = new DefaultResponse();
-      var req = await recover.RecoverRequestAsync();
+      var res = new DefaultResponse(httpContext);
+
+      var recover = new DefaultRequestRecover(httpContext);
+
+      var ret = await recover.TryRecoverRequestAsync();
+      var req = ret.Value;
+
+      if (!ret.Ok)
+      {
+        await res.WriteAsync(new Status(ret.Status.Code, ret.Fault.Message));
+        return;
+      }
+
       var pipeline = new RenderingPipeline(services);
       await pipeline.RenderAsync(ctx, req, res);
     }
