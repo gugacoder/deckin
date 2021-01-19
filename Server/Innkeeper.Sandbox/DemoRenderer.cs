@@ -12,12 +12,12 @@ namespace Innkeeper.Sandbox
   [Expose]
   public class DemoRenderer : IDesignRenderer
   {
-    public async Task RenderAsync(IDesignContext ctx, Request req, IResponse res,
-      CancellationToken stopToken, NextAsync next)
+    public async Task RenderAsync(IDesignContext ctx, IRequest req,
+      IResponse res, NextAsync next)
     {
       if (!req.Target.Type.EqualsIgnoreCase("Demo"))
       {
-        await next.Invoke(ctx, req, res, stopToken);
+        await next.Invoke(ctx, req, res);
         return;
       }
 
@@ -29,7 +29,7 @@ namespace Innkeeper.Sandbox
         Name = "Tenth"
       };
 
-      await res.WriteObjectAsync(data, stopToken);
+      await res.WriteAsync(data);
     }
   }
 }

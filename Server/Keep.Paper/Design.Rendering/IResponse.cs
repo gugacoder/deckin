@@ -7,9 +7,9 @@ namespace Keep.Paper.Design.Rendering
 {
   public interface IResponse
   {
-    Accept Accept { get; }
+    AcceptedFormats AcceptedFormats { get; }
 
-    Mime Mime { get; set; }
+    Format Format { get; set; }
 
     Stream Body { get; }
   }

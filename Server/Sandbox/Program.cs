@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using Keep.Paper.Design.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
+using Keep.Tools.IO;
 
 namespace Mercadologic.Replicacao
 {
@@ -18,16 +19,16 @@ namespace Mercadologic.Replicacao
 
   public class LocalResponse : IResponse, IDisposable
   {
-    private MemoryStream memory;
+    private readonly MemoryStream memory;
 
     public LocalResponse()
     {
       memory = new MemoryStream();
     }
 
-    public Accept Accept { get; } = new Accept();
+    public AcceptedFormats AcceptedFormats { get; } = new AcceptedFormats();
 
-    public Mime Mime { get; set; }
+    public Format Format { get; set; } = new Format();
 
     public Stream Body => memory;
 
@@ -37,7 +38,9 @@ namespace Mercadologic.Replicacao
     {
       memory.Position = 0;
       var reader = new StreamReader(memory);
-      return reader.ToString();
+      var writer = new StringWriter();
+      reader.CopyTo(writer);
+      return writer.ToString();
     }
   }
 
@@ -45,11 +48,6 @@ namespace Mercadologic.Replicacao
   {
     public static void Do(string[] args)
     {
-      var request = new Request
-      {
-        Target = "Demo/Echo(Message=Hi you there!)"
-      };
-
       var builder = new ServiceCollection();
       var services = builder.BuildServiceProvider();
 
@@ -60,12 +58,13 @@ namespace Mercadologic.Replicacao
 
       var res = new LocalResponse();
 
-      var pipeline = new DesignRenderingPipeline(services);
-      var task = pipeline.RenderAsync(ctx, req, res, default);
+      var pipeline = new RenderingPipeline(services);
+      var task = pipeline.RenderAsync(ctx, req, res);
 
       task.Wait();
 
-      Debug.WriteLine(res);
+      var json = res.ToString();
+      Debug.WriteLine(Json.Beautify(json));
     }
 
     public static void Main(string[] args) { try { Do(args); } catch (Exception ex) { Debug.WriteLine("FAIL!!!"); Debug.WriteLine(ex.GetCauseMessage()); Debug.WriteLine(ex.GetStackTrace()); } }

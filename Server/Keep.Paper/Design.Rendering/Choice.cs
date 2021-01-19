@@ -27,11 +27,11 @@ namespace Keep.Paper.Design.Rendering
 
     public decimal WeightModifier =>
       Value?.Contains("*/*") == true
-        ? 0
+        ? 0.0M
         : Value?.Contains("*/") == true
           ? 0.3M
           : Value?.Contains("/*") == true
             ? 0.6M
-            : 1;
+            : 1.0M;
   }
 }

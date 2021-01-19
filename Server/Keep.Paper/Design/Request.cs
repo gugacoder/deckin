@@ -1,9 +1,10 @@
 ﻿using System;
+using Keep.Paper.Design.Rendering;
 using Keep.Tools.Collections;
 
 namespace Keep.Paper.Design
 {
-  public class Request : IDesign
+  public class Request : IRequest, IDesign
   {
     public Ref Target { get; set; }
 

@@ -29,6 +29,7 @@
     <Folder Include="Design\" />
     <Folder Include="Design.Serialization\" />
     <Folder Include="Design.Rendering\" />
+    <Folder Include="Design.Core\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Design\ISerializable.cs" />

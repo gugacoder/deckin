@@ -7,11 +7,11 @@ using Keep.Tools;
 
 namespace Keep.Paper.Design.Rendering
 {
-  public class DesignRenderingPipeline
+  public class RenderingPipeline
   {
     private readonly List<IDesignRenderer> renderers;
 
-    public DesignRenderingPipeline(IServiceProvider services)
+    public RenderingPipeline(IServiceProvider services)
     {
       this.renderers = new List<IDesignRenderer>();
       ImportExposedRenderers(services);
@@ -41,22 +41,22 @@ namespace Keep.Paper.Design.Rendering
       }
     }
 
-    public async Task RenderAsync(IDesignContext ctx, Request req, IResponse res,
-      CancellationToken stopToken)
+    public async Task RenderAsync(IDesignContext ctx, IRequest req,
+      IResponse res)
     {
       var chain = renderers.GetEnumerator();
 
       NextAsync next = null;
-      next = new NextAsync(async (ctx, req, res, stopToken) =>
+      next = new NextAsync(async (ctx, req, res) =>
       {
         if (chain.MoveNext())
         {
           var renderer = chain.Current;
-          await renderer.RenderAsync(ctx, req, res, stopToken, next);
+          await renderer.RenderAsync(ctx, req, res, next);
         }
       });
 
-      await next.Invoke(ctx, req, res, stopToken);
+      await next.Invoke(ctx, req, res);
     }
   }
 }

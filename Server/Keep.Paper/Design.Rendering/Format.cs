@@ -1,7 +1,7 @@
 ﻿using System;
 namespace Keep.Paper.Design.Rendering
 {
-  public class Mime
+  public class Format
   {
     public string MimeType { get; set; }
     public string Charset { get; set; }
