@@ -55,7 +55,7 @@ namespace Keep.Paper.Design.Rendering
         {
           if (!chain.MoveNext())
           {
-            await res.WriteAsync(new Status(StatusCodes.Status404NotFound,
+            await res.WriteAsync(Status.Create(StatusCodes.Status404NotFound,
               "O recurso procurado não existe."));
             return;
           }
@@ -66,7 +66,7 @@ namespace Keep.Paper.Design.Rendering
       }
       catch (Exception ex)
       {
-        await res.WriteAsync(new Status(HttpStatusCode.InternalServerError,
+        await res.WriteAsync(Status.Create(HttpStatusCode.InternalServerError,
           ex.GetCauseMessage()));
       }
     }

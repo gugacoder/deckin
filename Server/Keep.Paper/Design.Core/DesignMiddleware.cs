@@ -27,7 +27,7 @@ namespace Keep.Paper.Design.Core
 
       if (!ret.Ok)
       {
-        await res.WriteAsync(new Status(ret.Status.Code, ret.Fault.Message));
+        await res.WriteAsync(Status.Create(ret.Status.Code, ret.Fault.Message));
         return;
       }
 

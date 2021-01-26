@@ -60,7 +60,7 @@ namespace Mercadologic.Replicacao
     {
       var source = new Data
       {
-        Self = new Ref("Demo", "Sandbox", new { Id = 10 }),
+        Self = Ref.Create("Demo", "Sandbox", new { Id = 10 }),
         Properties = new
         {
           Id = 10,
