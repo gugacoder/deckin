@@ -1,26 +1,27 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Keep.Paper.Design.Serialization;
+using Keep.Tools.Collections;
+using Keep.Paper.Design.Spec;
 
 namespace Keep.Paper.Design.Rendering
 {
   public static class ResponseExtensions
   {
-    public static async Task WriteAsync(this IResponse res, IDesign @object,
-      CancellationToken stopToken = default)
+    public static void Normalize(this Response response)
     {
-      res.Format.MimeType = "application/json";
-      res.Format.Charset = "UTF-8";
-      res.Format.Compression = null;
-      res.Format.Language = null;
+      var entities = DescendantsAndSelf(response.Data);
+      entities.ForEach(entity => entity.Self ??= Ref.ForLocalReference(entity));
+      response.Embedded ??= new Collection<IEntity>();
+      response.Embedded.AddMany(entities.Except(response.Embedded));
+    }
 
-      var serializer = new DesignSerializer();
-      await serializer.SerializeAsync(res.Body, @object, stopToken);
-      await res.Body.FlushAsync();
+    private static IEnumerable<IEntity> DescendantsAndSelf(IEntity entity)
+    {
+      yield return entity;
+      foreach (var child in entity.Children())
+        foreach (var item in DescendantsAndSelf(child))
+          yield return item;
     }
   }
 }

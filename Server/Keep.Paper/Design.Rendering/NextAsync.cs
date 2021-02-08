@@ -4,5 +4,5 @@ using System.Threading.Tasks;
 
 namespace Keep.Paper.Design.Rendering
 {
-  public delegate Task NextAsync(IDesignContext ctx, IRequest req, IResponse res);
+  public delegate Task NextAsync(IDesignContext ctx, IRequest req, IOutput @out);
 }

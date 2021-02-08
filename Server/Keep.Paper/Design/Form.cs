@@ -1,9 +1,11 @@
 ﻿using System;
 using Keep.Tools.Collections;
+using Keep.Paper.Design.Spec;
 
 namespace Keep.Paper.Design
 {
-  public class Form
+  [BaseType]
+  public class Form : IDesign
   {
     public object Properties { get; set; }
 

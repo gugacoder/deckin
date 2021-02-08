@@ -2,7 +2,7 @@
 using Keep.Paper.Design.Rendering;
 using Keep.Tools.Collections;
 
-namespace Keep.Paper.Design
+namespace Keep.Paper.Design.Spec
 {
   public class Request : IRequest, IDesign
   {

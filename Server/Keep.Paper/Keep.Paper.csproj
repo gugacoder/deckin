@@ -30,8 +30,8 @@
     <Folder Include="Design.Serialization\" />
     <Folder Include="Design.Rendering\" />
     <Folder Include="Design.Core\" />
-    <Folder Include="Papers\" />
     <Folder Include="Design.Modeling\" />
+    <Folder Include="Design.Spec\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Design\ISerializable.cs" />

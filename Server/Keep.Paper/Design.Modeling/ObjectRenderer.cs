@@ -5,8 +5,10 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Keep.Hosting.Extensions;
 using Keep.Paper.Design.Rendering;
+using Keep.Paper.Design.Spec;
 using Keep.Tools;
 using Keep.Tools.Collections;
+using Keep.Tools.Reflection;
 
 namespace Keep.Paper.Design.Modeling
 {
@@ -25,7 +27,7 @@ namespace Keep.Paper.Design.Modeling
     private HashMap<Entry> LoadExposedPapers()
     {
       var papers = new HashMap<Entry>();
-      var types = ExposedTypes.GetTypes<IPaper>();
+      var types = ExposedTypes.GetTypes<IPaperDesign>();
       var flags = BindingFlags.Public
                 | BindingFlags.Instance
                 | BindingFlags.FlattenHierarchy;
@@ -34,30 +36,33 @@ namespace Keep.Paper.Design.Modeling
         from type in types
         from method in type.GetMethods(flags)
         where typeof(IDesign).IsAssignableFrom(method.ReturnType)
+           || typeof(Task<IDesign>).IsAssignableFrom(method.ReturnType)
         select new Entry { Type = type, Method = method };
 
       foreach (var entry in entries)
       {
-        var @ref = Ref.Create(entry.Method);
-        papers.Add(@ref, entry);
+        var spec = RefSpec.ExtractFrom(entry.Type, entry.Method);
+        Debug.WriteLine(spec);
 
-        Debug.WriteLine(@ref);
+        spec.Keys = null;
+
+        papers.Add(spec, entry);
       }
 
       return papers;
     }
 
     public async Task RenderAsync(IDesignContext ctx, IRequest req,
-      IResponse res, NextAsync next)
+      IOutput @out, NextAsync next)
     {
       var entry = catalog[req.Target];
       if (entry == null)
       {
-        await next.Invoke(ctx, req, res);
+        await next.Invoke(ctx, req, @out);
         return;
       }
 
-      var instance = (IPaper)services.Instantiate(entry.Type);
+      var instance = (IPaperDesign)services.Instantiate(entry.Type);
       var method = entry.Method;
 
       var form = req.Forms?.FirstOrDefault() ?? new Form();
@@ -81,12 +86,14 @@ namespace Keep.Paper.Design.Modeling
       var result = method.Invoke(instance, args);
       var design = (IDesign)result;
 
-      if (design is Entity entity)
-      {
-        entity.Self ??= req.Target;
-      }
+      var response = design as IResponse;
+      if (response == null)
+        throw new NotSupportedException(
+          $"Tipo de responta ainda não suportado: {design.GetType().FullName}");
 
-      await res.WriteAsync(design);
+      response.Data.Self ??= req.Target;
+
+      await @out.WriteAsync(response);
     }
 
     public class Entry

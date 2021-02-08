@@ -1,38 +1,39 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Keep.Hosting.Extensions;
 using Keep.Paper.Design.Rendering;
 using Keep.Tools.Collections;
 using Microsoft.AspNetCore.Http;
+using Keep.Paper.Design.Spec;
 
 namespace Keep.Paper.Design.Core
 {
   public class DesignMiddleware : IMiddleware
   {
-    private readonly IServiceProvider services;
+    private readonly RenderingPipeline pipeline;
 
     public DesignMiddleware(IServiceProvider services)
     {
-      this.services = services;
+      this.pipeline = services.Instantiate<RenderingPipeline>();
     }
 
     public async Task InvokeAsync(HttpContext httpContext, RequestDelegate next)
     {
       var ctx = new DefaultContext();
-      var res = new DefaultResponse(httpContext);
+      var @out = new DefaultOutput(httpContext);
 
-      var recover = new DefaultRequestRecover(httpContext);
+      var recover = new RequestRecover(httpContext);
 
       var ret = await recover.TryRecoverRequestAsync();
       var req = ret.Value;
 
       if (!ret.Ok)
       {
-        await res.WriteAsync(Status.Create(ret.Status.Code, ret.Fault.Message));
+        await @out.WriteAsync(Response.For(ret));
         return;
       }
 
-      var pipeline = new RenderingPipeline(services);
-      await pipeline.RenderAsync(ctx, req, res);
+      await pipeline.RenderAsync(ctx, req, @out);
     }
   }
 }

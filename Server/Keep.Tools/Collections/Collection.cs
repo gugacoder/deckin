@@ -336,6 +336,11 @@ namespace Keep.Tools.Collections
 
     void ICollection.CopyTo(Array array, int index) => ((IList)list).CopyTo(array, index);
 
+    public object Select(Func<object, string> p)
+    {
+      throw new NotImplementedException();
+    }
+
     bool IList.IsFixedSize => ((IList)list).IsFixedSize;
 
     object ICollection.SyncRoot => ((IList)list).SyncRoot;

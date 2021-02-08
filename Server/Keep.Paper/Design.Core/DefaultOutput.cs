@@ -1,26 +1,27 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Keep.Paper.Design.Rendering;
+using Keep.Paper.Design.Serialization;
 using Microsoft.AspNetCore.Http;
 
 namespace Keep.Paper.Design.Core
 {
-  public class DefaultResponse : IResponse
+  public class DefaultOutput : IOutput
   {
-    private readonly HttpRequest req;
     private readonly HttpResponse res;
 
-    public DefaultResponse(HttpContext httpContext)
+    public DefaultOutput(HttpContext httpContext)
     {
-      this.req = httpContext.Request;
       this.res = httpContext.Response;
-      this.Format = new DefaultFormat(httpContext);
+      this.BodyFormat = new DefaultFormat(httpContext);
       this.Body = res.Body;
     }
 
     public AcceptedFormats AcceptedFormats { get; private set; }
 
-    public IFormat Format { get; private set; }
+    public IFormat BodyFormat { get; private set; }
 
     public Stream Body { get; private set; }
   }

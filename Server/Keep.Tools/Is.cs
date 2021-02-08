@@ -124,5 +124,17 @@ namespace Keep.Tools
     }
 
     public static bool Null(object graph) => graph == null || graph == DBNull.Value;
+
+    public static bool Primitive(object graph)
+    {
+      var type = graph as Type ?? graph?.GetType();
+      if (type == null)
+        return false;
+
+      if (type == typeof(Guid))
+        return true;
+
+      return Type.GetTypeCode(type) != TypeCode.Object;
+    }
   }
 }

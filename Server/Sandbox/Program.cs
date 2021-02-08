@@ -12,6 +12,7 @@ using System.IO;
 using Keep.Tools.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Keep.Paper.Design.Spec;
 
 namespace Mercadologic.Replicacao
 {
@@ -27,7 +28,7 @@ namespace Mercadologic.Replicacao
     public string Language { get; set; }
   }
 
-  public class LocalResponse : IResponse, IDisposable
+  public class LocalResponse : IOutput, IDisposable
   {
     private readonly MemoryStream memory;
 
@@ -38,7 +39,7 @@ namespace Mercadologic.Replicacao
 
     public AcceptedFormats AcceptedFormats { get; } = new AcceptedFormats();
 
-    public IFormat Format { get; } = new LocalFormat();
+    public IFormat BodyFormat { get; } = new LocalFormat();
 
     public Stream Body => memory;
 
@@ -60,7 +61,7 @@ namespace Mercadologic.Replicacao
     {
       var source = new Data
       {
-        Self = Ref.Create("Demo", "Sandbox", new { Id = 10 }),
+        Self = Ref.For<Data>("Demo.Sandbox", new { Id = 10 }),
         Properties = new
         {
           Id = 10,

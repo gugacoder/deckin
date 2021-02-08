@@ -142,5 +142,11 @@ namespace Keep.Tools
 
       return type.GetGenericArguments().First();
     }
+
+    public static Type Generic(object graph, int position = 0)
+    {
+      var type = graph is Type t ? t : graph?.GetType();
+      return type?.GetGenericArguments().ElementAt(position);
+    }
   }
 }

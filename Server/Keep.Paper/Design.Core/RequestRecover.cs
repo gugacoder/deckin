@@ -7,14 +7,15 @@ using System.Threading.Tasks;
 using Keep.Paper.Design.Serialization;
 using Keep.Tools;
 using Microsoft.AspNetCore.Http;
+using Keep.Paper.Design.Spec;
 
 namespace Keep.Paper.Design.Core
 {
-  public class DefaultRequestRecover
+  public class RequestRecover
   {
     private readonly HttpContext httpContext;
 
-    public DefaultRequestRecover(HttpContext httpContext)
+    public RequestRecover(HttpContext httpContext)
     {
       this.httpContext = httpContext;
     }

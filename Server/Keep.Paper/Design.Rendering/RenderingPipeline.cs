@@ -6,68 +6,45 @@ using System.Threading.Tasks;
 using Keep.Hosting.Extensions;
 using Keep.Tools;
 using Microsoft.AspNetCore.Http;
+using Keep.Paper.Design.Spec;
 
 namespace Keep.Paper.Design.Rendering
 {
   public class RenderingPipeline
   {
-    private readonly List<IDesignRenderer> renderers;
+    private readonly RendererCollection renderers;
 
-    public RenderingPipeline(IServiceProvider services)
+    public RenderingPipeline(RendererCollection renderers)
     {
-      this.renderers = new List<IDesignRenderer>();
-      ImportExposedRenderers(services);
-    }
-
-    private void ImportExposedRenderers(IServiceProvider services)
-    {
-      try
-      {
-        var types = ExposedTypes.GetTypes<IDesignRenderer>();
-        foreach (var type in types)
-        {
-          try
-          {
-            var renderer = (IDesignRenderer)services.Instantiate(type);
-            renderers.Add(renderer);
-          }
-          catch (Exception ex)
-          {
-            ex.Trace();
-          }
-        }
-      }
-      catch (Exception ex)
-      {
-        ex.Trace();
-      }
+      this.renderers = renderers;
     }
 
     public async Task RenderAsync(IDesignContext ctx, IRequest req,
-      IResponse res)
+      IOutput @out)
     {
       try
       {
         var chain = renderers.GetEnumerator();
 
         NextAsync next = null;
-        next = new NextAsync(async (ctx, req, res) =>
+        next = new NextAsync(async (ctx, req, @out) =>
         {
           if (!chain.MoveNext())
           {
-            await res.WriteAsync(Status.Create(StatusCodes.Status404NotFound,
-              "O recurso procurado não existe."));
+            await @out.WriteAsync(Response.For(StatusCodes.Status404NotFound));
             return;
           }
-          await chain.Current.RenderAsync(ctx, req, res, next);
+          await chain.Current.RenderAsync(ctx, req, @out, next);
         });
 
-        await next.Invoke(ctx, req, res);
+        await next.Invoke(ctx, req, @out);
       }
       catch (Exception ex)
       {
-        await res.WriteAsync(Status.Create(HttpStatusCode.InternalServerError,
-          ex.GetCauseMessage()));
+        await @out.WriteAsync(Response.For(
+          HttpStatusCode.InternalServerError,
+          ex.GetCauseMessages())
+        );
       }
     }
   }

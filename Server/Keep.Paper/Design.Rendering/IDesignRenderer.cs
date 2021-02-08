@@ -6,7 +6,7 @@ namespace Keep.Paper.Design.Rendering
 {
   public interface IDesignRenderer
   {
-    Task RenderAsync(IDesignContext ctx, IRequest req, IResponse res,
+    Task RenderAsync(IDesignContext ctx, IRequest req, IOutput @out,
       NextAsync next);
   }
 }

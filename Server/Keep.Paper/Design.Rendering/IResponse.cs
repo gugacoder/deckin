@@ -1,16 +1,21 @@
 ﻿using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
+using Keep.Paper.Design.Spec;
+using Keep.Tools.Collections;
 
 namespace Keep.Paper.Design.Rendering
 {
-  public interface IResponse
+  public interface IResponse : IDesign
   {
-    AcceptedFormats AcceptedFormats { get; }
+    bool? Ok { get; set; }
 
-    IFormat Format { get; }
+    IEntity Data { get; set; }
 
-    Stream Body { get; }
+    Collection<IEntity> Embedded { get; set; }
+
+    int? Code { get; set; }
+
+    string[] Messages { get; set; }
+
+    string Location { get; set; }
   }
 }

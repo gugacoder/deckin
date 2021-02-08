@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Keep.Paper.Design.Spec;
 
 namespace Keep.Paper.Design.Serialization
 {
