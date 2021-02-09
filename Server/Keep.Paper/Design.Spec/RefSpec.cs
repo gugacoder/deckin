@@ -52,7 +52,6 @@ namespace Keep.Paper.Design.Spec
     {
       var spec = new RefSpec();
 
-
       Type designType = null;
 
       var resultType = method.ReturnType;

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Keep.Paper.Design.Spec;
+using Newtonsoft.Json.Serialization;
 
 namespace Keep.Paper.Design.Serialization
 {
@@ -18,8 +19,13 @@ namespace Keep.Paper.Design.Serialization
       using var writer = new StreamWriter(output, encoding: Encoding.UTF8,
         leaveOpen: true);
       using var jsonWriter = new JsonTextWriter(writer);
+      
+      var serializer = new JsonSerializer
+      {
+        ContractResolver = new CamelCasePropertyNamesContractResolver()
+      };
 
-      var jObject = JObject.FromObject(@object);
+      var jObject = JObject.FromObject(@object, serializer);
       await jObject.WriteToAsync(jsonWriter, stopToken);
 
       await jsonWriter.FlushAsync();

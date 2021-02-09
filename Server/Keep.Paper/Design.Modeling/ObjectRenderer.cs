@@ -42,7 +42,7 @@ namespace Keep.Paper.Design.Modeling
       foreach (var entry in entries)
       {
         var spec = RefSpec.ExtractFrom(entry.Type, entry.Method);
-        Debug.WriteLine(spec);
+        Debug.WriteLine($"/Api/1/{spec}");
 
         spec.Keys = null;
 

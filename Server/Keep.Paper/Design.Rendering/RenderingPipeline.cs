@@ -31,7 +31,7 @@ namespace Keep.Paper.Design.Rendering
         {
           if (!chain.MoveNext())
           {
-            await @out.WriteAsync(Response.For(StatusCodes.Status404NotFound));
+            await @out.WriteAsync(Response.Err(StatusCodes.Status404NotFound));
             return;
           }
           await chain.Current.RenderAsync(ctx, req, @out, next);
@@ -41,7 +41,7 @@ namespace Keep.Paper.Design.Rendering
       }
       catch (Exception ex)
       {
-        await @out.WriteAsync(Response.For(
+        await @out.WriteAsync(Response.Err(
           HttpStatusCode.InternalServerError,
           ex.GetCauseMessages())
         );

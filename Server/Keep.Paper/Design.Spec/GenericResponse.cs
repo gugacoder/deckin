@@ -4,16 +4,16 @@ using Newtonsoft.Json;
 
 namespace Keep.Paper.Design.Spec
 {
-  public class GenericResponse<TData> : Response, IResponse, IDesign
-    where TData : IEntity
+  public class GenericResponse<T> : Response, IDesign
+    where T : IEntity
   {
-    private TData _data;
+    private T _data;
 
     [JsonProperty(Order = 200)]
     public override IEntity Data
     {
       get => _data;
-      set => _data = (TData)value;
+      set => _data = (T)value;
     }
   }
 }
