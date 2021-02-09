@@ -10,7 +10,7 @@ namespace Keep.Paper.Design.Rendering
   {
     public static void Normalize(this Response response)
     {
-      var entities = DescendantsAndSelf(response.Data);
+      var entities = DescendantsAndSelf(response.Entity);
       entities.ForEach(entity => entity.Self ??= Ref.ForLocalReference(entity));
       response.Embedded ??= new Collection<IEntity>();
       response.Embedded.AddMany(entities.Except(response.Embedded));

@@ -10,7 +10,7 @@ namespace Keep.Paper.Design.Spec
     private T _data;
 
     [JsonProperty(Order = 200)]
-    public override IEntity Data
+    public override IEntity Entity
     {
       get => _data;
       set => _data = (T)value;

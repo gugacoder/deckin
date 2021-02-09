@@ -8,7 +8,7 @@ namespace Keep.Paper.Design.Spec
   {
     string Status { get; set; }
 
-    IEntity Data { get; set; }
+    IEntity Entity { get; set; }
 
     Collection<IEntity> Embedded { get; set; }
 

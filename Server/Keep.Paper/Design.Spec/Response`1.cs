@@ -11,8 +11,8 @@ namespace Keep.Paper.Design.Spec
     [JsonProperty(Order = 200)]
     public new T Data
     {
-      get => (T)base.Data;
-      set => base.Data = value;
+      get => (T)base.Entity;
+      set => base.Entity = value;
     }
   }
 }

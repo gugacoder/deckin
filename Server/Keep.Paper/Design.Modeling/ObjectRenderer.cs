@@ -91,7 +91,7 @@ namespace Keep.Paper.Design.Modeling
         throw new NotSupportedException(
           $"Tipo de responta ainda não suportado: {design.GetType().FullName}");
 
-      response.Data.Self ??= req.Target;
+      response.Entity.Self ??= req.Target;
 
       await @out.WriteAsync(response);
     }

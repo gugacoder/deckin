@@ -20,7 +20,7 @@ namespace Keep.Paper.Design.Spec
       {
         if (_status != null) return _status;
         if (Error != null) return "error";
-        if (Data?.Self?.BaseType == nameof(Failure)) return "fail";
+        if (Entity?.Self?.BaseType == nameof(Failure)) return "fail";
         return "success";
       }
       set => _status = value;
@@ -28,7 +28,7 @@ namespace Keep.Paper.Design.Spec
 
     public ResponseError Error { get; set; }
 
-    public virtual IEntity Data { get; set; }
+    public virtual IEntity Entity { get; set; }
 
     public virtual Collection<IEntity> Embedded { get; set; }
 
@@ -40,7 +40,7 @@ namespace Keep.Paper.Design.Spec
         : Err(ret.Status.Code, CreateErrorMessages(ret.Fault.Message, ret.Fault.Exception));
 
     public static Response For(IEntity design)
-      => new Response { Data = design };
+      => new Response { Entity = design };
 
     public static Response<T> For<T>(T design)
       where T : IEntity
