@@ -6,6 +6,6 @@ namespace Keep.Paper.Design.Spec
 {
   public interface IResponse<T> : IDesign, IResponse
   {
-    new T Data { get; set; }
+    new T Entity { get; set; }
   }
 }

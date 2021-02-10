@@ -14,6 +14,8 @@ namespace Keep.Paper.Design.Rendering
     public static async Task WriteAsync(this IOutput @out, IResponse res,
       CancellationToken stopToken = default)
     {
+      res.Normalize();
+
       @out.BodyFormat.MimeType = "application/json";
       @out.BodyFormat.Charset = "UTF-8";
       @out.BodyFormat.Compression = null;

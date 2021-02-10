@@ -11,16 +11,16 @@ using Keep.Paper.Design.Spec;
 
 namespace Keep.Paper.Design.Core
 {
-  public class RequestRecover
+  public class RequestLoader
   {
     private readonly HttpContext httpContext;
 
-    public RequestRecover(HttpContext httpContext)
+    public RequestLoader(HttpContext httpContext)
     {
       this.httpContext = httpContext;
     }
 
-    public async Task<Ret<IRequest>> TryRecoverRequestAsync()
+    public async Task<Ret<IRequest>> TryLoadRequestAsync()
     {
       var req = httpContext.Request;
 

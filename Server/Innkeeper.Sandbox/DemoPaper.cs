@@ -16,26 +16,6 @@ namespace Innkeeper.Sandbox
   [Expose]
   public class DemoPaper : IPaperDesign
   {
-    public Response<Paper> GetPaper(Request request)
-      => Response.For(new Paper
-      {
-        DataSet = new DataSet
-        {
-          Data = new Collection<IRef<Data>>(
-            from id in Enumerable.Range(1, 10)
-            select new Data
-            {
-              Properties = new
-              {
-                Id = id,
-                Name = $"Data ID {id}"
-              }
-            }
-          )
-        },
-        Disposition = new Disposition.Grid()
-      });
-
     public Response<Data> GetData(Request request, int id)
       => Response.For(new Data
       {
@@ -46,20 +26,43 @@ namespace Innkeeper.Sandbox
         }
       });
 
-    public Response<DataSet> GetDataSet(Request request)
-      => Response.For(new DataSet
+    public Response<Data> GetDataSet(Request request)
+      => Response.For(new Data
       {
-        Data = new Collection<IRef<Data>>(
+        Self = "Data/DemoPaper.GetDataSet",
+        Subset = new Collection<IRef<Data>>(
           from id in Enumerable.Range(1, 10)
           select new Data
           {
+            Self = $"Data/DemoPaper.GetData(id={id})",
             Properties = new
             {
               Id = id,
               Name = $"Data ID {id}"
-            }
+            },
+            Subset = new Collection<IRef<Data>>(
+                from idx in Enumerable.Range(100, 3)
+                select new Data
+                {
+                  Properties = new
+                  {
+                    Id = idx,
+                    Name = $"Data ID {idx}"
+                  }
+                }
+              )
           }
         )
+      });
+
+    public Response<Paper> GetPaper(Request request)
+      => Response.For(new Paper
+      {
+        Data = new DataSet
+        {
+          Set = GetDataSet(request).Entity.Subset
+        },
+        Disposition = new Disposition.Grid()
       });
 
     public Response<Disposition.Card> GetCard(Request request)

@@ -11,6 +11,7 @@ namespace Keep.Paper.Design.Spec
   public abstract class Entity<T> : IEntity, IRef<T>
     where T : class, IEntity, IRef<T>
   {
+    [JsonProperty(Order = -1000)]
     public Ref<T> Self { get; set; }
 
     IRef IEntity.Self
@@ -36,9 +37,5 @@ namespace Keep.Paper.Design.Spec
       get => Self?.Args;
       set => (Self ??= new Ref<T>()).Args = value;
     }
-
-    IEnumerable<IEntity> IEntity.Children() => Children();
-
-    protected abstract IEnumerable<IEntity> Children();
   }
 }

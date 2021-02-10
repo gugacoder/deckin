@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -55,7 +56,7 @@ namespace Keep.Paper.Design.Modeling
     public async Task RenderAsync(IDesignContext ctx, IRequest req,
       IOutput @out, NextAsync next)
     {
-      var entry = catalog[req.Target];
+      var entry = catalog[req.Target.PathString];
       if (entry == null)
       {
         await next.Invoke(ctx, req, @out);
@@ -67,15 +68,36 @@ namespace Keep.Paper.Design.Modeling
 
       var form = req.Forms?.FirstOrDefault() ?? new Form();
 
-      var argTypes = method.GetParameters();
-      var args = new object[argTypes.Length];
+      var parameters = method.GetParameters();
+      var values = new object[parameters.Length];
 
-      for (int i = 0; i < argTypes.Length; i++)
+      var args = req.Target?.Args?.ToArray() ?? new KeyValuePair<string, string>[0];
+
+      for (int i = 0; i < parameters.Length; i++)
       {
-        var type = argTypes[i].ParameterType;
+        var name = parameters[i].Name;
+        var type = parameters[i].ParameterType;
         if (typeof(Form).IsAssignableFrom(type))
         {
-          args[i] = form;
+          values[i] = form;
+        }
+        else if (typeof(IRequest).IsAssignableFrom(type)
+          || typeof(Request).IsAssignableFrom(type))
+        {
+          values[i] = req;
+        }
+        else if (Is.Primitive(type))
+        {
+          object value = null;
+
+          var arg = args.FirstOrDefault(x => x.Key.EqualsAnyIgnoreCase(name));
+          if (arg.Key != null)
+          {
+            args = args.Except(arg).ToArray();
+            value = Change.To(arg.Value, type);
+          }
+
+          values[i] = Change.To(value, type);
         }
         else
         {
@@ -83,7 +105,7 @@ namespace Keep.Paper.Design.Modeling
         }
       }
 
-      var result = method.Invoke(instance, args);
+      var result = method.Invoke(instance, values);
       var design = (IDesign)result;
 
       var response = design as IResponse;

@@ -14,6 +14,7 @@ namespace Keep.Paper.Design.Spec
   {
     private string _status;
 
+    [JsonProperty(Order = 1000)]
     public virtual string Status
     {
       get
@@ -26,11 +27,14 @@ namespace Keep.Paper.Design.Spec
       set => _status = value;
     }
 
-    public ResponseError Error { get; set; }
-
+    [JsonProperty(Order = 2000)]
     public virtual IEntity Entity { get; set; }
 
+    [JsonProperty(Order = 3000)]
     public virtual Collection<IEntity> Embedded { get; set; }
+
+    [JsonProperty(Order = 4000)]
+    public ResponseError Error { get; set; }
 
     #region Fábricas
 
@@ -44,7 +48,7 @@ namespace Keep.Paper.Design.Spec
 
     public static Response<T> For<T>(T design)
       where T : IEntity
-      => new Response<T> { Data = design };
+      => new Response<T> { Entity = design };
 
     public static Response Err(int code, params string[] messages)
       => new Response

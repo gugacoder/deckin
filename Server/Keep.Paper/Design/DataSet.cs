@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Keep.Tools.Collections;
 using Keep.Paper.Design.Spec;
+using Keep.Tools.Collections;
+using Keep.Tools.Reflection;
+using Newtonsoft.Json;
 
 namespace Keep.Paper.Design
 {
   [BaseType]
   public class DataSet : Entity<DataSet>
   {
-    public Collection<IRef<Data>> Data { get; set; }
-
-    protected override IEnumerable<IEntity> Children() => Data.OfType<IEntity>();
+    [JsonProperty(Order = 1000)]
+    public Collection<IRef<Data>> Set { get; set; }
   }
 }

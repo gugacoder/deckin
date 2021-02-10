@@ -8,8 +8,8 @@ namespace Keep.Paper.Design.Spec
     IResponse, IResponse<T>, IDesign
     where T : IEntity
   {
-    [JsonProperty(Order = 200)]
-    public new T Data
+    [JsonProperty(Order = 2000)]
+    public new T Entity
     {
       get => (T)base.Entity;
       set => base.Entity = value;

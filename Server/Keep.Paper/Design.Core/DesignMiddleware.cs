@@ -22,9 +22,9 @@ namespace Keep.Paper.Design.Core
       var ctx = new DefaultContext();
       var @out = new DefaultOutput(httpContext);
 
-      var recover = new RequestRecover(httpContext);
+      var recover = new RequestLoader(httpContext);
 
-      var ret = await recover.TryRecoverRequestAsync();
+      var ret = await recover.TryLoadRequestAsync();
       var req = ret.Value;
 
       if (!ret.Ok)

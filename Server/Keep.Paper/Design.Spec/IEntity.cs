@@ -9,7 +9,5 @@ namespace Keep.Paper.Design.Spec
   public interface IEntity : IDesign
   {
     IRef Self { get; set; }
-
-    IEnumerable<IEntity> Children();
   }
 }

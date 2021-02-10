@@ -65,7 +65,9 @@ namespace Keep.Paper.Design.Spec
         }
       }
 
-      spec.BaseType = (designType != null) ? designType.Name : "?";
+      var attr = designType?._Attribute<BaseTypeAttribute>();
+
+      spec.BaseType = (designType != null) ? attr.Name ?? designType.Name : "?";
       spec.UserType = DesignAttribute.NameMethod(type, method);
 
       var parameterNames =

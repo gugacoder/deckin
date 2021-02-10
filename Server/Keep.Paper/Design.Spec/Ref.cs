@@ -19,14 +19,27 @@ namespace Keep.Paper.Design.Spec
 
     public StringMap Args { get; set; }
 
-    public override string ToString()
+    public string PathString
     {
-      var baseType = string.IsNullOrWhiteSpace(BaseType) ? "*" : BaseType.Trim();
-      var userType = string.IsNullOrWhiteSpace(UserType) ? "" : $"/{UserType.Trim()}";
-      var keys = Args?.Select(arg => $"{arg.Key}={arg.Value}");
-      var args = keys?.Any() == true ? $"({string.Join(";", keys)})" : "";
-      return $"{baseType}{userType}{args}";
+      get
+      {
+        var baseType = string.IsNullOrWhiteSpace(BaseType) ? "*" : BaseType.Trim();
+        var userType = string.IsNullOrWhiteSpace(UserType) ? "" : $"/{UserType.Trim()}";
+        return $"{baseType}{userType}";
+      }
     }
+
+    public string ArgsString
+    {
+      get
+      {
+        var keys = Args?.Select(arg => $"{arg.Key}={arg.Value}");
+        var args = keys?.Any() == true ? $"({string.Join(";", keys)})" : "";
+        return args;
+      }
+    }
+
+    public override string ToString() => $"{PathString}{ArgsString}";
 
     #region Conversões implícitas
 
@@ -40,24 +53,20 @@ namespace Keep.Paper.Design.Spec
 
     public static Ref ForLocalReference(IEntity entity)
     {
-      var map = new StringMap();
-      map.Add("#Ref", Guid.NewGuid().ToString("B"));
       return new Ref
       {
         BaseType = entity.GetType().Name,
-        Args = map
+        Args = new StringMap { { "#", SmallGuid.Generate() } }
       };
     }
 
     public static Ref<T> ForLocalReference<T>(T entity)
       where T : class, IEntity
     {
-      var map = new StringMap();
-      map.Add("#Ref", Guid.NewGuid().ToString("B"));
       return new Ref<T>
       {
         BaseType = entity.GetType().Name,
-        Args = map
+        Args = new StringMap { { "#", SmallGuid.Generate() } }
       };
     }
 
@@ -119,7 +128,9 @@ namespace Keep.Paper.Design.Spec
           from arg in argsPart.Split(';')
           where !string.IsNullOrEmpty(arg)
           let pair = arg.Split('=')
-          let key = pair.First().Trim()
+          let key = (pair.Length > 1)
+            ? pair.First().Trim()
+            : throw new NotImplementedException($"O parâmetro deveria ter a forma `chave=valor`: {arg}")
           let value = string.Join("=", pair.Skip(1).EmptyIfNull()).Trim()
           select KeyValuePair.Create(key, value)
         );
