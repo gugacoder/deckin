@@ -14,6 +14,6 @@ namespace Keep.Paper.Design
     public DataSet Data { get; set; }
 
     [JsonProperty(Order = 2000)]
-    public IRef<Disposition> Disposition { get; set; }
+    public IEntityRef<Disposition> Disposition { get; set; }
   }
 }

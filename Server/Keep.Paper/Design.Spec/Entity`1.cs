@@ -8,34 +8,36 @@ namespace Keep.Paper.Design.Spec
   [JsonObject(
       ItemNullValueHandling = NullValueHandling.Ignore,
       ItemReferenceLoopHandling = ReferenceLoopHandling.Ignore)]
-  public abstract class Entity<T> : IEntity, IRef<T>
-    where T : class, IEntity, IRef<T>
+  public abstract class Entity<T> : IEntity, IEntityRef, IEntityRef<T>
+    where T : class, IEntity
   {
-    [JsonProperty(Order = -1000)]
-    public Ref<T> Self { get; set; }
+    private string _type;
 
-    IRef IEntity.Self
+    [JsonProperty(Order = -3000)]
+    public string Type
+    {
+      get
+      {
+        if (_type == null)
+        {
+          var baseType = BaseTypeAttribute.GetBaseTypeOfEntity(GetType());
+          _type = baseType.Name;
+        }
+        return _type;
+      }
+      set => _type = value;
+    }
+
+    [JsonProperty(Order = -2000)]
+    public Ref Self { get; set; }
+
+    [JsonProperty(Order = -1000)]
+    public Collection<Link> Links { get; set; }
+
+    Ref IEntityRef.Ref
     {
       get => Self;
-      set => Self = value.CastTo<T>();
-    }
-
-    string IRef.BaseType
-    {
-      get => Self?.BaseType;
-      set => (Self ??= new Ref<T>()).BaseType = value;
-    }
-
-    string IRef.UserType
-    {
-      get => Self?.UserType;
-      set => (Self ??= new Ref<T>()).UserType = value;
-    }
-
-    StringMap IRef.Args
-    {
-      get => Self?.Args;
-      set => (Self ??= new Ref<T>()).Args = value;
+      set => Self = value;
     }
   }
 }

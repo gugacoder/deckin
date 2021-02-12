@@ -6,10 +6,8 @@ using Newtonsoft.Json;
 
 namespace Keep.Paper.Design.Spec
 {
-  public interface IEntity : IEntityRef, IDesign
+  public interface IEntity<T> : IEntity, IEntityRef, IEntityRef<T>, IDesign
+    where T : class, IEntity
   {
-    Ref Self { get; set; }
-
-    Collection<Link> Links { get; set; }
   }
 }

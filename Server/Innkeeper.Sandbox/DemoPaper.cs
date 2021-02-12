@@ -16,13 +16,38 @@ namespace Innkeeper.Sandbox
   [Expose]
   public class DemoPaper : IPaperDesign
   {
+    public Response<Perspective> GetPerspective(Request request, int id)
+      => Response.For(new Perspective());
+
     public Response<Data> GetData(Request request, int id)
       => Response.For(new Data
       {
+        Links = new Collection<Link>
+        {
+          new Link
+          {
+            Rel = RelNames.Perspective,
+            Ref = Ref.For(typeof(DemoPaper), nameof(GetPerspective))
+          }
+        },
         Properties = new
         {
           Id = id,
           Name = $"Data ID {id}"
+        },
+        Subset = new Collection<IEntityRef<Data>>
+        {
+          EntityRef.For<Data>("User", new { Id = 105, Login = "Tananana" }),
+          new Data
+          {
+            Self = Ref.For("User", new { Id = 105, Login = "Tananana" }),
+            Properties = new
+            {
+              Id = 105,
+              Login = "Tananana",
+              Name = "Fulano de Talz"
+            }
+          }
         }
       });
 
@@ -30,7 +55,7 @@ namespace Innkeeper.Sandbox
       => Response.For(new Data
       {
         Self = "Data/DemoPaper.GetDataSet",
-        Subset = new Collection<IRef<Data>>(
+        Subset = new Collection<IEntityRef<Data>>(
           from id in Enumerable.Range(1, 10)
           select new Data
           {
@@ -40,17 +65,17 @@ namespace Innkeeper.Sandbox
               Id = id,
               Name = $"Data ID {id}"
             },
-            Subset = new Collection<IRef<Data>>(
-                from idx in Enumerable.Range(100, 3)
-                select new Data
+            Subset = new Collection<IEntityRef<Data>>(
+              from idx in Enumerable.Range(100, 3)
+              select new Data
+              {
+                Properties = new
                 {
-                  Properties = new
-                  {
-                    Id = idx,
-                    Name = $"Data ID {idx}"
-                  }
+                  Id = idx,
+                  Name = $"Data ID {idx}"
                 }
-              )
+              }
+            )
           }
         )
       });

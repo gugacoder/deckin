@@ -61,12 +61,16 @@ namespace Mercadologic.Replicacao
     {
       var source = new Data
       {
-        Self = Ref.For<Data>("Demo.Sandbox", new { Id = 10 }),
+        Self = Ref.For("Demo.Sandbox", new { Id = 10 }),
         Properties = new
         {
           Id = 10,
           Name = "Tenth",
           Date = DateTime.Now
+        },
+        Subset = new Collection<IEntityRef<Data>>
+        {
+          EntityRef.For<Data>("User", new { Id = 105, Login = "Tananana" })
         }
       };
 

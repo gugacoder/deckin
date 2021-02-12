@@ -41,10 +41,7 @@ namespace Keep.Paper.Design.Rendering
       }
       catch (Exception ex)
       {
-        await @out.WriteAsync(Response.Err(
-          HttpStatusCode.InternalServerError,
-          ex.GetCauseMessages())
-        );
+        await @out.WriteAsync(Response.Err(ex));
       }
     }
   }

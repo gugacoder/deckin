@@ -9,7 +9,7 @@ namespace Keep.Paper.Design
   public abstract class Disposition : Entity<Disposition>
   {
     [JsonProperty(Order = 1000)]
-    public string Name => GetType().Name;
+    public string Blueprint => GetType().Name;
 
     public class Card : Disposition
     {

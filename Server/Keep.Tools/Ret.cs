@@ -45,8 +45,8 @@ namespace Keep.Tools
 
     public static implicit operator Ret(Exception exception)
     {
+      exception.Trace();
       return new Ret
-
       {
         Status = new RetStatus
         {

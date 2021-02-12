@@ -11,35 +11,18 @@ using Newtonsoft.Json;
 namespace Keep.Paper.Design.Spec
 {
   [JsonConverter(typeof(RefConverter))]
-  public class Ref : IRef
+  public class Ref
   {
-    public string BaseType { get; set; }
-
     public string UserType { get; set; }
 
     public StringMap Args { get; set; }
 
-    public string PathString
+    public override string ToString()
     {
-      get
-      {
-        var baseType = string.IsNullOrWhiteSpace(BaseType) ? "*" : BaseType.Trim();
-        var userType = string.IsNullOrWhiteSpace(UserType) ? "" : $"/{UserType.Trim()}";
-        return $"{baseType}{userType}";
-      }
+      var keys = Args?.Select(arg => $"{arg.Key}={arg.Value}");
+      var args = keys?.Any() == true ? $"({string.Join(";", keys)})" : "";
+      return $"{UserType}{args}";
     }
-
-    public string ArgsString
-    {
-      get
-      {
-        var keys = Args?.Select(arg => $"{arg.Key}={arg.Value}");
-        var args = keys?.Any() == true ? $"({string.Join(";", keys)})" : "";
-        return args;
-      }
-    }
-
-    public override string ToString() => $"{PathString}{ArgsString}";
 
     #region Conversões implícitas
 
@@ -51,26 +34,10 @@ namespace Keep.Paper.Design.Spec
 
     #region Fábricas
 
-    public static Ref ForLocalReference(IEntity entity)
-    {
-      return new Ref
-      {
-        BaseType = entity.GetType().Name,
-        Args = new StringMap { { "#", SmallGuid.Generate() } }
-      };
-    }
+    public static Ref For(string userType, StringMap args)
+      => new Ref { UserType = userType, Args = args ?? new StringMap() };
 
-    public static Ref<T> ForLocalReference<T>(T entity)
-      where T : class, IEntity
-    {
-      return new Ref<T>
-      {
-        BaseType = entity.GetType().Name,
-        Args = new StringMap { { "#", SmallGuid.Generate() } }
-      };
-    }
-
-    public static Ref For(string baseType, string userType, object args = null)
+    public static Ref For(string userType, object args = null)
     {
       var map = new StringMap();
       if (args != null)
@@ -82,29 +49,28 @@ namespace Keep.Paper.Design.Spec
       }
       return new Ref
       {
-        BaseType = baseType,
         UserType = userType,
         Args = map
       };
     }
 
-    public static Ref<T> For<T>(string userType, object args = null)
-      where T : class, IEntity
-      => For(typeof(T).Name, userType, args).CastTo<T>();
+    public static Ref For(Type userType, string method, StringMap args)
+      => For(DesignAttribute.NameMethod(userType, method), args);
 
-    public static Ref For(string baseType, string userType, StringMap args)
-    {
-      return new Ref
-      {
-        BaseType = baseType,
-        UserType = userType,
-        Args = args ?? new StringMap()
-      };
-    }
+    public static Ref For(Type userType, string method, object args = null)
+      => For(DesignAttribute.NameMethod(userType, method), args);
 
-    public static Ref<T> For<T>(string userType, StringMap args)
-      where T : class, IEntity
-      => For(typeof(T).Name, userType, args).CastTo<T>();
+    public static Ref For(Type userType, MethodInfo method, StringMap args)
+      => For(DesignAttribute.NameMethod(userType, method), args);
+
+    public static Ref For(Type userType, MethodInfo method, object args = null)
+      => For(DesignAttribute.NameMethod(userType, method), args);
+
+    public static Ref For(MethodInfo method, StringMap args)
+      => For(DesignAttribute.NameMethod(method), args);
+
+    public static Ref For(MethodInfo method, object args = null)
+      => For(DesignAttribute.NameMethod(method), args);
 
     #endregion
 
@@ -117,12 +83,8 @@ namespace Keep.Paper.Design.Spec
         if (path == null) return null;
 
         var tokens = path.Split('(', ')').NotNullOrEmpty();
-        var typePart = tokens.First();
+        var typePart = tokens.First().Replace("/", "");
         var argsPart = tokens.Skip(1).FirstOrDefault() ?? "";
-
-        var parts = typePart.Split('/').NotNullOrEmpty().ToArray();
-        var type = parts.First();
-        var subType = parts.Length > 1 ? string.Join("/", parts.Skip(1)) : null;
 
         var args = new StringMap(
           from arg in argsPart.Split(';')
@@ -137,8 +99,7 @@ namespace Keep.Paper.Design.Spec
 
         return new Ref
         {
-          BaseType = type,
-          UserType = subType,
+          UserType = typePart,
           Args = args
         };
       }
@@ -148,10 +109,6 @@ namespace Keep.Paper.Design.Spec
           $"O caminho é inválido para identificar uma ação: {path}", ex);
       }
     }
-
-    public static Ref<T> Parse<T>(string path)
-      where T : class, IEntity
-      => Parse(path).CastTo<T>();
 
     public static bool TryParse(string path, out Ref @ref)
     {
@@ -165,14 +122,6 @@ namespace Keep.Paper.Design.Spec
         @ref = null;
         return false;
       }
-    }
-
-    public static bool TryParse<T>(string path, out Ref<T> @ref)
-      where T : class, IEntity
-    {
-      var ok = TryParse(path, out Ref<T> @parsed);
-      @ref  = @parsed.CastTo<T>();
-      return ok;
     }
 
     #endregion

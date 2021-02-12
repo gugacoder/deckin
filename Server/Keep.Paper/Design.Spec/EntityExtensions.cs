@@ -15,8 +15,8 @@ namespace Keep.Paper.Design.Spec
         from property in entity.GetType().GetProperties()
         let propType = property.PropertyType
         let itemType = TypeOf.CollectionElement(property.PropertyType)
-        where typeof(IRef).IsAssignableFrom(propType)
-           || typeof(IRef).IsAssignableFrom(itemType)
+        where typeof(IEntityRef).IsAssignableFrom(propType)
+           || typeof(IEntityRef).IsAssignableFrom(itemType)
         let value = property.GetValue(entity)
         let entities =
           value is ICollection collection

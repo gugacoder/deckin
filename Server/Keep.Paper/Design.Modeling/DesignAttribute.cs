@@ -48,5 +48,8 @@ namespace Keep.Paper.Design.Modeling
 
       return userType;
     }
+
+    public static string NameMethod(Type type, string method)
+      => NameMethod(type, type.GetMethod(method));
   }
 }

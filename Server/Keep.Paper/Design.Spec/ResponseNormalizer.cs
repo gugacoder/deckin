@@ -23,16 +23,14 @@ namespace Keep.Paper.Design.Spec
         .Union(response.Entity.DescendantsAndSelf())
         .ToArray();
 
-      //entities.ForEach(child => child.Self ??= Ref.ForLocalReference(child));
-
       foreach (var entity in entities)
       {
         var properties =
           from property in entity.GetType().GetProperties()
           let propType = property.PropertyType
           let itemType = TypeOf.CollectionElement(property.PropertyType)
-          where typeof(IRef).IsAssignableFrom(propType)
-             || typeof(IRef).IsAssignableFrom(itemType)
+          where typeof(IEntityRef).IsAssignableFrom(propType)
+             || typeof(IEntityRef).IsAssignableFrom(itemType)
           select property;
 
         foreach (var property in properties)
@@ -42,7 +40,7 @@ namespace Keep.Paper.Design.Spec
           {
             if (child.Self != null)
             {
-              IRef @ref = child.Self.CastTo(property.PropertyType);
+              IEntityRef @ref = child.CastEntityRefTo(property.PropertyType);
               property.SetValue(entity, @ref);
               embedded.Add(child.Self.ToString(), child);
             }
@@ -54,7 +52,7 @@ namespace Keep.Paper.Design.Spec
             {
               if (collection[i] is IEntity item && item.Self != null)
               {
-                IRef @ref = item.Self.CastTo(elementType);
+                IEntityRef @ref = item.CastEntityRefTo(elementType);
                 collection[i] = @ref;
                 embedded.Add(item.Self.ToString(), item);
               }

@@ -18,7 +18,7 @@ namespace Keep.Tools
       }
     }
 
-    public static void Debug(this Exception exception, string message = null)
+    public static Exception Debug(this Exception exception, string message = null)
     {
       try
       {
@@ -33,9 +33,10 @@ namespace Keep.Tools
       {
         Dump(exception, ex);
       }
+      return exception;
     }
 
-    public static void Trace(this Exception exception)
+    public static Exception Trace(this Exception exception)
     {
       try
       {
@@ -46,9 +47,10 @@ namespace Keep.Tools
       {
         Dump(exception, ex);
       }
+      return exception;
     }
 
-    public static void TraceWarning(this Exception exception)
+    public static Exception TraceWarning(this Exception exception)
     {
       var pilha = GetStackTrace(exception);
       try
@@ -59,9 +61,10 @@ namespace Keep.Tools
       {
         Dump(exception, ex);
       }
+      return exception;
     }
 
-    public static void Trace(this Exception exception, string mensagem)
+    public static Exception Trace(this Exception exception, string mensagem)
     {
       var pilha = GetStackTrace(exception);
       try
@@ -72,14 +75,16 @@ namespace Keep.Tools
       {
         Dump(exception, ex);
       }
+      return exception;
     }
 
-    public static void Trace(this Exception exception, string formato, params object[] args)
+    public static Exception Trace(this Exception exception, string formato, params object[] args)
     {
       Trace(exception, string.Format(formato, args));
+      return exception;
     }
 
-    public static void TraceWarning(this Exception exception, string mensagem)
+    public static Exception TraceWarning(this Exception exception, string mensagem)
     {
       try
       {
@@ -90,22 +95,25 @@ namespace Keep.Tools
       {
         Dump(exception, ex);
       }
+      return exception;
     }
 
-    public static void TraceWarning(this Exception exception, string formato, params object[] args)
+    public static Exception TraceWarning(this Exception exception, string formato, params object[] args)
     {
       TraceWarning(exception, string.Format(formato, args));
+      return exception;
     }
 
-    public static void Trace(this Exception exception, Stream saida)
+    public static Exception Trace(this Exception exception, Stream saida)
     {
       using (var gravador = new StreamWriter(saida))
       {
         Trace(exception, gravador);
       }
+      return exception;
     }
 
-    public static void Trace(this Exception exception, TextWriter saida)
+    public static Exception Trace(this Exception exception, TextWriter saida)
     {
       saida.Write("fault ");
       Exception ex = exception;
@@ -131,6 +139,7 @@ namespace Keep.Tools
           saida.Write("cause ");
         }
       } while (ex != null);
+      return exception;
     }
 
     public static Exception[] GetCauses(this Exception exception)

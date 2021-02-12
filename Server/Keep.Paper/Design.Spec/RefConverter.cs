@@ -7,20 +7,14 @@ namespace Keep.Paper.Design.Spec
   {
     public override bool CanConvert(Type objectType)
     {
-      return typeof(IRef).IsAssignableFrom(objectType);
+      return typeof(Ref).IsAssignableFrom(objectType);
     }
 
     public override object ReadJson(JsonReader reader, Type objectType,
       object existingValue, JsonSerializer serializer)
     {
       var value = (string)reader.Value;
-      IRef @ref = Ref.Parse(value);
-
-      if (!objectType.IsAssignableFrom(@ref.GetType()))
-      {
-        @ref = @ref.CastTo(objectType);
-      }
-
+      Ref @ref = Ref.Parse(value);
       return @ref;
     }
 
