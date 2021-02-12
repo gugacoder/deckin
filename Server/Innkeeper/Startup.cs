@@ -24,6 +24,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Keep.Hosting.Runtime.Core;
 using Keep.Hosting.Modules.SqlJobs;
+using Innkeeper.Sandbox;
 
 namespace Innkeeper
 {

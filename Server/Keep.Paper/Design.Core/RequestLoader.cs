@@ -27,7 +27,8 @@ namespace Keep.Paper.Design.Core
       Ref target;
       try
       {
-        target = Ref.Parse(req.Path.Value);
+        var path = req.Path.Value.Replace(DesignController.Prefix, "");
+        target = Ref.Parse(path);
       }
       catch (Exception ex)
       {

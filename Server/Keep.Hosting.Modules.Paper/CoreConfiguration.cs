@@ -16,15 +16,16 @@ namespace Keep.Hosting.Modules.SqlJobs
     public static void AddInnkeeperPaper(this IServiceCollection services)
     {
       services.AddSingleton<RendererCollection>();
-      services.AddSingleton<DesignMiddleware>();
+      services
+        .AddMvc()
+        .AddApplicationPart(typeof(DesignController).Assembly)
+        .AddControllersAsServices();
     }
 
     public static void UseInnkeeperPaper(this IApplicationBuilder app)
     {
       // Forçando a inicialização dos renderizadores...
       app.ApplicationServices.GetService<RendererCollection>();
-
-      app.Map("/Api/1", app => app.UseMiddleware<DesignMiddleware>());
     }
   }
 }

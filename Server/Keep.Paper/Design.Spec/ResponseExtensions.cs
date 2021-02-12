@@ -10,7 +10,11 @@ namespace Keep.Paper.Design.Spec
 {
   public static class ResponseExtensions
   {
-    public static void Normalize(this IResponse response)
-      => new ResponseNormalizer().Normalize(response);
+    public static IResponse Normalize(this IResponse response)
+    {
+      var normalizer = new ResponseNormalizer();
+      normalizer.Normalize(response);
+      return response;
+    }
   }
 }

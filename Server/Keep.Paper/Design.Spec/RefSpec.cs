@@ -73,7 +73,7 @@ namespace Keep.Paper.Design.Spec
       var parameterNames =
         from parameter in method.GetParameters()
         where Is.Primitive(parameter.ParameterType)
-        select parameter.Name;
+        select parameter.Name.ToPascalCase();
 
       spec.Keys = parameterNames.ToCollection();
 

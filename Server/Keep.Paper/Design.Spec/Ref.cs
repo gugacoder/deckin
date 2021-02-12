@@ -132,7 +132,7 @@ namespace Keep.Paper.Design.Spec
             ? pair.First().Trim()
             : throw new NotImplementedException($"O parâmetro deveria ter a forma `chave=valor`: {arg}")
           let value = string.Join("=", pair.Skip(1).EmptyIfNull()).Trim()
-          select KeyValuePair.Create(key, value)
+          select KeyValuePair.Create(key.ToPascalCase(), value)
         );
 
         return new Ref
