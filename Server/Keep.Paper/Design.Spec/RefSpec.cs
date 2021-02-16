@@ -35,7 +35,7 @@ namespace Keep.Paper.Design.Spec
     {
       return new RefSpec
       {
-        UserType = @ref.UserType,
+        UserType = @ref.Path,
         Keys = new Collection<string>(@ref.Args.Keys ?? Enumerable.Empty<string>())
       };
     }

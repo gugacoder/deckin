@@ -1,18 +1,15 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
-import { entities } from './entities/index';
-import { RootState } from './types';
+import Vue from 'vue'
+import Vuex from 'vuex'
+import { State } from '../typings'
+import { InitialState } from './initialState'
 
-Vue.use(Vuex);
+Vue.use(Vuex)
 
-export default new Vuex.Store<RootState>({
-  state: {
-  },
-  modules: {
-    entities,
-  },
-  mutations: {
-  },
-  actions: {
-  },
+export default new Vuex.Store<State>({
+  state: InitialState,
+  /*
+  modules: {},
+  mutations: {},  
+  actions: {},
+  */
 });

@@ -56,7 +56,7 @@ namespace Keep.Paper.Design.Modeling
     public async Task RenderAsync(IDesignContext ctx, IRequest req,
       IOutput @out, NextAsync next)
     {
-      var entry = catalog[req.Target.UserType];
+      var entry = catalog[req.Target.Path];
       if (entry == null)
       {
         await next.Invoke(ctx, req, @out);

@@ -13,7 +13,7 @@ namespace Keep.Paper.Design.Spec
   [JsonConverter(typeof(RefConverter))]
   public class Ref
   {
-    public string UserType { get; set; }
+    public string Path { get; set; }
 
     public StringMap Args { get; set; }
 
@@ -21,7 +21,7 @@ namespace Keep.Paper.Design.Spec
     {
       var keys = Args?.Select(arg => $"{arg.Key}={arg.Value}");
       var args = keys?.Any() == true ? $"({string.Join(";", keys)})" : "";
-      return $"{UserType}{args}";
+      return $"{Path}{args}";
     }
 
     #region Conversões implícitas
@@ -34,10 +34,10 @@ namespace Keep.Paper.Design.Spec
 
     #region Fábricas
 
-    public static Ref For(string userType, StringMap args)
-      => new Ref { UserType = userType, Args = args ?? new StringMap() };
+    public static Ref For(string path, StringMap args)
+      => new Ref { Path = path, Args = args ?? new StringMap() };
 
-    public static Ref For(string userType, object args = null)
+    public static Ref For(string path, object args = null)
     {
       var map = new StringMap();
       if (args != null)
@@ -49,22 +49,22 @@ namespace Keep.Paper.Design.Spec
       }
       return new Ref
       {
-        UserType = userType,
+        Path = path,
         Args = map
       };
     }
 
-    public static Ref For(Type userType, string method, StringMap args)
-      => For(DesignAttribute.NameMethod(userType, method), args);
+    public static Ref For(Type path, string method, StringMap args)
+      => For(DesignAttribute.NameMethod(path, method), args);
 
-    public static Ref For(Type userType, string method, object args = null)
-      => For(DesignAttribute.NameMethod(userType, method), args);
+    public static Ref For(Type path, string method, object args = null)
+      => For(DesignAttribute.NameMethod(path, method), args);
 
-    public static Ref For(Type userType, MethodInfo method, StringMap args)
-      => For(DesignAttribute.NameMethod(userType, method), args);
+    public static Ref For(Type path, MethodInfo method, StringMap args)
+      => For(DesignAttribute.NameMethod(path, method), args);
 
-    public static Ref For(Type userType, MethodInfo method, object args = null)
-      => For(DesignAttribute.NameMethod(userType, method), args);
+    public static Ref For(Type path, MethodInfo method, object args = null)
+      => For(DesignAttribute.NameMethod(path, method), args);
 
     public static Ref For(MethodInfo method, StringMap args)
       => For(DesignAttribute.NameMethod(method), args);
@@ -99,7 +99,7 @@ namespace Keep.Paper.Design.Spec
 
         return new Ref
         {
-          UserType = typePart,
+          Path = typePart,
           Args = args
         };
       }

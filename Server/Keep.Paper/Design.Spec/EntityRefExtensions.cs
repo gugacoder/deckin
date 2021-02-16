@@ -28,7 +28,7 @@ namespace Keep.Paper.Design.Spec
     {
       target.Ref = new Ref
       {
-        UserType = source.Ref?.UserType,
+        Path = source.Ref?.Path,
         Args = source.Ref?.Args
       };
     }
