@@ -5,25 +5,25 @@ using Newtonsoft.Json;
 
 namespace Keep.Paper.Design
 {
-  [BaseType]
-  public abstract class Disposition : Entity<Disposition>
+  public abstract class Blueprint : Entity<Blueprint>
   {
-    [JsonProperty(Order = 1000)]
-    public string Blueprint => GetType().Name;
-
-    public class Card : Disposition
+    [BaseType]
+    public class Card : Blueprint
     {
     }
 
-    public class Edit : Disposition
+    [BaseType]
+    public class Edit : Blueprint
     {
     }
 
-    public class Grid : Disposition
+    [BaseType]
+    public class Grid : Blueprint
     {
     }
 
-    public class List : Disposition
+    [BaseType]
+    public class List : Blueprint
     {
     }
   }

@@ -13,3 +13,6 @@ new Vue({
   vuetify,
   render: h => h(App)
 }).$mount('#app')
+
+import { sandbox } from './sandbox'
+sandbox()

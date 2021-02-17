@@ -12,6 +12,6 @@ namespace Keep.Paper.Design
   public class DataSet : Entity<DataSet>
   {
     [JsonProperty(Order = 1000)]
-    public Collection<IEntityRef<Data>> Set { get; set; }
+    public Collection<IEntityRef<Data>> Subset { get; set; }
   }
 }

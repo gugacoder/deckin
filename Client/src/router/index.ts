@@ -1,7 +1,8 @@
 import Vue from 'vue'
 import VueRouter, { RouteConfig } from 'vue-router'
-import Paper from '../views/Paper.vue'
-import NotFound from '../views/NotFound.vue'
+import Paper from '@/views/Paper.vue'
+import NotFound from '@/views/NotFound.vue'
+import Splash from '@/views/Splash.vue'
 
 Vue.use(VueRouter)
 
@@ -9,10 +10,15 @@ const routes: Array<RouteConfig> = [
   {
     path: '/',
     name: 'Index',
-    redirect: '/!/App/Home'
+    redirect: '/!'
   },
   {
-    path: '/!/:workspace/:paper',
+    path: '/!',
+    name: 'Splash',
+    component: Splash,
+  },
+  {
+    path: '/!/:paper',
     name: 'Paper',
     component: Paper,
     props: true

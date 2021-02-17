@@ -1,15 +1,13 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { State } from '../typings'
-import { InitialState } from './initialState'
+import { RootState } from '@/typings'
+import { initialState } from '@/store/initial-state'
 
 Vue.use(Vuex)
 
-export default new Vuex.Store<State>({
-  state: InitialState,
-  /*
+export default new Vuex.Store<RootState>({
+  state: initialState,
   modules: {},
   mutations: {},  
   actions: {},
-  */
 });

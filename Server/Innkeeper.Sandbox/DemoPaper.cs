@@ -83,23 +83,23 @@ namespace Innkeeper.Sandbox
     public Response<Paper> GetPaper(Request request)
       => Response.For(new Paper
       {
-        Data = new DataSet
+        DataSet = new DataSet
         {
-          Set = GetDataSet(request).Entity.Subset
+          Subset = GetDataSet(request).Entity.Subset
         },
-        Disposition = new Disposition.Grid()
+        Disposition = new Blueprint.Grid()
       });
 
-    public Response<Disposition.Card> GetCard(Request request)
-      => Response.For(new Disposition.Card());
+    public Response<Blueprint.Card> GetCard(Request request)
+      => Response.For(new Blueprint.Card());
 
-    public Response<Disposition.Edit> GetEdit(Request request)
-      => Response.For(new Disposition.Edit());
+    public Response<Blueprint.Edit> GetEdit(Request request)
+      => Response.For(new Blueprint.Edit());
 
-    public Response<Disposition.List> GetList(Request request)
-      => Response.For(new Disposition.List());
+    public Response<Blueprint.List> GetList(Request request)
+      => Response.For(new Blueprint.List());
 
-    public Response<Disposition.Grid> GetGrid(Request request)
-      => Response.For(new Disposition.Grid());
+    public Response<Blueprint.Grid> GetGrid(Request request)
+      => Response.For(new Blueprint.Grid());
   }
 }

@@ -1,5 +1,5 @@
 <template lang="pug">
-v-container.paper
+v-container(:class="name")
   v-row.text-center
     v-col(cols="12")
       v-col.mb-4
@@ -12,13 +12,19 @@ v-container.paper
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from "vue-property-decorator";
+import TypedVue from '@/typed-vue'
+import { Component, Prop } from "vue-property-decorator";
+// import { browser } from '@/browser'
 
 @Component
-export default class Paper extends Vue {
-  name = "Paper";
+export default class Paper extends TypedVue {
+  name = "splash";
 
   @Prop()
   private paper!: string;
+
+  mounted() {
+    //this.$store.getters
+  }
 }
 </script>
